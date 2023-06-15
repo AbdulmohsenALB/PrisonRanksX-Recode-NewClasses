@@ -1,0 +1,99 @@
+# Available click actions:
+# ==============================
+# [switch-page] +<number>/-<number>
+# - Example: "[switch-page] +1"
+# - Goes to the next page or the previous page
+# [go-to-page] <number>
+# - Goes to a specific page
+# [close]
+# - closes the GUI
+# [console] <command>
+# - executes a command as a console
+# [player] <command>
+# - executes a command as a player
+# [update-title] <title>
+# - updates GUI title to the specified title
+# ==============================
+Global:
+   next-page-item:
+     slot: 45
+     material: PAPER
+     amount: 1
+     data: 0
+     name: "&eNext Page &f>>"
+     click-actions: 
+     - "[switch-page] +1"
+     - "[update-title] &6Ranks"
+   previous-page-item:
+     slot: 43
+     material: PAPER
+     name: "&f<< &ePrevious Page"
+     click-actions: 
+     - "[switch-page] -1"
+     - "[update-title] &6Ranks"
+   # This section can be removed if you don't want to fill the gui with anything
+   filler:
+     slot: 44
+     material: STAINED_GLASS_PANE
+     click-actions:
+     - "[console] say %player% is clicking uselessly on a decoration item"
+     - "[close]"
+# Available placeholders:
+# ==============================
+# %player%, %rank%, %rank_display%, %rank_cost%, %rank_cost_formatted%, and PlaceholderAPI placeholders.
+# ==============================
+Ranks:
+  title: "&6Ranks"
+  size: 54
+  current-item:
+    material: STAINED_GLASS_PANE
+    data: 11
+    name: "%rank_display%"
+    lore:
+    - '&aYour current rank!'
+    - '&7&m                       &r'
+    - '&bClick to warp!'
+    enchantments:
+    - 'durability 1'
+    flags:
+    - 'hide_enchants'
+    click-actions:
+    - "[player] warp %rank%"
+    - "[close]"
+    # Make it so a chosen rank have different settings than the ones written above.
+    # Every setting can be modified. This section can be removed if no special item is wanted. Also, it can be used for the other items (completed and other).
+    special:
+      B:
+        # Will show this item lore instead of the 'Your current rank!' one. This will replace it entirely, meaning the lines that come underneath 'Your current rank!' will also be gone and replaced with just this single line or the lines that you put.
+        lore:
+        - "&fYour rank is &aB&f!"
+      C:
+        name: "Rank C"
+        lore:
+        - "This is the rank C"
+        - "This is the rank C!!!"
+  completed-item:
+    material: STAINED_GLASS_PANE
+    data: 5
+    name: "%rank_display%"
+    lore:
+    - '&bCOMPLETED'
+    - '&7&m                       &r'
+    - '&bCost: &7&m%rank_cost_formatted%'
+    - '&bClick to warp!'
+    enchantments:
+    - 'durability 1'
+    flags:
+    - 'hide_enchants'
+    click-actions:
+    - "[player] warp %rank%"
+    - "[close]"
+  other-item:
+    material: STAINED_GLASS_PANE
+    data: 14
+    name: "%rank_display%"
+    lore:
+    - '&cCost: &3%rank_cost_formatted%'
+    - '&cProgress: &3%prisonranksx_rankup_progress_cumulative_%rank_name%%'
+    - '&cReward:'
+    - '&e1x Rankup Key'
