@@ -13,7 +13,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.RegisteredServiceProvider;
@@ -303,7 +303,7 @@ public class EZLuckPerms {
 
 	/**
 	 * 
-	 * @param InheritanceNode the group node to search for
+	 * @param inheritanceNode the group node to search for
 	 * @param trackName       track to search in
 	 * @return whether the group is found within a track or not
 	 */

@@ -5,20 +5,29 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
-import javax.annotation.Nullable;
-
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.Nullable;
+
+import com.google.common.collect.Sets;
 
 import me.prisonranksx.components.RequirementsComponent.RequirementEvaluationResult;
 import me.prisonranksx.events.RankUpdateCause;
+import me.prisonranksx.holders.Level;
 import me.prisonranksx.holders.Rank;
 import me.prisonranksx.holders.User;
 import me.prisonranksx.reflections.UniqueId;
 
-public interface RankupExecutor {
+public interface RankupExecutor extends PromotionExecutor {
 
 	static final Set<UUID> AUTO_RANKUP_PLAYERS = new HashSet<>();
 
+	static final Set<UUID> MAX_RANKUP_PLAYERS = Sets.newConcurrentHashSet();
+
+	final Set<UUID> MAX_RANKUP_BREAKER = Sets.newConcurrentHashSet();
+
+	/**
+	 * @return players who have their auto rankup enabled
+	 */
 	public static Set<UUID> getAutoRankupPlayers() {
 		return AUTO_RANKUP_PLAYERS;
 	}
@@ -38,6 +47,47 @@ public interface RankupExecutor {
 		return AUTO_RANKUP_PLAYERS.contains(UniqueId.getUUID(player));
 	}
 
+	public static boolean isMaxRankup(Player player) {
+		return MAX_RANKUP_PLAYERS.contains(UniqueId.getUUID(player));
+	}
+
+	public static boolean isMaxRankup(UUID uniqueId) {
+		return MAX_RANKUP_PLAYERS.contains(uniqueId);
+	}
+
+	public static void addMaxRankupPlayer(Player player) {
+		MAX_RANKUP_PLAYERS.add(UniqueId.getUUID(player));
+	}
+
+	public static void addMaxRankupPlayer(UUID uniqueId) {
+		MAX_RANKUP_PLAYERS.add(uniqueId);
+	}
+
+	public static void removeMaxRankupPlayer(Player player) {
+		MAX_RANKUP_PLAYERS.remove(UniqueId.getUUID(player));
+	}
+
+	public static void removeMaxRankupPlayer(UUID uniqueId) {
+		MAX_RANKUP_PLAYERS.remove(uniqueId);
+	}
+
+	public default void breakMaxRankup(UUID uniqueId) {
+		MAX_RANKUP_BREAKER.add(uniqueId);
+		MAX_RANKUP_PLAYERS.remove(uniqueId);
+	}
+
+	public default boolean finishBreakMaxRankup(UUID uniqueId) {
+		return MAX_RANKUP_BREAKER.remove(uniqueId);
+	}
+
+	public default boolean finishBreakMaxRankup(Player player) {
+		return MAX_RANKUP_BREAKER.remove(UniqueId.getUUID(player));
+	}
+
+	/**
+	 * Stores variables of a rankup that are needed for components to be executed,
+	 * such as: rank object and cost
+	 */
 	public enum RankupResult {
 
 		FAIL_NO_PERMISSION(false),
@@ -128,7 +178,7 @@ public interface RankupExecutor {
 	 * <li>Balance
 	 * <li>PlaceholderAPI string and number requirements
 	 * </ul>
-	 * 
+	 *
 	 * @param player check if specified player can rankup or not
 	 * @return RankupResult with the reason of rankup failure or success
 	 */
@@ -143,22 +193,22 @@ public interface RankupExecutor {
 	 * <li>Balance
 	 * <li>PlaceholderAPI string and number requirements
 	 * </ul>
-	 * 
+	 *
 	 * @param player  check if specified player can rankup or not
-	 * @param balance balance to check
+	 * @param balance balance to check, if balance is set to -1 then all checks will
+	 *                be skipped except for last rank check. This was made for force
+	 *                rankup.
 	 * @return RankupResult with the reason of rankup failure or success
 	 */
 	RankupResult canRankup(Player player, double balance);
 
 	/**
-	 * 
 	 * @param player player to toggle auto rankup for
 	 * @return new state
 	 */
 	boolean toggleAutoRankup(Player player);
 
 	/**
-	 * 
 	 * @param player player to toggle auto rankup for
 	 * @param enable forcefully enable / disable regardless of player auto rankup
 	 *               state
@@ -167,14 +217,12 @@ public interface RankupExecutor {
 	boolean toggleAutoRankup(Player player, boolean enable);
 
 	/**
-	 * 
 	 * @param player player to check auto rankup state for
 	 * @return whether auto rankup is enabled or not
 	 */
 	boolean isAutoRankupEnabled(Player player);
 
 	/**
-	 * 
 	 * @param player player to promote to the next rank
 	 * @return RankupResult that notifies you of the outcome of the promotion,
 	 *         whether it failed or succeeded
@@ -182,7 +230,6 @@ public interface RankupExecutor {
 	RankupResult rankup(Player player);
 
 	/**
-	 * 
 	 * @param player player that will promote target to the next rank
 	 * @param target target to be promoted
 	 * @return RankupResult that notifies you of the outcome of the promotion,
@@ -191,7 +238,6 @@ public interface RankupExecutor {
 	RankupResult rankup(Player player, Player target);
 
 	/**
-	 * 
 	 * @param player player to promote to the next rank
 	 * @param silent prevents messages from being sent on promotion failure. This
 	 *               method is used by auto rankup
@@ -202,14 +248,13 @@ public interface RankupExecutor {
 
 	/**
 	 * Forcefully promotes a player to the next rank
-	 * 
+	 *
 	 * @param player player to promote to the next rank without checks
 	 * @return RankupResult only results in FAIL_LAST_RANK and SUCCESS
 	 */
 	RankupResult forceRankup(Player player);
 
 	/**
-	 * 
 	 * @param player to perform max rankup for
 	 * @return A completable future of RankupResult that notifies you of the last
 	 *         outcome of the
@@ -218,7 +263,6 @@ public interface RankupExecutor {
 	CompletableFuture<RankupResult> maxRankup(Player player);
 
 	/**
-	 * 
 	 * @param player   to perform max rankup for
 	 * @param lastRank last rank player is allowed to reach or null to ignore
 	 * @return A completable future of RankupResult that notifies you of the last
@@ -228,14 +272,12 @@ public interface RankupExecutor {
 	CompletableFuture<RankupResult> maxRankup(Player player, @Nullable String lastRank);
 
 	/**
-	 * 
 	 * @param rank   to execute components of
 	 * @param player to perform components on
 	 */
-	void executeComponents(Rank rank, Player player);
+	void executeComponents(Level rank, Player player);
 
 	/**
-	 * 
 	 * @param player      player to include in the event
 	 * @param cause       the cause of the rankup
 	 * @param result      rankup outcome
@@ -246,7 +288,6 @@ public interface RankupExecutor {
 			@Nullable String updatedRank);
 
 	/**
-	 * 
 	 * @param player      player to include in the event
 	 * @param result      rankup outcome
 	 * @param updatedRank rank that player will get promoted to
@@ -255,7 +296,6 @@ public interface RankupExecutor {
 	boolean callAsyncAutoRankupEvent(Player player, RankupResult result, @Nullable String updatedRank);
 
 	/**
-	 * 
 	 * @param player          player to include in the event
 	 * @param rankupFrom      rank player is going to rankup from
 	 * @param ranksToBePassed ranks that player will go through
@@ -264,7 +304,6 @@ public interface RankupExecutor {
 	boolean callPreRankupMaxEvent(Player player, Rank rankupFrom, Set<Rank> ranksToBePassed);
 
 	/**
-	 * 
 	 * @param player       player to include in the event
 	 * @param lastResult   last rankup result of the max rankup
 	 * @param fromRank     rank player started ranking up from
@@ -277,6 +316,11 @@ public interface RankupExecutor {
 	void callAsyncRankupMaxEvent(Player player, RankupResult lastResult, String fromRank, String toRank,
 			int totalRankups, double takenBalance, boolean limited);
 
+	/**
+	 * Updates player group in a permission plugin if that was enabled
+	 *
+	 * @param player whom group will get updated
+	 */
 	void updateGroup(Player player);
 
 }

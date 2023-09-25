@@ -26,12 +26,12 @@ public class MCProgressBar {
 		return progressBarValues.get(value);
 	}
 
-	public String getByPercent(int percent) {
+	public String getByPercentage(int percent) {
 		float floatPercent = percent / 100.0f;
 		return progressBarValues.get((int) (floatPercent * charactersAmount));
 	}
 
-	public String getByPercent(double percent) {
+	public String getByPercentage(double percent) {
 		float floatPercent = (float) percent / 100.0f;
 		return progressBarValues.get((int) (floatPercent * charactersAmount));
 	}

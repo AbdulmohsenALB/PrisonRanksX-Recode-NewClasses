@@ -146,7 +146,7 @@ Options:
   # Also!! If you enable this, it will boost prestigemax process by a lot. REALLY REALLY A LOT.
   prestigemax-prestige-msg-last-prestige-only: true
   # True: Enables infinite prestige config file, and ignores prestiges.yml.
-  infinite-prestige: false
+  infinite-prestige: true
   # In case of conflict with other plugins, you could try altering the following values:
   # Possible values: LOWEST, LOW, NORMAL, HIGH, HIGHEST, MONITOR.
   # Chat format.

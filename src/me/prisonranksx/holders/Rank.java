@@ -3,16 +3,11 @@ package me.prisonranksx.holders;
 import java.util.List;
 import java.util.function.Consumer;
 
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 
-import me.prisonranksx.components.ActionBarComponent;
-import me.prisonranksx.components.CommandsComponent;
-import me.prisonranksx.components.FireworkComponent;
-import me.prisonranksx.components.PermissionsComponent;
-import me.prisonranksx.components.RandomCommandsComponent;
-import me.prisonranksx.components.RequirementsComponent;
+import me.prisonranksx.components.*;
 
-public class Rank {
+public class Rank implements Level {
 
 	private String name;
 	private String displayName;
@@ -28,7 +23,7 @@ public class Rank {
 	private PermissionsComponent permissionsComponent;
 	private FireworkComponent fireworkComponent;
 	private RandomCommandsComponent randomCommandsComponent;
-	private int index;
+	private long index;
 
 	public Rank(String name, String displayName, String nextRankName, double cost) {
 		this(name, displayName, nextRankName, cost, null, null, null, null, null, null, null, null, null, false);
@@ -57,136 +52,167 @@ public class Rank {
 		this.allowPrestige = allowPrestige;
 	}
 
+	@Override
 	public String getName() {
 		return name;
 	}
 
-	public void setName(String name) {
+	@Override
+	public Rank setName(String name) {
 		this.name = name;
+		return this;
 	}
 
+	@Override
 	public String getDisplayName() {
 		return displayName;
 	}
 
+	@Override
 	public void setDisplayName(String displayName) {
 		this.displayName = displayName;
 	}
 
 	/**
-	 * 
 	 * @return null when rank is last rank or its nextrank is set to "LASTRANK"
 	 */
+	@Override
 	@Nullable
-	public String getNextRankName() {
+	public String getNextName() {
 		return nextRankName;
 	}
 
-	public void setNextRankName(String nextRankName) {
+	@Override
+	public void setNextName(String nextRankName) {
 		this.nextRankName = nextRankName;
 	}
 
+	@Override
 	public double getCost() {
 		return cost;
 	}
 
+	@Override
 	public void setCost(double cost) {
 		this.cost = cost;
 	}
 
+	@Override
 	public List<String> getBroadcastMessages() {
 		return broadcastMessages;
 	}
 
+	@Override
 	public void setBroadcastMessages(List<String> broadcastMessages) {
 		this.broadcastMessages = broadcastMessages;
 	}
 
+	@Override
 	public List<String> getMessages() {
 		return messages;
 	}
 
+	@Override
 	public void setMessages(List<String> messages) {
 		this.messages = messages;
 	}
 
+	@Override
 	public CommandsComponent getCommandsComponent() {
 		return commandsComponent;
 	}
 
+	@Override
 	public void useCommandsComponent(Consumer<CommandsComponent> action) {
 		if (commandsComponent == null) return;
 		action.accept(commandsComponent);
 	}
 
+	@Override
 	public void setCommandsComponent(CommandsComponent commandsComponent) {
 		this.commandsComponent = commandsComponent;
 	}
 
+	@Override
 	public RequirementsComponent getRequirementsComponent() {
 		return requirementsComponent;
 	}
 
+	@Override
 	public void setRequirementsComponent(RequirementsComponent requirementsComponent) {
 		this.requirementsComponent = requirementsComponent;
 	}
 
+	@Override
 	public ActionBarComponent getActionBarComponent() {
 		return actionBarComponent;
 	}
 
+	@Override
 	public void useActionBarComponent(Consumer<ActionBarComponent> action) {
 		if (actionBarComponent == null) return;
 		action.accept(actionBarComponent);
 	}
 
+	@Override
 	public void setActionBarComponent(ActionBarComponent actionBarComponent) {
 		this.actionBarComponent = actionBarComponent;
 	}
 
+	@Override
 	public PermissionsComponent getPermissionsComponent() {
 		return permissionsComponent;
 	}
 
+	@Override
 	public void usePermissionsComponent(Consumer<PermissionsComponent> action) {
 		if (permissionsComponent == null) return;
 		action.accept(permissionsComponent);
 	}
 
+	@Override
 	public void setPermissionsComponent(PermissionsComponent permissionsComponent) {
 		this.permissionsComponent = permissionsComponent;
 	}
 
+	@Override
 	public FireworkComponent getFireworkComponent() {
 		return fireworkComponent;
 	}
 
+	@Override
 	public void useFireworkComponent(Consumer<FireworkComponent> action) {
 		if (fireworkComponent == null) return;
 		action.accept(fireworkComponent);
 	}
 
+	@Override
 	public void setFireworkComponent(FireworkComponent fireworkComponent) {
 		this.fireworkComponent = fireworkComponent;
 	}
 
+	@Override
 	public RandomCommandsComponent getRandomCommandsComponent() {
 		return randomCommandsComponent;
 	}
 
+	@Override
 	public void useRandomCommandsComponent(Consumer<RandomCommandsComponent> action) {
 		if (randomCommandsComponent == null) return;
 		action.accept(randomCommandsComponent);
 	}
 
+	@Override
 	public void setRandomCommandsComponent(RandomCommandsComponent randomCommandsComponent) {
 		this.randomCommandsComponent = randomCommandsComponent;
 	}
 
+	@Override
 	public List<String> getRequirementsMessages() {
 		return requirementsMessages;
 	}
 
+	@Override
 	public void setRequirementsMessages(List<String> requirementsMessages) {
 		this.requirementsMessages = requirementsMessages;
 	}
@@ -199,11 +225,13 @@ public class Rank {
 		this.allowPrestige = allowPrestige;
 	}
 
-	public int getIndex() {
+	@Override
+	public long getIndex() {
 		return index;
 	}
 
-	public void setIndex(int index) {
+	@Override
+	public void setIndex(long index) {
 		this.index = index;
 	}
 

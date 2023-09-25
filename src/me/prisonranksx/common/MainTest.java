@@ -1,20 +1,55 @@
 package me.prisonranksx.common;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import me.prisonranksx.utils.ModuloLongRange;
+import me.prisonranksx.utils.Rina.RinaAndGroup;
+import me.prisonranksx.utils.Rina.RinaCondition;
 
 public class MainTest {
 
-	private static Map<ModuloLongRange, String> m = new HashMap<>();
+	public static final char OPEN_BRACKET = '(';
+	public static final char CLOSE_BRACKET = ')';
+
+	// (('sniper'=='sniper'||1+1==2)&&('ump'=='ump'||('ak'=='ak'&&'test'=='test')))
+	static String ca = "(('sniper'=='sniper'||1+1==2)&&('ump'=='ump'||('ak'=='ak'&&'test'=='test')))";
 
 	public static void main(String[] args) {
-		m.put(ModuloLongRange.newRange(100), "100");
-		m.put(ModuloLongRange.newRange(200), "200");
-		m.put(ModuloLongRange.newRange(500), "500");
-		m.put(ModuloLongRange.newRange(750), "750");
-		ModuloLongRange.forEachMatchingHash(m, 600, v -> System.out.println(v));
+		parseCondition(ca);
+	}
+
+	public static RinaCondition parseCondition(String string) {
+		char[] chars = string.toCharArray();
+		// initial state
+		RinaAndGroup rc = new RinaAndGroup();
+		int amountOfOpenBrackets = 0;
+		String spitter = "";
+		for (int i = 0; i < chars.length; i++) {
+			char c = chars[i];
+			char n = nextChar(i, chars, '?');
+			if (amountOfOpenBrackets != 0) {
+				spitter += c;
+			}
+			if (c == OPEN_BRACKET) {
+				// spitter += c;
+				amountOfOpenBrackets++;
+			} else if (c == CLOSE_BRACKET) {
+				amountOfOpenBrackets--;
+				s.print(spitter);
+				spitter = "";
+			}
+
+		}
+		return null;
+	}
+
+	public static RinaCondition parseInner(String string) {
+		return null;
+	}
+
+	public static char nextChar(int index, char[] chars, char error) {
+		return index + 1 < chars.length - 1 ? chars[index + 1] : error;
+	}
+
+	public static char previousChar(int index, char[] chars, char error) {
+		return index - 1 < -1 ? chars[index - 1] : error;
 	}
 
 }

@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import me.prisonranksx.PrisonRanksX;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -35,7 +36,7 @@ public class ConfigCreator {
 
 	private static final Map<String, ConfigOptions> CONFIGS = new ConcurrentHashMap<>();
 	private static final List<String> EMPTY_LIST = new ArrayList<>();
-	private static final Plugin PLUGIN = JavaPlugin.getProvidingPlugin(ConfigCreator.class);
+	private static final Plugin PLUGIN = PrisonRanksX.getInstance(); //JavaPlugin.getProvidingPlugin(ConfigCreator.class);
 
 	/**
 	 * Creates a non usable config file.

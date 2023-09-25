@@ -6,8 +6,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import org.bukkit.Color;
 
@@ -42,12 +42,12 @@ public class FireworkColor {
 	}
 
 	@Nullable
-	public static Color getColor(@Nonnull String name) {
+	public static Color getColor(@NotNull String name) {
 		return colors.get(name.toUpperCase());
 	}
 
-	@Nonnull
-	public static Color parseColor(@Nonnull String colorString) {
+	@NotNull
+	public static Color parseColor(@NotNull String colorString) {
 		Color color = colors.get(colorString.toUpperCase());
 		if (color != null) return color;
 		if (colorString.indexOf(",") == -1) return colors.get("WHITE");

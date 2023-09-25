@@ -10,7 +10,7 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -186,7 +186,7 @@ public class CollectionUtils {
 		 *         there are not any elements on the current page | which means it will
 		 *         never return null
 		 */
-		@Nonnull
+		@NotNull
 		public List<String> collect() {
 			return pl.list;
 		}
@@ -263,7 +263,7 @@ public class CollectionUtils {
 		 *         there are not any elements on the current page | which means it will
 		 *         never return null
 		 */
-		@Nonnull
+		@NotNull
 		public Collection<String> collect() {
 			return collection;
 		}

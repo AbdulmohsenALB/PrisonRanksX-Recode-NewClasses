@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+import me.prisonranksx.PrisonRanksX;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
@@ -35,7 +36,7 @@ public class UniqueId extends StaticCache {
 	private static final UUIDRetriever UUID_RETRIEVER = LEGACY ? new UUIDRetrieverLegacy() : new UUIDRetrieverDefault();
 
 	public static JavaPlugin getProvidingPlugin(Class<?> providingClass) {
-		if (!LEGACY) return JavaPlugin.getProvidingPlugin(providingClass);
+		if (!LEGACY) return PrisonRanksX.getInstance(); //JavaPlugin.getProvidingPlugin(providingClass);
 
 		ClassLoader loader = providingClass.getClassLoader();
 		String pluginName = null;

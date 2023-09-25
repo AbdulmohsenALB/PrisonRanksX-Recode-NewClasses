@@ -1,66 +1,63 @@
 package me.prisonranksx.data;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
-
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.bukkit.configuration.ConfigurationSection;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import me.prisonranksx.PrisonRanksX;
-import me.prisonranksx.bukkitutils.HeavyBukkit;
-import me.prisonranksx.bukkitutils.HeavyBukkit.WorkloadTask;
+import me.prisonranksx.bukkitutils.segmentedtasks.SegmentedTasks;
+import me.prisonranksx.common.Common;
 import me.prisonranksx.holders.User;
 import me.prisonranksx.managers.ConfigManager;
 
 public class YamlUserController implements UserController {
 
-	private Map<UUID, User> users = new HashMap<>();
-	private WorkloadTask workloadTask;
+	private Map<UUID, User> users = new ConcurrentHashMap<>();
 	private PrisonRanksX plugin;
 
 	public YamlUserController(PrisonRanksX plugin) {
 		this.plugin = plugin;
-		workloadTask = HeavyBukkit.prepareTask().start(true);
 		users.clear();
 	}
 
 	@Override
-	public CompletableFuture<Void> saveUser(@Nonnull UUID uniqueId) {
+	public CompletableFuture<Void> saveUser(@NotNull UUID uniqueId) {
 		return saveUser(getUser(uniqueId));
 	}
 
 	@Override
-	public CompletableFuture<Void> saveUser(@Nonnull UUID uniqueId, boolean saveToDisk) {
+	public CompletableFuture<Void> saveUser(@NotNull UUID uniqueId, boolean saveToDisk) {
 		return saveUser(getUser(uniqueId), saveToDisk);
 	}
 
 	@Override
-	public CompletableFuture<Void> saveUser(@Nonnull User user) {
+	public CompletableFuture<Void> saveUser(@NotNull User user) {
 		return saveUser(user, false);
 	}
 
 	@Override
-	public CompletableFuture<Void> saveUser(@Nonnull User user, boolean saveToDisk) {
+	public CompletableFuture<Void> saveUser(@NotNull User user, boolean saveToDisk) {
 		CompletableFuture<Void> saveUserFuture = new CompletableFuture<>();
-		workloadTask.addWorkload(user, u -> {
-			String stringUniqueId = u.getUniqueId().toString();
+		SegmentedTasks.async(() -> {
+			String stringUniqueId = user.getUniqueId().toString();
 			if (plugin.getGlobalSettings().isRankEnabled()) {
-				ConfigManager.getRankDataConfig().set("players." + stringUniqueId + ".name", u.getName());
-				ConfigManager.getRankDataConfig().set("players." + stringUniqueId + ".rank", u.getRankName());
-				ConfigManager.getRankDataConfig().set("players." + stringUniqueId + ".path", u.getPathName());
+				ConfigManager.getRankDataConfig().set("players." + stringUniqueId + ".name", user.getName());
+				ConfigManager.getRankDataConfig().set("players." + stringUniqueId + ".rank", user.getRankName());
+				ConfigManager.getRankDataConfig().set("players." + stringUniqueId + ".path", user.getPathName());
 				if (saveToDisk) ConfigManager.saveConfig("rankdata.yml");
 			}
 			if (plugin.getGlobalSettings().isPrestigeEnabled()) {
-				ConfigManager.getPrestigeDataConfig().set("players." + stringUniqueId, u.getPrestigeName());
+				ConfigManager.getPrestigeDataConfig().set("players." + stringUniqueId, user.getPrestigeName());
 				if (saveToDisk) ConfigManager.saveConfig("prestigedata.yml");
 			}
 			if (plugin.getGlobalSettings().isRebirthEnabled()) {
-				ConfigManager.getRebirthDataConfig().set("players." + stringUniqueId, u.getRebirthName());
+				ConfigManager.getRebirthDataConfig().set("players." + stringUniqueId, user.getRebirthName());
 				if (saveToDisk) ConfigManager.saveConfig("rebirthdata.yml");
 			}
 			saveUserFuture.complete(null);
@@ -135,6 +132,12 @@ public class YamlUserController implements UserController {
 	@Nullable
 	public User getUser(UUID uniqueId) {
 		return users.get(uniqueId);
+	}
+
+	public void printInfo(UUID uniqueId) {
+		User user = users.get(uniqueId);
+		Common.print("UUID: " + uniqueId.toString() + " Rank: " + user.getRankName() + " Prestige: "
+				+ user.getPrestigeName() + " Rebirth: " + user.getRebirthName());
 	}
 
 }

@@ -3,10 +3,12 @@ package me.prisonranksx.executors;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
-
-import javax.annotation.Nullable;
+import java.util.concurrent.CompletableFuture;
 
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.Nullable;
+
+import com.google.common.collect.Sets;
 
 import me.prisonranksx.components.RequirementsComponent.RequirementEvaluationResult;
 import me.prisonranksx.events.PrestigeUpdateCause;
@@ -14,27 +16,61 @@ import me.prisonranksx.holders.Prestige;
 import me.prisonranksx.holders.User;
 import me.prisonranksx.reflections.UniqueId;
 
-public interface PrestigeExecutor {
+public interface PrestigeExecutor extends PromotionExecutor {
 
 	static final Set<UUID> AUTO_PRESTIGE_PLAYERS = new HashSet<>();
+
+	static final Set<UUID> MAX_PRESTIGE_PLAYERS = Sets.newConcurrentHashSet();
+
+	public final Set<UUID> MAX_PRESTIGE_BREAKER = Sets.newConcurrentHashSet();
 
 	public static Set<UUID> getAutoPrestigePlayers() {
 		return AUTO_PRESTIGE_PLAYERS;
 	}
 
-	public static boolean switchAutoPrestige(Player player) {
-		UUID uniqueId = UniqueId.getUUID(player);
-		return AUTO_PRESTIGE_PLAYERS.contains(uniqueId) ? AUTO_PRESTIGE_PLAYERS.remove(uniqueId)
-				: AUTO_PRESTIGE_PLAYERS.add(uniqueId);
-	}
-
-	public static boolean switchAutoPrestige(Player player, boolean enable) {
-		UUID uniqueId = UniqueId.getUUID(player);
-		return enable ? AUTO_PRESTIGE_PLAYERS.add(uniqueId) : AUTO_PRESTIGE_PLAYERS.remove(uniqueId);
-	}
-
 	public static boolean isAutoPrestige(Player player) {
 		return AUTO_PRESTIGE_PLAYERS.contains(UniqueId.getUUID(player));
+	}
+
+	public static boolean isAutoPrestige(UUID uniqueId) {
+		return AUTO_PRESTIGE_PLAYERS.contains(uniqueId);
+	}
+
+	public static boolean isMaxPrestiging(Player player) {
+		return MAX_PRESTIGE_PLAYERS.contains(UniqueId.getUUID(player));
+	}
+
+	public static boolean isMaxPrestiging(UUID uniqueId) {
+		return MAX_PRESTIGE_PLAYERS.contains(uniqueId);
+	}
+
+	public static void addMaxPrestigePlayer(Player player) {
+		MAX_PRESTIGE_PLAYERS.add(UniqueId.getUUID(player));
+	}
+
+	public static void addMaxPrestigePlayer(UUID uniqueId) {
+		MAX_PRESTIGE_PLAYERS.add(uniqueId);
+	}
+
+	public static void removeMaxPrestigePlayer(Player player) {
+		MAX_PRESTIGE_PLAYERS.remove(UniqueId.getUUID(player));
+	}
+
+	public static void removeMaxPrestigePlayer(UUID uniqueId) {
+		MAX_PRESTIGE_PLAYERS.remove(uniqueId);
+	}
+
+	public default void breakMaxPrestige(UUID uniqueId) {
+		MAX_PRESTIGE_BREAKER.add(uniqueId);
+		MAX_PRESTIGE_PLAYERS.remove(uniqueId);
+	}
+
+	public default boolean finishBreakMaxPrestige(UUID uniqueId) {
+		return MAX_PRESTIGE_BREAKER.remove(uniqueId);
+	}
+
+	public default boolean finishBreakMaxPrestige(Player player) {
+		return MAX_PRESTIGE_BREAKER.remove(UniqueId.getUUID(player));
 	}
 
 	enum PrestigeResult {
@@ -131,7 +167,7 @@ public interface PrestigeExecutor {
 	 * <li>Balance
 	 * <li>PlaceholderAPI string and number requirements
 	 * </ul>
-	 * 
+	 *
 	 * @param player check if specified player can prestige or not
 	 * @return PrestigeResult with the reason of prestige failure or success
 	 */
@@ -147,7 +183,7 @@ public interface PrestigeExecutor {
 	 * <li>Balance
 	 * <li>PlaceholderAPI string and number requirements
 	 * </ul>
-	 * 
+	 *
 	 * @param player            check if specified player can prestige or not
 	 * @param skipLastRankCheck whether last rank should be checked or not, this is
 	 *                          normally used with prestige max
@@ -165,7 +201,7 @@ public interface PrestigeExecutor {
 	 * <li>Balance
 	 * <li>PlaceholderAPI string and number requirements
 	 * </ul>
-	 * 
+	 *
 	 * @param player            check if specified player can prestige or not
 	 * @param balance           balance to check other than player's actual balance
 	 * @param skipLastRankCheck whether last rank should be checked or not, this is
@@ -175,14 +211,12 @@ public interface PrestigeExecutor {
 	PrestigeResult canPrestige(Player player, double balance, boolean skipLastRankCheck);
 
 	/**
-	 * 
 	 * @param player player to toggle auto prestige for
 	 * @return new state
 	 */
 	boolean toggleAutoPrestige(Player player);
 
 	/**
-	 * 
 	 * @param player player to toggle auto prestige for
 	 * @param enable forcefully enable / disable regardless of player auto prestige
 	 *               state
@@ -191,14 +225,12 @@ public interface PrestigeExecutor {
 	boolean toggleAutoPrestige(Player player, boolean enable);
 
 	/**
-	 * 
 	 * @param player player to check auto prestige state for
 	 * @return whether auto prestige is enabled or not
 	 */
 	boolean isAutoPrestigeEnabled(Player player);
 
 	/**
-	 * 
 	 * @param player player to promote to the next prestige
 	 * @return PrestigeResult that notifies you of the outcome of the promotion,
 	 *         whether it failed or succeeded
@@ -206,7 +238,6 @@ public interface PrestigeExecutor {
 	PrestigeResult prestige(Player player);
 
 	/**
-	 * 
 	 * @param player player to promote to the next prestige
 	 * @param silent prevents messages from being sent on promotion failure. This
 	 *               method is used by auto prestige
@@ -217,27 +248,24 @@ public interface PrestigeExecutor {
 
 	/**
 	 * Forcefully prestiges a player to the next prestige
-	 * 
+	 *
 	 * @param player player to promote to the next prestige without checks
 	 * @return PrestigeResult only FAIL_LAST_PRESTIGE and SUCCESS
 	 */
 	PrestigeResult forcePrestige(Player player);
 
 	/**
-	 * 
 	 * @param player to perform max prestige for
 	 * @return PrestigeResult that notifies you of the last outcome of the
 	 *         promotion, whether it failed or succeeded
 	 */
-	PrestigeResult maxPrestige(Player player);
+	CompletableFuture<PrestigeResult> maxPrestige(Player player);
 
 	/**
-	 * 
 	 * @param player          player to include in the event
 	 * @param cause           the cause of the prestige
 	 * @param result          prestige outcome
 	 * @param updatedPrestige prestige that player will get prestiged to
-	 * @param currentPrestige prestige that player will prestige from
 	 * @param successful      whether player gonna successfully prestige or not
 	 * @return false if event is cancelled, true otherwise
 	 */
@@ -245,7 +273,6 @@ public interface PrestigeExecutor {
 			@Nullable String updatedPrestige, boolean successful);
 
 	/**
-	 * 
 	 * @param player          player to include in the event
 	 * @param cause           the cause of the prestige
 	 * @param result          prestige outcome
@@ -260,6 +287,6 @@ public interface PrestigeExecutor {
 	boolean callPrePrestigeMaxEvent(Player player);
 
 	void callAsyncPrestigeMaxEvent(Player player, PrestigeResult lastResult, String fromPrestige, String toPrestige,
-			int totalPrestiges, double takenBalance);
+			long totalPrestiges, double takenBalance);
 
 }

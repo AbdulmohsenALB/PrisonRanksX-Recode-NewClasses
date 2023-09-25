@@ -1,18 +1,14 @@
 package me.prisonranksx.holders;
 
 import java.util.List;
+import java.util.function.Consumer;
 
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 
-import me.prisonranksx.components.ActionBarComponent;
-import me.prisonranksx.components.CommandsComponent;
-import me.prisonranksx.components.FireworkComponent;
-import me.prisonranksx.components.PermissionsComponent;
-import me.prisonranksx.components.RandomCommandsComponent;
-import me.prisonranksx.components.RequirementsComponent;
+import me.prisonranksx.components.*;
 import me.prisonranksx.data.PrestigeStorage;
 
-public class Prestige {
+public class Prestige implements Level {
 
 	private String name;
 	private String displayName;
@@ -77,6 +73,16 @@ public class Prestige {
 		this.displayName = displayName;
 	}
 
+	@Override
+	public @Nullable String getNextName() {
+		return getNextPrestigeName();
+	}
+
+	@Override
+	public void setNextName(String nextName) {
+		setNextPrestigeName(nextName);
+	}
+
 	public String getNextPrestigeName() {
 		return nextPrestigeName;
 	}
@@ -117,12 +123,22 @@ public class Prestige {
 		this.commandsComponent = commandsComponent;
 	}
 
+	public void useCommandsComponent(Consumer<CommandsComponent> action) {
+		if (commandsComponent == null) return;
+		action.accept(commandsComponent);
+	}
+
 	public RequirementsComponent getRequirementsComponent() {
 		return requirementsComponent;
 	}
 
 	public void setRequirementsComponent(RequirementsComponent requirementsComponent) {
 		this.requirementsComponent = requirementsComponent;
+	}
+
+	public void useRequirementsComponent(Consumer<RequirementsComponent> action) {
+		if (requirementsComponent == null) return;
+		action.accept(requirementsComponent);
 	}
 
 	public ActionBarComponent getActionBarComponent() {
@@ -133,12 +149,22 @@ public class Prestige {
 		this.actionBarComponent = actionBarComponent;
 	}
 
+	public void useActionBarComponent(Consumer<ActionBarComponent> action) {
+		if (actionBarComponent == null) return;
+		action.accept(actionBarComponent);
+	}
+
 	public PermissionsComponent getPermissionsComponent() {
 		return permissionsComponent;
 	}
 
 	public void setPermissionsComponent(PermissionsComponent permissionsComponent) {
 		this.permissionsComponent = permissionsComponent;
+	}
+
+	public void usePermissionsComponent(Consumer<PermissionsComponent> action) {
+		if (permissionsComponent == null) return;
+		action.accept(permissionsComponent);
 	}
 
 	public FireworkComponent getFireworkComponent() {
@@ -149,6 +175,11 @@ public class Prestige {
 		this.fireworkComponent = fireworkComponent;
 	}
 
+	public void useFireworkComponent(Consumer<FireworkComponent> action) {
+		if (fireworkComponent == null) return;
+		action.accept(fireworkComponent);
+	}
+
 	public RandomCommandsComponent getRandomCommandsComponent() {
 		return randomCommandsComponent;
 	}
@@ -157,12 +188,27 @@ public class Prestige {
 		this.randomCommandsComponent = randomCommandsComponent;
 	}
 
+	public void useRandomCommandsComponent(Consumer<RandomCommandsComponent> action) {
+		if (randomCommandsComponent == null) return;
+		action.accept(randomCommandsComponent);
+	}
+
 	public List<String> getRequirementsMessages() {
 		return requirementsMessages;
 	}
 
 	public void setRequirementsMessages(List<String> requirementsMessages) {
 		this.requirementsMessages = requirementsMessages;
+	}
+
+	@Override
+	public long getIndex() {
+		return number;
+	}
+
+	@Override
+	public void setIndex(long index) {
+		this.number = index;
 	}
 
 	public double getCostIncrease() {

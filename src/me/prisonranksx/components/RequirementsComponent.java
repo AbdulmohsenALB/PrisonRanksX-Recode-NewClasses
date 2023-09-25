@@ -6,12 +6,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import javax.annotation.Nullable;
+
 
 import org.bukkit.entity.Player;
 
 import me.prisonranksx.managers.StringManager;
 import me.prisonranksx.utils.Rina;
+import org.jetbrains.annotations.Nullable;
 
 public class RequirementsComponent extends Component {
 

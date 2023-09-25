@@ -1,21 +1,17 @@
 package me.prisonranksx.holders;
 
 import java.util.List;
+import java.util.function.Consumer;
 
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 
-import me.prisonranksx.components.ActionBarComponent;
-import me.prisonranksx.components.CommandsComponent;
-import me.prisonranksx.components.FireworkComponent;
-import me.prisonranksx.components.PermissionsComponent;
-import me.prisonranksx.components.RandomCommandsComponent;
-import me.prisonranksx.components.RequirementsComponent;
+import me.prisonranksx.components.*;
 
-public class Rebirth {
+public class Rebirth extends Rank implements Level {
 
 	private String name;
 	private String displayName;
-	private String nextPrestigeName;
+	private String nextRebirthName;
 	private double cost;
 	private double costIncrease;
 	private long requiredPrestiges;
@@ -29,20 +25,21 @@ public class Rebirth {
 	private FireworkComponent fireworkComponent;
 	private RandomCommandsComponent randomCommandsComponent;
 
-	public Rebirth(String name, String displayName, String nextPrestigeName, double cost) {
-		this(name, displayName, nextPrestigeName, cost, null, null, null, null, null, null, null, null, null, 0.0, -1);
+	public Rebirth(String name, String displayName, String nextRebirthName, double cost) {
+		this(name, displayName, nextRebirthName, cost, null, null, null, null, null, null, null, null, null, 0.0, -1);
 	}
 
-	public Rebirth(String name, String displayName, String nextPrestigeName, double cost,
+	public Rebirth(String name, String displayName, String nextRebirthName, double cost,
 			@Nullable List<String> broadcastMessages, @Nullable List<String> messages,
 			@Nullable CommandsComponent commandsComponent, @Nullable RequirementsComponent requirementsComponent,
 			@Nullable ActionBarComponent actionBarComponent, @Nullable PermissionsComponent permissionsComponent,
 			@Nullable FireworkComponent fireworkComponent, @Nullable RandomCommandsComponent randomCommandsComponent,
 			List<String> requirementsMessages, double costIncrease, long requiredPrestiges) {
+		super(name, displayName, nextRebirthName, cost);
 		this.name = name;
 		this.displayName = displayName == null ? name : displayName;
-		this.nextPrestigeName = nextPrestigeName == null || nextPrestigeName.equals("LASTPRESTIGE") ? null
-				: nextPrestigeName;
+		this.nextRebirthName = nextRebirthName == null || nextRebirthName.equals("LASTREBIRTH") ? null
+				: nextRebirthName;
 		this.cost = cost;
 		this.broadcastMessages = broadcastMessages == null || broadcastMessages.isEmpty() ? null : broadcastMessages;
 		this.messages = messages == null || messages.isEmpty() ? null : messages;
@@ -62,8 +59,9 @@ public class Rebirth {
 		return name;
 	}
 
-	public void setName(String name) {
+	public Rebirth setName(String name) {
 		this.name = name;
+		return this;
 	}
 
 	public String getDisplayName() {
@@ -74,12 +72,22 @@ public class Rebirth {
 		this.displayName = displayName;
 	}
 
-	public String getNextRankName() {
-		return nextPrestigeName;
+	@Override
+	public @Nullable String getNextName() {
+		return nextRebirthName;
 	}
 
-	public void setNextRankName(String nextRankName) {
-		this.nextPrestigeName = nextRankName;
+	@Override
+	public void setNextName(String nextName) {
+		setNextRebirthName(nextName);
+	}
+
+	public String getNextRebirthName() {
+		return nextRebirthName;
+	}
+
+	public void setNextRebirthName(String nextRebirthName) {
+		this.nextRebirthName = nextRebirthName;
 	}
 
 	public double getCost() {
@@ -110,6 +118,11 @@ public class Rebirth {
 		return commandsComponent;
 	}
 
+	@Override
+	public void useCommandsComponent(Consumer<CommandsComponent> action) {
+		super.useCommandsComponent(action);
+	}
+
 	public void setCommandsComponent(CommandsComponent commandsComponent) {
 		this.commandsComponent = commandsComponent;
 	}
@@ -126,12 +139,22 @@ public class Rebirth {
 		return actionBarComponent;
 	}
 
+	@Override
+	public void useActionBarComponent(Consumer<ActionBarComponent> action) {
+		super.useActionBarComponent(action);
+	}
+
 	public void setActionBarComponent(ActionBarComponent actionBarComponent) {
 		this.actionBarComponent = actionBarComponent;
 	}
 
 	public PermissionsComponent getPermissionsComponent() {
 		return permissionsComponent;
+	}
+
+	@Override
+	public void usePermissionsComponent(Consumer<PermissionsComponent> action) {
+		super.usePermissionsComponent(action);
 	}
 
 	public void setPermissionsComponent(PermissionsComponent permissionsComponent) {
@@ -142,12 +165,22 @@ public class Rebirth {
 		return fireworkComponent;
 	}
 
+	@Override
+	public void useFireworkComponent(Consumer<FireworkComponent> action) {
+		super.useFireworkComponent(action);
+	}
+
 	public void setFireworkComponent(FireworkComponent fireworkComponent) {
 		this.fireworkComponent = fireworkComponent;
 	}
 
 	public RandomCommandsComponent getRandomCommandsComponent() {
 		return randomCommandsComponent;
+	}
+
+	@Override
+	public void useRandomCommandsComponent(Consumer<RandomCommandsComponent> action) {
+		super.useRandomCommandsComponent(action);
 	}
 
 	public void setRandomCommandsComponent(RandomCommandsComponent randomCommandsComponent) {
@@ -160,6 +193,16 @@ public class Rebirth {
 
 	public void setRequirementsMessages(List<String> requirementsMessages) {
 		this.requirementsMessages = requirementsMessages;
+	}
+
+	@Override
+	public long getIndex() {
+		return super.getIndex();
+	}
+
+	@Override
+	public void setIndex(long index) {
+		super.setIndex(index);
 	}
 
 	public double getCostIncrease() {

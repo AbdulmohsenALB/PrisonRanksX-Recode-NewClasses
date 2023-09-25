@@ -13,7 +13,6 @@ import me.prisonranksx.PrisonRanksX;
 import me.prisonranksx.bukkitutils.ConfigCreator;
 import me.prisonranksx.data.PrestigeStorage;
 import me.prisonranksx.data.RankStorage;
-import me.prisonranksx.data.RebirthStorage;
 import me.prisonranksx.data.StorageFields;
 import me.prisonranksx.data.UserController;
 import me.prisonranksx.holders.User;
@@ -216,16 +215,19 @@ public class AdminExecutor {
 		plugin.initGlobalSettings();
 
 		if (plugin.getGlobalSettings().isRankEnabled()) {
-			plugin.getRankSettings().setup();
-			RankStorage.loadRanks();
+			// plugin.getRankSettings().setup();
+			// RankStorage.loadRanks();
+			plugin.prepareRanks();
 		}
 		if (plugin.getGlobalSettings().isPrestigeEnabled()) {
-			plugin.getPrestigeSettings().setup();
-			PrestigeStorage.loadPrestiges();
+			// plugin.getPrestigeSettings().setup();
+			// PrestigeStorage.loadPrestiges();
+			plugin.preparePrestiges();
 		}
 		if (plugin.getGlobalSettings().isRebirthEnabled()) {
-			plugin.getRebirthSettings().setup();
-			RebirthStorage.loadRebirths();
+			// plugin.getRebirthSettings().setup();
+			// RebirthStorage.loadRebirths();
+			plugin.prepareRebirths();
 		}
 		if (plugin.getGlobalSettings().isHologramsPlugin() && (plugin.getHologramSettings().isHologramsEnabled()))
 			plugin.getHologramSettings().setup();

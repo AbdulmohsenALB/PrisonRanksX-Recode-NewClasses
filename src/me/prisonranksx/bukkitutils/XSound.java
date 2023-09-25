@@ -23,6 +23,7 @@ package me.prisonranksx.bukkitutils;
 
 import com.google.common.base.Enums;
 import com.google.common.base.Strings;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.commons.lang.WordUtils;
@@ -36,8 +37,8 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
@@ -1290,7 +1291,7 @@ public enum XSound {
     @Nullable
     private final Sound sound;
 
-    XSound(@Nonnull String... legacies) {
+    XSound(@NotNull String... legacies) {
         Sound bukkitSound = Data.BUKKIT_NAMES.get(this.name());
         if (bukkitSound == null) {
             for (String legacy : legacies) {
@@ -1317,8 +1318,8 @@ public enum XSound {
      * @return an enum name.
      * @since 1.0.0
      */
-    @Nonnull
-    private static String format(@Nonnull String name) {
+    @NotNull
+    private static String format(@NotNull String name) {
         int len = name.length();
         char[] chs = new char[len];
         int count = 0;
@@ -1354,8 +1355,8 @@ public enum XSound {
      * @return a matched XSound.
      * @since 1.0.0
      */
-    @Nonnull
-    public static Optional<XSound> matchXSound(@Nonnull String sound) {
+    @NotNull
+    public static Optional<XSound> matchXSound(@NotNull String sound) {
         Validate.notEmpty(sound, "Cannot match XSound of a null or empty sound name");
         return Optional.ofNullable(Data.NAMES.get(format(sound)));
     }
@@ -1369,8 +1370,8 @@ public enum XSound {
      * @throws IllegalArgumentException may be thrown as an unexpected exception.
      * @since 2.0.0
      */
-    @Nonnull
-    public static XSound matchXSound(@Nonnull Sound sound) {
+    @NotNull
+    public static XSound matchXSound(@NotNull Sound sound) {
         Objects.requireNonNull(sound, "Cannot match XSound of a null sound");
         return Objects.requireNonNull(Data.NAMES.get(sound.name()), () -> "Unsupported sound: " + sound.name());
     }
@@ -1384,8 +1385,8 @@ public enum XSound {
      * @see #play(Location, String)
      * @since 1.0.0
      */
-    @Nonnull
-    public static CompletableFuture<Record> play(@Nonnull Player player, @Nullable String sound) {
+    @NotNull
+    public static CompletableFuture<Record> play(@NotNull Player player, @Nullable String sound) {
         Objects.requireNonNull(player, "Cannot play sound to null player");
         return CompletableFuture.supplyAsync(() -> {
             Record record = parse(sound);
@@ -1404,8 +1405,8 @@ public enum XSound {
      * @see #play(Location, String)
      * @since 3.0.0
      */
-    @Nonnull
-    public static CompletableFuture<Record> play(@Nonnull Location location, @Nullable String sound) {
+    @NotNull
+    public static CompletableFuture<Record> play(@NotNull Location location, @Nullable String sound) {
         Objects.requireNonNull(location, "Cannot play sound to null location");
         return CompletableFuture.supplyAsync(() -> {
             Record record = parse(sound);
@@ -1497,7 +1498,7 @@ public enum XSound {
      * @see #stopSound(Player)
      * @since 2.0.0
      */
-    public static void stopMusic(@Nonnull Player player) {
+    public static void stopMusic(@NotNull Player player) {
         Objects.requireNonNull(player, "Cannot stop playing musics from null player");
 
         // We don't need to cache because it's rarely used.
@@ -1530,8 +1531,8 @@ public enum XSound {
      * @return the async task handling the operation.
      * @since 2.0.0
      */
-    @Nonnull
-    public static BukkitTask playAscendingNote(@Nonnull JavaPlugin plugin, @Nonnull Player player, @Nonnull Entity playTo, @Nonnull Instrument instrument,
+    @NotNull
+    public static BukkitTask playAscendingNote(@NotNull JavaPlugin plugin, @NotNull Player player, @NotNull Entity playTo, @NotNull Instrument instrument,
                                                int ascendLevel, int delay) {
         Objects.requireNonNull(player, "Cannot play note from null player");
         Objects.requireNonNull(playTo, "Cannot play note to null entity");
@@ -1602,8 +1603,8 @@ public enum XSound {
      * @see #play(Location, float, float)
      * @since 2.0.0
      */
-    @Nonnull
-    public BukkitTask playRepeatedly(@Nonnull JavaPlugin plugin, @Nonnull Entity entity, float volume, float pitch, int repeat, int delay) {
+    @NotNull
+    public BukkitTask playRepeatedly(@NotNull JavaPlugin plugin, @NotNull Entity entity, float volume, float pitch, int repeat, int delay) {
         Objects.requireNonNull(plugin, "Cannot play repeating sound from null plugin");
         Objects.requireNonNull(entity, "Cannot play repeating sound at null location");
 
@@ -1629,7 +1630,7 @@ public enum XSound {
      * @see #stopMusic(Player)
      * @since 2.0.0
      */
-    public void stopSound(@Nonnull Player player) {
+    public void stopSound(@NotNull Player player) {
         Objects.requireNonNull(player, "Cannot stop playing sound from null player");
         Sound sound = this.parseSound();
         if (sound != null) player.stopSound(sound);
@@ -1642,7 +1643,7 @@ public enum XSound {
      *
      * @since 1.0.0
      */
-    public void play(@Nonnull Entity entity) {
+    public void play(@NotNull Entity entity) {
         play(entity, DEFAULT_VOLUME, DEFAULT_PITCH);
     }
 
@@ -1655,7 +1656,7 @@ public enum XSound {
      *
      * @since 1.0.0
      */
-    public void play(@Nonnull Entity entity, float volume, float pitch) {
+    public void play(@NotNull Entity entity, float volume, float pitch) {
         Objects.requireNonNull(entity, "Cannot play sound to a null entity");
         if (entity instanceof Player) {
             Sound sound = this.parseSound();
@@ -1672,7 +1673,7 @@ public enum XSound {
      *
      * @since 2.0.0
      */
-    public void play(@Nonnull Location location) {
+    public void play(@NotNull Location location) {
         play(location, DEFAULT_VOLUME, DEFAULT_PITCH);
     }
 
@@ -1685,7 +1686,7 @@ public enum XSound {
      *
      * @since 2.0.0
      */
-    public void play(@Nonnull Location location, float volume, float pitch) {
+    public void play(@NotNull Location location, float volume, float pitch) {
         Objects.requireNonNull(location, "Cannot play sound to null location");
         Sound sound = this.parseSound();
         if (sound != null) location.getWorld().playSound(location, sound, volume, pitch);
@@ -1721,14 +1722,14 @@ public enum XSound {
      * @since 3.0.0
      */
     public static class Record {
-        @Nonnull public final XSound sound;
+        @NotNull public final XSound sound;
         public float volume;
 		public float pitch;
         public boolean playAtLocation;
         @Nullable public Player player;
         @Nullable public Location location;
 
-        public Record(@Nonnull XSound sound, @Nullable Player player, @Nullable Location location, float volume, float pitch, boolean playAtLocation) {
+        public Record(@NotNull XSound sound, @Nullable Player player, @Nullable Location location, float volume, float pitch, boolean playAtLocation) {
             this.sound = Objects.requireNonNull(sound, "Sound cannot be null");
             this.player = player;
             this.location = location;
@@ -1781,7 +1782,7 @@ public enum XSound {
          *
          * @since 3.0.0
          */
-        public void play(@Nonnull Location updatedLocation) {
+        public void play(@NotNull Location updatedLocation) {
             Objects.requireNonNull(updatedLocation, "Cannot play sound at null location");
             if (playAtLocation || player == null) location.getWorld().playSound(updatedLocation, sound.parseSound(), volume, pitch);
             else player.playSound(updatedLocation, sound.parseSound(), volume, pitch);

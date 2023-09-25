@@ -354,11 +354,11 @@ public final class NBTEditor {
 				NBTTagFieldCache.put(NBTClasses.get(Boolean.class),
 						NBTClasses.get(Boolean.class).getDeclaredField("x"));
 				NBTTagFieldCache.put(NBTClasses.get(String.class), NBTClasses.get(String.class).getDeclaredField("A"));
-				NBTTagFieldCache.put(NBTClasses.get(Double.class), NBTClasses.get(Double.class).getDeclaredField("w"));
+				NBTTagFieldCache.put(NBTClasses.get(Double.class), NBTClasses.get(Double.class).getDeclaredField("s"));
 				NBTTagFieldCache.put(NBTClasses.get(Integer.class),
 						NBTClasses.get(Integer.class).getDeclaredField("c"));
 				NBTTagFieldCache.put(NBTClasses.get(Long.class), NBTClasses.get(Long.class).getDeclaredField("c"));
-				NBTTagFieldCache.put(NBTClasses.get(Float.class), NBTClasses.get(Float.class).getDeclaredField("w"));
+				NBTTagFieldCache.put(NBTClasses.get(Float.class), NBTClasses.get(Float.class).getDeclaredField("s"));
 				NBTTagFieldCache.put(NBTClasses.get(Short.class), NBTClasses.get(Short.class).getDeclaredField("c"));
 				NBTTagFieldCache.put(NBTClasses.get(Class.forName("[B")),
 						NBTClasses.get(Class.forName("[B")).getDeclaredField("c"));

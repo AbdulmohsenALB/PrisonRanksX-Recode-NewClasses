@@ -1,34 +1,26 @@
 package me.prisonranksx.executors;
 
-import java.util.HashMap;
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.atomic.AtomicInteger;
-
-import javax.annotation.Nullable;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitTask;
-
-import com.google.common.util.concurrent.AtomicDouble;
+import org.jetbrains.annotations.Nullable;
 
 import me.prisonranksx.PrisonRanksX;
-import me.prisonranksx.bukkitutils.HeavyBukkit;
-import me.prisonranksx.bukkitutils.HeavyBukkit.PreparedLoop;
+import me.prisonranksx.bukkitutils.segmentedtasks.ConcurrentTask;
+import me.prisonranksx.bukkitutils.segmentedtasks.DistributedTask;
+import me.prisonranksx.bukkitutils.segmentedtasks.SegmentedTasks;
+import me.prisonranksx.commands.CommandSetting;
 import me.prisonranksx.components.RequirementsComponent;
 import me.prisonranksx.components.RequirementsComponent.RequirementEvaluationResult;
 import me.prisonranksx.data.RankStorage;
 import me.prisonranksx.data.UserController;
-import me.prisonranksx.events.AsyncAutoRankupEvent;
-import me.prisonranksx.events.AsyncRankupMaxEvent;
-import me.prisonranksx.events.PreRankupMaxEvent;
-import me.prisonranksx.events.RankUpdateCause;
-import me.prisonranksx.events.RankUpdateEvent;
+import me.prisonranksx.events.*;
+import me.prisonranksx.holders.Level;
 import me.prisonranksx.holders.Rank;
+import me.prisonranksx.holders.TemporaryMaxRankup;
 import me.prisonranksx.holders.User;
 import me.prisonranksx.hooks.IHologram;
 import me.prisonranksx.managers.EconomyManager;
@@ -41,9 +33,16 @@ import me.prisonranksx.utils.UniqueRandom;
 public class PrimaryRankupExecutor implements RankupExecutor {
 
 	private PrisonRanksX plugin;
-	private BukkitTask autoRankupTask;
+
 	private double hologramHeight;
+
 	private int hologramDelay;
+
+	private Map<UUID, TemporaryMaxRankup> maxRankupData = new ConcurrentHashMap<>();
+
+	private ConcurrentTask<Player> maxRankupTask;
+
+	private DistributedTask<Player> autoRankupTask;
 
 	public PrimaryRankupExecutor(PrisonRanksX plugin) {
 		this.plugin = plugin;
@@ -52,7 +51,78 @@ public class PrimaryRankupExecutor implements RankupExecutor {
 			hologramHeight = plugin.getHologramSettings().getRankupHeight();
 			hologramDelay = plugin.getHologramSettings().getRankupRemoveDelay();
 		}
-		autoRankupTask = plugin.doAsyncRepeating(() -> AUTO_RANKUP_PLAYERS.forEach(this::silentRankup), 1, speed);
+		setupMaxRankup();
+		setupAutoRankup();
+	}
+
+	private void setupAutoRankup() {
+		int speed = plugin.getGlobalSettings().getAutoRankupDelay();
+		autoRankupTask = SegmentedTasks.scheduleDistributedTask(this::silentPromote, p -> !isAutoRankupEnabled(p), 20);
+		autoRankupTask.initAsync(plugin, speed, speed);
+	}
+
+	private void setupMaxRankup() {
+		maxRankupTask = SegmentedTasks.scheduleConcurrentTask(player -> {
+			RankupResult rankupResult = canRankup(player);
+			UUID uniqueId = UniqueId.getUUID(player);
+			if (rankupResult.isSuccessful() && !MAX_RANKUP_BREAKER.contains(uniqueId)) {
+				executeComponents(rankupResult.getRankResult(), player);
+				rankupResult.getUserResult().setRankName(rankupResult.getStringResult());
+				EconomyManager.takeBalance(player, rankupResult.getDoubleResult());
+				TemporaryMaxRankup tempHolder = maxRankupData.get(uniqueId);
+				tempHolder.setTakenBalance(tempHolder.getTakenBalance() + rankupResult.getDoubleResult());
+				tempHolder.setRankups(tempHolder.getRankups() + 1);
+				tempHolder.setCurrentRankupResult(rankupResult);
+				updateGroup(player);
+				Optional.ofNullable(tempHolder.getLastAllowedRankName()).ifPresent(s -> breakMaxRankup(uniqueId));
+			}
+		}, player -> finishBreakMaxRankup(player), player -> {
+			UUID uniqueId = UniqueId.getUUID(player);
+			TemporaryMaxRankup tempHolder = maxRankupData.get(uniqueId);
+			RankupExecutor.removeMaxRankupPlayer(uniqueId);
+			RankupResult rankupResult = tempHolder.getCurrentRankupResult();
+			double cost = tempHolder.getTakenBalance();
+			callAsyncRankupMaxEvent(player, rankupResult, tempHolder.getFirstRankName(), rankupResult.getStringResult(),
+					(int) tempHolder.getRankups(), cost, false);
+			switch (rankupResult) {
+				case FAIL_LAST_RANK:
+					Messages.sendMessage(player, Messages.getLastRank());
+					break;
+				case FAIL_NOT_ENOUGH_BALANCE:
+					Messages.sendMessage(player, Messages.getNotEnoughBalance(),
+							updatedLine -> updatedLine
+									.replace("%rankup_cost%", String.valueOf(rankupResult.getDoubleResult()))
+									.replace("%rankup_cost_formatted%",
+											EconomyManager.shortcutFormat(rankupResult.getDoubleResult()))
+									.replace("%rankup%", rankupResult.getStringResult())
+									.replace("%rankup_display%", rankupResult.getRankResult().getDisplayName()));
+					break;
+				case FAIL_NO_PERMISSION:
+					Messages.sendMessage(player, Messages.getNoPermission(),
+							updatedLine -> updatedLine.replace("%rankup%", rankupResult.getStringResult())
+									.replace("%rankup_display%", rankupResult.getRankResult().getDisplayName()));
+					break;
+				case FAIL_REQUIREMENTS_NOT_MET:
+					Messages.sendMessage(player, rankupResult.getRankResult().getRequirementsMessages());
+					break;
+				default:
+					break;
+			}
+			spawnHologram(rankupResult.getRankResult(), player, true);
+			updateGroup(player);
+			Messages.sendMessage(player, Messages.getRankupMax(),
+					updatedLine -> updatedLine.replace("%rank%", tempHolder.getFirstRankName())
+							.replace("%rank_display%", tempHolder.getFirstRankDisplayName())
+							.replace("%rankup%", rankupResult.getStringResult())
+							.replace("%rankup_display%", rankupResult.getRankResult().getDisplayName())
+							.replace("%cost%", String.valueOf(cost))
+							.replace("%cost_formatted%", EconomyManager.shortcutFormat(cost))
+							.replace("%cost_us_format%", EconomyManager.commaFormatWithDecimals(cost)));
+			plugin.getUserController().getUser(uniqueId).setRankName(rankupResult.getStringResult());
+			maxRankupData.remove(uniqueId);
+			tempHolder.getFinalRankupResult().complete(rankupResult);
+		});
+		maxRankupTask.initAsync();
 	}
 
 	private RankupResult silentRankup(UUID uniqueId) {
@@ -74,44 +144,57 @@ public class PrimaryRankupExecutor implements RankupExecutor {
 		String rankName = user.getRankName();
 		String pathName = user.getPathName();
 		Rank rank = RankStorage.getRank(rankName, pathName);
-		String nextRankName = rank.getNextRankName();
-		if (nextRankName == null) return RankupResult.FAIL_LAST_RANK.withUser(user).withRank(rank);
+		String nextRankName = rank.getNextName();
+		if (nextRankName == null) return RankupResult.FAIL_LAST_RANK.withUser(user).withString(rankName).withRank(rank);
+
+		boolean continueChecking = balance != -1;
 
 		Rank nextRank = RankStorage.getRank(nextRankName, pathName);
-
-		if (!plugin.getGlobalSettings().isPerRankPermission()
-				&& !player.hasPermission("prisonranksx.rankup." + nextRankName))
+		if (continueChecking && !plugin.getGlobalSettings().isPerRankPermission()
+				&& !player.hasPermission(CommandSetting.getStringSetting("rankup", "permission") + "." + nextRankName))
 			return RankupResult.FAIL_NO_PERMISSION.withUser(user).withString(nextRankName).withRank(nextRank);
 
 		double nextRankCost = nextRank.getCost();
-		if (balance < nextRankCost) return RankupResult.FAIL_NOT_ENOUGH_BALANCE.withUser(user)
+		if (continueChecking && balance < nextRankCost) return RankupResult.FAIL_NOT_ENOUGH_BALANCE.withUser(user)
 				.withDouble(nextRankCost)
 				.withString(nextRankName)
 				.withRank(nextRank);
 
 		RequirementsComponent requirementsComponent = nextRank.getRequirementsComponent();
-		if (requirementsComponent != null) {
+		if (continueChecking && requirementsComponent != null) {
 			RequirementEvaluationResult evaluationResult = requirementsComponent.evaluateRequirements(player);
 			if (!evaluationResult.hasSucceeded())
 				return RankupResult.FAIL_REQUIREMENTS_NOT_MET.withRequirementEvaluation(evaluationResult)
 						.withUser(user)
 						.withRank(nextRank);
 		}
-
 		return RankupResult.SUCCESS.withUser(user).withDouble(nextRankCost).withString(nextRankName).withRank(nextRank);
 	}
 
 	@Override
 	public boolean toggleAutoRankup(Player player) {
 		UUID uniqueId = UniqueId.getUUID(player);
-		return AUTO_RANKUP_PLAYERS.contains(uniqueId) ? AUTO_RANKUP_PLAYERS.remove(uniqueId)
-				: AUTO_RANKUP_PLAYERS.add(uniqueId);
+		if (!AUTO_RANKUP_PLAYERS.contains(uniqueId)) {
+			AUTO_RANKUP_PLAYERS.add(uniqueId);
+			autoRankupTask.addValue(() -> player);
+			return true;
+		}
+		AUTO_RANKUP_PLAYERS.remove(uniqueId);
+		return false;
 	}
 
 	@Override
 	public boolean toggleAutoRankup(Player player, boolean enable) {
 		UUID uniqueId = UniqueId.getUUID(player);
-		return enable ? AUTO_RANKUP_PLAYERS.add(uniqueId) : AUTO_RANKUP_PLAYERS.remove(uniqueId);
+		if (enable) {
+			if (!AUTO_RANKUP_PLAYERS.contains(uniqueId)) {
+				AUTO_RANKUP_PLAYERS.add(uniqueId);
+				autoRankupTask.addValue(() -> player);
+			}
+			return true;
+		}
+		AUTO_RANKUP_PLAYERS.remove(uniqueId);
+		return false;
 	}
 
 	@Override
@@ -231,7 +314,7 @@ public class PrimaryRankupExecutor implements RankupExecutor {
 
 	@Override
 	public RankupResult forceRankup(Player player) {
-		RankupResult rankupResult = canRankup(player);
+		RankupResult rankupResult = canRankup(player, -1);
 		if (!callRankUpdateEvent(player, RankUpdateCause.FORCE_RANKUP, rankupResult, rankupResult.getStringResult()))
 			return rankupResult;
 		switch (rankupResult) {
@@ -241,6 +324,9 @@ public class PrimaryRankupExecutor implements RankupExecutor {
 			default:
 				executeComponents(rankupResult.getRankResult(), player);
 				rankupResult.getUserResult().setRankName(rankupResult.getStringResult());
+				Messages.sendMessage(player, Messages.getRankup(),
+						s -> s.replace("%rankup%", rankupResult.getStringResult())
+								.replace("%rankup_display%", rankupResult.getRankResult().getDisplayName()));
 				spawnHologram(rankupResult.getRankResult(), player, false);
 				updateGroup(player);
 				break;
@@ -260,7 +346,7 @@ public class PrimaryRankupExecutor implements RankupExecutor {
 
 		// Pre rankup max stuff
 		Rank currentRank = RankStorage.getRank(user.getRankName(), user.getPathName());
-		if (currentRank.getNextRankName() == null) {
+		if (currentRank.getNextName() == null) {
 			Messages.sendMessage(player, Messages.getLastRank());
 			return CompletableFuture.completedFuture(RankupResult.FAIL_LAST_RANK.withRank(currentRank).withUser(user));
 		}
@@ -274,79 +360,20 @@ public class PrimaryRankupExecutor implements RankupExecutor {
 		if (!callPreRankupMaxEvent(player, currentRank, ranks)) return CompletableFuture.completedFuture(
 				RankupResult.FAIL_OTHER.withRank(currentRank).withUser(user).withString(currentRank.getName()));
 
-		PreparedLoop<Rank> rankupLoop = HeavyBukkit.prepareLoop(ranks);
+		// Player is already at last rank, so don't continue
+		if (currentRank.getNextName() == null) {
+			Messages.sendMessage(player, Messages.getLastRank());
+			return CompletableFuture.completedFuture(RankupResult.FAIL_LAST_RANK.withUser(user));
+		}
 
-		// Setup a way to decrease player balance without lagging the server by
-		// performing actual operations.
-		AtomicDouble takenBalance = new AtomicDouble(0.0);
-		AtomicDouble originalBalance = new AtomicDouble(EconomyManager.getBalance(player));
-
-		// Count rankups so they are sent to the event
-		AtomicInteger rankups = new AtomicInteger(0);
-
-		// Set player balance to 0.0, so they doesn't abuse it by purchasing other
-		// things
-		// in the middle of a rankup max
-		EconomyManager.setBalance(player, 0.0);
-
-		CompletableFuture<RankupResult> finalRankupResult = new CompletableFuture<>();
-		rankupLoop.forEach(rank -> {
-			RankupResult rankupResult = canRankup(player, originalBalance.get());
-			rankupLoop.storeObject(rankupResult);
-			if (rankupResult.isSuccessful()) {
-				executeComponents(rankupResult.getRankResult(), player);
-				rankupResult.getUserResult().setRankName(rankupResult.getStringResult());
-				originalBalance.set(originalBalance.get() - rankupResult.getDoubleResult());
-				takenBalance.addAndGet(rankupResult.getDoubleResult());
-				rankups.incrementAndGet();
-			} else {
-				rankupLoop.forceBreak();
-			}
-			if (lastRank != null && rankupResult.getStringResult().equals(lastRank)) rankupLoop.forceBreak();
-		}).whenCompleteDoAsync(() -> {
-			// Give back player balance
-			EconomyManager.setBalance(player, originalBalance.get());
-			RankupResult rankupResult = (RankupResult) rankupLoop.getObject();
-			switch (rankupResult) {
-				case FAIL_LAST_RANK:
-					Messages.sendMessage(player, Messages.getLastRank());
-					break;
-				case FAIL_NOT_ENOUGH_BALANCE:
-					Messages.sendMessage(player, Messages.getNotEnoughBalance(),
-							updatedLine -> updatedLine
-									.replace("%rankup_cost%", String.valueOf(rankupResult.getDoubleResult()))
-									.replace("%rankup_cost_formatted%",
-											EconomyManager.shortcutFormat(rankupResult.getDoubleResult()))
-									.replace("%rankup%", rankupResult.getStringResult())
-									.replace("%rankup_display%", rankupResult.getRankResult().getDisplayName()));
-					break;
-				case FAIL_NO_PERMISSION:
-					Messages.sendMessage(player, Messages.getNoPermission(),
-							updatedLine -> updatedLine.replace("%rankup%", rankupResult.getStringResult())
-									.replace("%rankup_display%", rankupResult.getRankResult().getDisplayName()));
-					break;
-				case FAIL_REQUIREMENTS_NOT_MET:
-					Messages.sendMessage(player, rankupResult.getRankResult().getRequirementsMessages());
-					break;
-				default:
-					break;
-			}
-			double cost = takenBalance.get();
-			callAsyncRankupMaxEvent(player, rankupResult, currentRank.getName(), rankupResult.getStringResult(),
-					rankups.get(), cost, false);
-			spawnHologram(rankupResult.getRankResult(), player, true);
-			updateGroup(player);
-			Messages.sendMessage(player, Messages.getRankupMax(),
-					updatedLine -> updatedLine.replace("%rank%", currentRank.getName())
-							.replace("%rank_display%", currentRank.getDisplayName())
-							.replace("%rankup%", rankupResult.getStringResult())
-							.replace("%rankup_display%", rankupResult.getRankResult().getDisplayName())
-							.replace("%cost%", String.valueOf(cost))
-							.replace("%cost_formatted%", EconomyManager.shortcutFormat(cost))
-							.replace("%cost_us_format%", EconomyManager.commaFormatWithDecimals(cost)));
-			finalRankupResult.complete(rankupResult);
-		});
-		return finalRankupResult;
+		UUID uniqueId = user.getUniqueId();
+		maxRankupData.put(uniqueId,
+				TemporaryMaxRankup.hold(uniqueId)
+						.setFirstRankName(currentRank.getName())
+						.setFirstRankDisplayName(currentRank.getDisplayName()));
+		RankupExecutor.addMaxRankupPlayer(uniqueId);
+		maxRankupTask.addValue(() -> player);
+		return maxRankupData.get(uniqueId).getFinalRankupResult();
 	}
 
 	@Override
@@ -379,7 +406,7 @@ public class PrimaryRankupExecutor implements RankupExecutor {
 	}
 
 	@Override
-	public void executeComponents(Rank rank, Player player) {
+	public void executeComponents(Level rank, Player player) {
 		String rankName = rank.getName();
 		double cost = rank.getCost();
 		String definition = "prx_" + rankName + player.getName();
@@ -412,12 +439,22 @@ public class PrimaryRankupExecutor implements RankupExecutor {
 		rank.usePermissionsComponent(component -> component.updatePermissions(player));
 
 		// Firework
-		rank.useFireworkComponent(component -> HeavyBukkit.run(() -> component.spawnFirework(player)));
+		rank.useFireworkComponent(component -> SegmentedTasks.sync(() -> component.spawnFirework(player)));
 
 		StringManager.deleteReplacements(definition);
 	}
 
-	private void spawnHologram(Rank rank, Player player, boolean async) {
+	@Override
+	public void promote(Player player) {
+		rankup(player);
+	}
+
+	@Override
+	public void silentPromote(Player player) {
+		rankup(player, true);
+	}
+
+	public void spawnHologram(Level rank, Player player, boolean async) {
 		if (!plugin.getGlobalSettings().isHologramsPlugin() || !plugin.getHologramSettings().isRankupEnabled()) return;
 		IHologram hologram = HologramManager.createHologram(
 				"prx_" + player.getName() + rank.getName() + UniqueRandom.global().generate(async),
@@ -435,10 +472,6 @@ public class PrimaryRankupExecutor implements RankupExecutor {
 	public void updateGroup(Player player) {
 		if (plugin.getGlobalSettings().isVaultGroups())
 			if (plugin.getPlayerGroupUpdater() != null) plugin.getPlayerGroupUpdater().update(player);
-	}
-
-	public BukkitTask getAutoRankupTask() {
-		return autoRankupTask;
 	}
 
 }

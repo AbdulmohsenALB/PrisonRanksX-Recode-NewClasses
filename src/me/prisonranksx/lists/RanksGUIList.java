@@ -28,9 +28,9 @@ public class RanksGUIList extends GUIList {
 		User user = getPlugin().getUserController().getUser(UniqueId.getUUID(player));
 		String pathName = user.getPathName();
 		Rank currentRank = RankStorage.getRank(user.getRankName(), pathName);
-		int currentRankIndex = currentRank.getIndex();
+		long currentRankIndex = currentRank.getIndex();
 		RankStorage.getPathRanks(pathName).forEach(rank -> {
-			int rankIndex = rank.getIndex();
+			long rankIndex = rank.getIndex();
 			String rankName = rank.getName();
 			if (rankIndex < currentRankIndex) {
 				GUIItem specialItem = getSpecialCompletedItems().get(rankName);

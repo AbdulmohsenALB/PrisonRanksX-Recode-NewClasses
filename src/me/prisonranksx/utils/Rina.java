@@ -30,8 +30,8 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * 
@@ -130,12 +130,12 @@ public class Rina {
 	private static final Set<String> MATH_DOUBLE = Collections.unmodifiableSet(
 			IntStream.range(0, 100).mapToObj(d -> String.valueOf(d / 10.0)).collect(Collectors.toSet()));
 
-	private static final Set<Character> MATH_INTEGER = Collections
+	public static final Set<Character> MATH_INTEGER = Collections
 			.unmodifiableSet(new HashSet<>(Arrays.asList('0', '1', '2', '3', '4', '5', '6', '7', '8', '9')));
 
 	// Most used predicate
 	// <!-- Shouldn't be touched !-->
-	private static final Predicate<Character> QUOTATION_IGNORE = q -> q == STRING_QUOTATION;
+	public static final Predicate<Character> QUOTATION_IGNORE = q -> q == STRING_QUOTATION;
 
 	private static final Map<Class<?>, Map<String, Map<List<Class<?>>, MethodHandle>>> exposedMethods = HashMaps
 			.empty();
@@ -199,7 +199,7 @@ public class Rina {
 	 *         that has the same method name and
 	 *         method handle values that correspond to these parameters
 	 */
-	public static <T> Map<String, Map<List<Class<?>>, MethodHandle>> exposeMethods(@Nonnull Class<T> clazz) {
+	public static <T> Map<String, Map<List<Class<?>>, MethodHandle>> exposeMethods(@NotNull Class<T> clazz) {
 		if (clazz == null)
 			throw new NullPointerException("Unable to expose null class! Make sure the given class actually exists.");
 		if (exposedMethods.containsKey(clazz))
@@ -561,9 +561,13 @@ public class Rina {
 				: string.substring(stopIndex);
 	}
 
-	private static String[] splitOrIgnore(String string, String separator, Predicate<Character> ignoreIf) {
+	public static String[] splitOrIgnore(String string, String separator, Predicate<Character> ignoreIf) {
 		string = string + separator;
 		char[] charArray = string.toCharArray();
+		return splitOrIgnore(charArray, separator, ignoreIf);
+	}
+
+	public static String[] splitOrIgnore(char[] charArray, String separator, Predicate<Character> ignoreIf) {
 		boolean pauseCollecting = false;
 		int separatorCounter = 0;
 		int separatorLength = separator.length();
@@ -585,7 +589,7 @@ public class Rina {
 
 	// A little bit faster than the method above if we are pretty certain of the
 	// amount of the splits
-	private static String[] splitOrIgnore(String string, String separator, Predicate<Character> ignoreIf, int limit) {
+	public static String[] splitOrIgnore(String string, String separator, Predicate<Character> ignoreIf, int limit) {
 		string = string + separator;
 		char[] charArray = string.toCharArray();
 		boolean pauseCollecting = false;
@@ -609,8 +613,11 @@ public class Rina {
 		return stringArray;
 	}
 
-	private static boolean containsOrIgnore(String string, String target, Predicate<Character> ignoreIf) {
-		char[] charArray = string.toCharArray();
+	public static boolean containsOrIgnore(String string, String target, Predicate<Character> ignoreIf) {
+		return containsOrIgnore(string.toCharArray(), target, ignoreIf);
+	}
+
+	public static boolean containsOrIgnore(char[] charArray, String target, Predicate<Character> ignoreIf) {
 		boolean skipCollecting = false;
 		int targetCounter = 0;
 		int targetLength = target.length();
@@ -819,7 +826,7 @@ public class Rina {
 		return variableName;
 	}
 
-	private static class RinaVariable {
+	public static class RinaVariable {
 
 		private String varName;
 		private int hashCode;
@@ -1627,7 +1634,7 @@ public class Rina {
 
 	}
 
-	private static class RinaOrGroup implements RinaCondition, RinaGroup {
+	public static class RinaOrGroup implements RinaCondition, RinaGroup {
 
 		private Set<RinaCondition> rinaConditions;
 		private String stringCondition;
@@ -1710,7 +1717,7 @@ public class Rina {
 
 	}
 
-	private static class RinaAndGroup implements RinaCondition, RinaGroup {
+	public static class RinaAndGroup implements RinaCondition, RinaGroup {
 
 		private Set<RinaCondition> rinaConditions;
 		private String stringCondition;

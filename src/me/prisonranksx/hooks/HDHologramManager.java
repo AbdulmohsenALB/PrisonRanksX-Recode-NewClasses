@@ -2,10 +2,11 @@ package me.prisonranksx.hooks;
 
 import java.util.List;
 
+import me.filoghost.holographicdisplays.api.hologram.PlaceholderSetting;
 import org.bukkit.Location;
 
-import com.gmail.filoghost.holographicdisplays.api.Hologram;
-import com.gmail.filoghost.holographicdisplays.api.HologramsAPI;
+import me.filoghost.holographicdisplays.api.hologram.Hologram;
+import me.filoghost.holographicdisplays.api.HolographicDisplaysAPI;
 
 import me.prisonranksx.PrisonRanksX;
 
@@ -17,9 +18,11 @@ import me.prisonranksx.PrisonRanksX;
 public class HDHologramManager implements IHologramManager {
 
 	private PrisonRanksX plugin;
+	private static HolographicDisplaysAPI api;
 	
 	public HDHologramManager(PrisonRanksX plugin) {
 		this.plugin = plugin;
+		api = HolographicDisplaysAPI.get(plugin);
 	}
 	
 	@Override
@@ -75,17 +78,17 @@ public class HDHologramManager implements IHologramManager {
 		@Override
 		public void addLine(String line, boolean threadSafe) {
 			if(threadSafe)
-				plugin.doSyncLater(() -> hologramHD.appendTextLine(line), 1);
+				plugin.doSyncLater(() -> hologramHD.getLines().appendText(line), 1);
 			else 
-				hologramHD.appendTextLine(line);
+				hologramHD.getLines().appendText(line);
 		}
 
 		@Override
 		public void addLine(List<String> lines, boolean threadSafe) {
 			if(threadSafe) 
-				plugin.doSyncLater(() -> lines.forEach(hologramHD::appendTextLine), 1);
+				plugin.doSyncLater(() -> lines.forEach(hologramHD.getLines()::appendText), 1);
 			else 
-				lines.forEach(hologramHD::appendTextLine);
+				lines.forEach(hologramHD.getLines()::appendText);
 		}
 
 		@Override
@@ -99,14 +102,14 @@ public class HDHologramManager implements IHologramManager {
 		}
 
 		private void createNonSafe() {
-			hologramHD = HologramsAPI.createHologram(plugin, location);
-			hologramHD.setAllowPlaceholders(true);
+			hologramHD = api.createHologram(location);
+			hologramHD.setPlaceholderSetting(PlaceholderSetting.ENABLE_ALL);
 		}
 
 		private void createThreadSafe() {
 			plugin.doSync(() -> {
-				hologramHD = HologramsAPI.createHologram(plugin, location);
-				hologramHD.setAllowPlaceholders(true);  
+				hologramHD = api.createHologram(location);
+				hologramHD.setPlaceholderSetting(PlaceholderSetting.ENABLE_ALL);
 			});
 		}
 

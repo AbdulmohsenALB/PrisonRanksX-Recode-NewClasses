@@ -1,16 +1,15 @@
 package me.prisonranksx.managers;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
+import me.prisonranksx.bukkitutils.Colorizer;
+import me.prisonranksx.common.StaticCache;
 import org.apache.commons.lang.text.StrSubstitutor;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
-import me.prisonranksx.bukkitutils.Colorizer;
-import me.prisonranksx.common.StaticCache;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Controls string replacements (color codes, PlaceholderAPI placeholders, and
@@ -28,7 +27,7 @@ public class StringManager extends StaticCache {
 			put("shadowarrow", "➢");
 			put("shadowarrow_2", "➣");
 			put("shadowarrow_down", "⧨");
-			put("shadowsquare", "�?�");
+			put("shadowsquare", "");
 			put("nuke", "☢");
 			put("+", "✚");
 			put("correct", "✔");

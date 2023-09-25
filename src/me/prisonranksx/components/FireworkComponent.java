@@ -3,7 +3,7 @@ package me.prisonranksx.components;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 import org.bukkit.Color;
 import org.bukkit.FireworkEffect;

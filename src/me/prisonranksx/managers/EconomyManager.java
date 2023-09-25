@@ -4,7 +4,9 @@ import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.Locale;
 
-import javax.annotation.Nullable;
+import net.milkbowl.vault.economy.Economy;
+import net.milkbowl.vault.economy.EconomyResponse;
+import org.jetbrains.annotations.Nullable;
 
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
@@ -12,14 +14,13 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.RegisteredServiceProvider;
 
 import me.prisonranksx.common.StaticCache;
-import net.milkbowl.vault.economy.Economy;
-import net.milkbowl.vault.economy.EconomyResponse;
+
 
 @SuppressWarnings("deprecation")
 public class EconomyManager extends StaticCache {
 
-	private static final Economy ECONOMY = setupEconomy();
-	private static final BalanceFormatter BALANCE_FORMATTER = new BalanceFormatter();
+	public static Economy ECONOMY = setupEconomy();
+	private static BalanceFormatter BALANCE_FORMATTER = new BalanceFormatter();
 
 	static {
 		BALANCE_FORMATTER.setup();
@@ -29,7 +30,11 @@ public class EconomyManager extends StaticCache {
 		BALANCE_FORMATTER.setup();
 	}
 
-	private static Economy setupEconomy() {
+	public EconomyManager() {
+		setupEconomy();
+	}
+
+	public static Economy setupEconomy() {
 		if (Bukkit.getPluginManager().getPlugin("Vault") == null) return null;
 		RegisteredServiceProvider<Economy> rsp = Bukkit.getServicesManager().getRegistration(Economy.class);
 		return rsp == null ? null : rsp.getProvider();

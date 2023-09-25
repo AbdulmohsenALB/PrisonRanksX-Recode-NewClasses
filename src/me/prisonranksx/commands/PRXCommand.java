@@ -2,6 +2,8 @@ package me.prisonranksx.commands;
 
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.function.Consumer;
 
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
@@ -74,6 +76,26 @@ public class PRXCommand extends PluginCommand {
 			return null;
 		}
 		return target;
+	}
+
+	private boolean readTarget(CommandSender sender, String target, Consumer<Player> action) {
+		if (target == null) return false;
+		if (target.equals("*")) {
+			Bukkit.getOnlinePlayers().forEach(player -> action.accept(player));
+		} else if (target.equals("@r")) {
+			action.accept(Lists.newArrayList(Bukkit.getOnlinePlayers())
+					.get(ThreadLocalRandom.current().nextInt(0, Bukkit.getOnlinePlayers().size())));
+		} else if (target.equals("`")) {
+			if (sender instanceof Player) action.accept((Player) sender);
+		} else {
+			Player player = Bukkit.getPlayer(target);
+			if (player == null) {
+				Messages.sendMessage(sender, Messages.getUnknownPlayer(), s -> s.replace("%player%", target));
+				return false;
+			}
+			action.accept(player);
+		}
+		return true;
 	}
 
 	private String testRankName(CommandSender sender, String rankName, String pathName) {
@@ -222,18 +244,17 @@ public class PRXCommand extends PluginCommand {
 								StringManager.parseColors("&4Syntax: &7/prx &csetprestige &f<player> <prestige>"));
 						return true;
 					case "resetrank": {
-						Player target = testTarget(sender, args[1]);
-						if (target == null) return true;
-						plugin.getAdminExecutor().setPlayerRank(UniqueId.getUUID(target), RankStorage.getFirstRank());
-						Messages.sendMessage(sender, Messages.getResetRank(),
-								s -> s.replace("%player%", target.getName())
-										.replace("%rank%", RankStorage.getFirstRank()));
+						readTarget(sender, args[1], target -> {
+							plugin.getAdminExecutor()
+									.setPlayerRank(UniqueId.getUUID(target), RankStorage.getFirstRank());
+							Messages.sendMessage(sender, Messages.getResetRank(),
+									s -> s.replace("%player%", target.getName())
+											.replace("%rank%", RankStorage.getFirstRank()));
+						});
 						return true;
 					}
 					case "forcerankup": {
-						Player target = testTarget(sender, args[1]);
-						if (target == null) return true;
-						plugin.getRankupExecutor().forceRankup(target);
+						readTarget(sender, args[1], target -> plugin.getRankupExecutor().forceRankup(target));
 						return true;
 					}
 					case "createrank":
@@ -288,24 +309,24 @@ public class PRXCommand extends PluginCommand {
 				switch (subCommand) {
 					case "setrank":
 					case "changerank": {
-						Player target = testTarget(sender, args[1]);
-						if (target == null) return true;
-						String rankName = testRankName(sender, args[2], PRXAPI.getPlayerPathOrDefault(target));
-						if (rankName == null) return true;
-						plugin.getAdminExecutor().setPlayerRank(UniqueId.getUUID(target), rankName);
-						Messages.sendMessage(sender, Messages.getSetRank(),
-								s -> s.replace("%player%", target.getName()).replace("%rank%", rankName));
+						readTarget(sender, args[1], target -> {
+							String rankName = testRankName(sender, args[2], PRXAPI.getPlayerPathOrDefault(target));
+							if (rankName == null) return;
+							plugin.getAdminExecutor().setPlayerRank(UniqueId.getUUID(target), rankName);
+							Messages.sendMessage(sender, Messages.getSetRank(),
+									s -> s.replace("%player%", target.getName()).replace("%rank%", rankName));
+						});
 						return true;
 					}
 					case "setprestige":
 					case "changeprestige": {
-						Player target = testTarget(sender, args[1]);
-						if (target == null) return true;
-						String prestigeName = testPrestigeName(sender, args[2]);
-						if (prestigeName == null) return true;
-						plugin.getAdminExecutor().setPlayerPrestige(UniqueId.getUUID(target), prestigeName);
-						Messages.sendMessage(sender, Messages.getSetPrestige(),
-								s -> s.replace("%player%", target.getName()).replace("%prestige%", prestigeName));
+						readTarget(sender, args[1], target -> {
+							String prestigeName = testPrestigeName(sender, args[2]);
+							if (prestigeName == null) return;
+							plugin.getAdminExecutor().setPlayerPrestige(UniqueId.getUUID(target), prestigeName);
+							Messages.sendMessage(sender, Messages.getSetPrestige(),
+									s -> s.replace("%player%", target.getName()).replace("%prestige%", prestigeName));
+						});
 						return true;
 					}
 					case "createrank":

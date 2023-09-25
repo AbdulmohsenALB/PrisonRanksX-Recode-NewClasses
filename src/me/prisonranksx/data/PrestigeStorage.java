@@ -11,6 +11,7 @@ import java.util.function.Consumer;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 
+import me.prisonranksx.PrisonRanksX;
 import me.prisonranksx.components.ActionBarComponent;
 import me.prisonranksx.components.CommandsComponent;
 import me.prisonranksx.components.ComponentsHolder;
@@ -110,6 +111,26 @@ public class PrestigeStorage {
 		return PRESTIGE_STORAGE_HANDLER.matchPrestige(name);
 	}
 
+	public static String getRangedDisplay(long prestige) {
+		return PRESTIGE_STORAGE_HANDLER.getRangedDisplay(prestige);
+	}
+
+	public static void useContinuousComponents(long prestige, Consumer<ComponentsHolder> componentsAction) {
+		PRESTIGE_STORAGE_HANDLER.useContinuousComponents(prestige, componentsAction);
+	}
+
+	public static CommandsComponent getCommandsComponent() {
+		return PRESTIGE_STORAGE_HANDLER.getCommandsComponent();
+	}
+
+	public static void useCommandsComponent(Consumer<CommandsComponent> action) {
+		PRESTIGE_STORAGE_HANDLER.useCommandsComponent(action);
+	}
+
+	public static String getCostExpression() {
+		return PRESTIGE_STORAGE_HANDLER.getCostExpression();
+	}
+
 	public static class PrestigeStorageHandler {
 
 		private IPrestigeStorage prestigeStorage;
@@ -186,6 +207,26 @@ public class PrestigeStorage {
 			return prestigeStorage.getPrestigeNumber(name);
 		}
 
+		public String getRangedDisplay(long prestige) {
+			return prestigeStorage.getRangedDisplay(prestige);
+		}
+
+		public void useContinuousComponents(long prestige, Consumer<ComponentsHolder> componentsAction) {
+			prestigeStorage.useContinuousComponents(prestige, componentsAction);
+		}
+
+		public CommandsComponent getCommandsComponent() {
+			return prestigeStorage.getCommandsComponent();
+		}
+
+		public void useCommandsComponent(Consumer<CommandsComponent> action) {
+			prestigeStorage.useCommandsComponent(action);
+		}
+
+		public String getCostExpression() {
+			return prestigeStorage.getCostExpression();
+		}
+
 	}
 
 	private static interface IPrestigeStorage {
@@ -222,6 +263,14 @@ public class PrestigeStorage {
 
 		void useCommandsComponent(Consumer<CommandsComponent> action);
 
+		public String getRangedDisplay(long prestige);
+
+		public void useContinuousComponents(long prestige, Consumer<ComponentsHolder> componentsAction);
+
+		public CommandsComponent getCommandsComponent();
+
+		public String getCostExpression();
+
 	}
 
 	private static class RegularPrestigeStorage implements IPrestigeStorage {
@@ -232,6 +281,7 @@ public class PrestigeStorage {
 		private String firstPrestigeName;
 		private String lastPrestigeName;
 		private long lastPrestigeNumber;
+		private CommandsComponent prestigeCommands;
 
 		@SuppressWarnings("unchecked")
 		@Override
@@ -282,6 +332,7 @@ public class PrestigeStorage {
 				if (firstPrestigeName == null) firstPrestigeName = prestigeName;
 			}
 			lastPrestigeName = prestigeNames.get((int) (lastPrestigeNumber - 1));
+			prestigeCommands = PrisonRanksX.getInstance().getPrestigeSettings().getPrestigeCommands();
 		}
 
 		@Override
@@ -359,8 +410,29 @@ public class PrestigeStorage {
 		}
 
 		@Override
-		public void useCommandsComponent(Consumer<CommandsComponent> action) {
+		public String getRangedDisplay(long prestige) {
+			return getPrestige(prestige).getDisplayName();
+		}
 
+		@Override
+		public void useContinuousComponents(long prestige, Consumer<ComponentsHolder> componentsAction) {
+			// Does nothing...
+		}
+
+		@Override
+		public CommandsComponent getCommandsComponent() {
+			return prestigeCommands;
+		}
+
+		@Override
+		public void useCommandsComponent(Consumer<CommandsComponent> action) {
+			if (prestigeCommands == null) return;
+			action.accept(prestigeCommands);
+		}
+
+		@Override
+		public String getCostExpression() {
+			return null;
 		}
 
 	}
@@ -380,6 +452,7 @@ public class PrestigeStorage {
 		private Map<HashedLongRange, String> constantSettings = new HashMap<>();
 		private Map<ModuloLongRange, ComponentsHolder> continuousSettings = new HashMap<>();
 		private CommandsComponent maxPrestigeCommands;
+		private String costExpression;
 
 		@SuppressWarnings("unchecked")
 		@Override
@@ -443,6 +516,7 @@ public class PrestigeStorage {
 					RequirementsComponent.parseRequirements(
 							ConfigManager.getOrElse(globalSection, StorageFields.REQUIREMENTS_FIELDS)),
 					null, null, null, null, null, firstPrestigeNumber);
+			costExpression = globalSection.getString("cost-expression");
 		}
 
 		@Override
@@ -520,14 +594,17 @@ public class PrestigeStorage {
 			return Long.parseLong(name);
 		}
 
+		@Override
 		public String getRangedDisplay(long prestige) {
 			return constantSettings.get(HashedLongRange.matchingHash(prestige));
 		}
 
+		@Override
 		public void useContinuousComponents(long prestige, Consumer<ComponentsHolder> componentsAction) {
 			ModuloLongRange.forEachMatchingHash(continuousSettings, prestige, componentsAction);
 		}
 
+		@Override
 		public CommandsComponent getCommandsComponent() {
 			return maxPrestigeCommands;
 		}
@@ -536,6 +613,11 @@ public class PrestigeStorage {
 		public void useCommandsComponent(Consumer<CommandsComponent> action) {
 			if (maxPrestigeCommands == null) return;
 			action.accept(maxPrestigeCommands);
+		}
+
+		@Override
+		public String getCostExpression() {
+			return costExpression;
 		}
 
 	}

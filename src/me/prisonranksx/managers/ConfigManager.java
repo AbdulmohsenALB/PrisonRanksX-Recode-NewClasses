@@ -3,14 +3,15 @@ package me.prisonranksx.managers;
 import java.util.Arrays;
 import java.util.List;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+
 
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 
 import me.prisonranksx.bukkitutils.ConfigCreator;
 import me.prisonranksx.common.StaticCache;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * 
@@ -175,14 +176,14 @@ public class ConfigManager extends StaticCache {
 		return null;
 	}
 
-	@Nonnull
+	@NotNull
 	public static double getTrueDoubleOrElse(ConfigurationSection configurationSection, String... fields) {
 		for (String field : fields)
 			if (configurationSection.isDouble(field)) return configurationSection.getDouble(field);
 		return 0.0;
 	}
 
-	@Nonnull
+	@NotNull
 	public static double getDoubleOrElse(ConfigurationSection configurationSection, String... fields) {
 		for (String field : fields) if (configurationSection.isDouble(field) || configurationSection.isLong(field)
 				|| configurationSection.isInt(field))
@@ -190,20 +191,20 @@ public class ConfigManager extends StaticCache {
 		return 0.0;
 	}
 
-	@Nonnull
+	@NotNull
 	public static long getLongOrElse(ConfigurationSection configurationSection, String... fields) {
 		for (String field : fields) if (configurationSection.isLong(field) || configurationSection.isInt(field))
 			return configurationSection.getLong(field);
 		return 0l;
 	}
 
-	@Nonnull
+	@NotNull
 	public static long getTrueLongOrElse(ConfigurationSection configurationSection, String... fields) {
 		for (String field : fields) if (configurationSection.isLong(field)) return configurationSection.getLong(field);
 		return 0l;
 	}
 
-	@Nonnull
+	@NotNull
 	public static boolean getBooleanOrElse(ConfigurationSection configurationSection, String... fields) {
 		for (String field : fields)
 			if (configurationSection.isBoolean(field)) return configurationSection.getBoolean(field);

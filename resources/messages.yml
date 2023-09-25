@@ -6,18 +6,18 @@
 Messages:
   # placeholders: %rankup% %rankup_display% %rankup_cost% %rankup_cost_formatted%
   not-enough-balance:
-  - "&7&m                                                                &7&m"
-  - ""
-  - "&eYou need &f$%rankup_cost_formatted% &eto rankup to &a%rankup%"
-  - ""
-  - "&7&m                                                                &7&m"
+    - "&7&m                                                                &7&m"
+    - ""
+    - "&eYou need &f$%rankup_cost_formatted% &eto rankup to &a%rankup%"
+    - ""
+    - "&7&m                                                                &7&m"
   # placeholders: %rankup% %rankup_display% %rankup_cost% %rankup_cost_formatted%
   not-enough-balance-other:
-  - "&7&m                                                                &7&m"
-  - ""
-  - "&eYou need &f$%rankup_cost_formatted% &eto rankup %player% to &a%rankup%"
-  - ""
-  - "&7&m                                                                &7&m"
+    - "&7&m                                                                &7&m"
+    - ""
+    - "&eYou need &f$%rankup_cost_formatted% &eto rankup %player% to &a%rankup%"
+    - ""
+    - "&7&m                                                                &7&m"
   no-permission: "&cNo permission!"
   # placeholders: %player%
   unknown-player: "&cThere's no player with that name."
@@ -54,8 +54,7 @@ Messages:
   create-rebirth: "&cCreated rebirth &e%createdrebirth% &cwith price: &e%cost%&c."
   set-rebirth-display: "&cChanged &e%rebirth% &cdisplay to &e%display&&c."
   set-rebirth-cost: "&cChanged rebirth &e%rebirth% &ccost to &e%cost%&c."
-  # placeholders: %player%
-  player-only-command: "&6You should run this in game or do /forcerankup %player% if you want to rankup a player"
+  player-only-command: "&6This command can only be run in game."
   disallowed-world: "&cYou cannot run this command here."
   # placeholders: %rankup% %rankup_display%
   rankup: "&9You have ranked up to &r%rankup_display%"
@@ -83,23 +82,23 @@ Messages:
   delete-player-rebirth: '&cDeleted &e%player%''s &crebirth.'
   # placeholders: %nextprestige% %nextprestige_display% %nextprestige_cost% %nextprestige_cost_formatted%
   prestige-not-enough-balance:
-  - "&7&m                                               &7&m"
-  - ""
-  - "&eYou need &f$%nextprestige_cost_formatted% &eto prestige to &a%nextprestige%"
-  - ""
-  - "&7&m                                               &7&m"
+    - "&7&m                                               &7&m"
+    - ""
+    - "&eYou need &f$%nextprestige_cost_formatted% &eto prestige to &a%nextprestige%"
+    - ""
+    - "&7&m                                               &7&m"
   last-prestige:
-  - "&7&m                                       &7&m"
-  - "&cYou are at the last prestige"
-  - "&7&m                                       &7&m"
+    - "&7&m                                       &7&m"
+    - "&cYou are at the last prestige"
+    - "&7&m                                       &7&m"
   last-prestige-other:
-  - "&7&m                                       &7&m"
-  - "&cHe is at the last prestige"
-  - "&7&m                                       &7&m"
+    - "&7&m                                       &7&m"
+    - "&cHe is at the last prestige"
+    - "&7&m                                       &7&m"
   last-rank:
-  - "&7&m                                       &7&m"
-  - "&aYou are at the last rank"
-  - "&7&m                                       &7&m"
+    - "&7&m                                       &7&m"
+    - "&aYou are at the last rank"
+    - "&7&m                                       &7&m"
   # placeholders: %player% %rankup% %rankup_display%
   force-rankup: "&aYou forced a rankup for &e%player%&7, &aso he/she ranked up to &e%rankup%&a."
   # placeholders: %player%
@@ -122,16 +121,16 @@ Messages:
   rebirth: "&7You have been reborn to %nextrebirth_display%."
   # placeholders: %nextrebirth% %nextrebirth_display% %nextrebirth_cost% %nextrebirth_cost_formatted%
   rebirth-not-enough-balance:
-  - "&4&m                                             &4&m"
-  - ""
-  - "&cYou need &f$%nextrebirth_cost_formatted% &cto rebirth to &a%nextrebirth%"
-  - ""
-  - "&4&m                                             &4&m"
+    - "&4&m                                             &4&m"
+    - ""
+    - "&cYou need &f$%nextrebirth_cost_formatted% &cto rebirth to &a%nextrebirth%"
+    - ""
+    - "&4&m                                             &4&m"
   last-rebirth:
-  - "&7&m                                       &7&m"
-  - "&4&lYou are at the last rebirth"
-  - "&7&m                                       &7&m"
-  # this message shows up when a player tries to use the rankupmax command while he is ranking up
+    - "&7&m                                       &7&m"
+    - "&4&lYou are at the last rebirth"
+    - "&7&m                                       &7&m"
+  # this message shows up when a player tries to use the rankupmax command while they are ranking up
   rankupmax-is-on: "&cYour max rankup process is already running."
   prestigemax-is-on: "&cYour max prestige process is already running."
   # placeholders: %page%
@@ -145,34 +144,34 @@ Messages:
   # tags: [header], [footer]
   # both tags can be used multiple times, which means you can have more than one line of header and footer.
   top-prestiges:
-  - "[header]&7- &e&l&oPRESTIGE &6&l&oLEADERBOARD &7-"
-  - "[header]&7&m                          &7"
-  - "&81 &f> &e%name1% &8- &6%value1%"
-  - "&82 &f> &e%name2% &8- &6%value2%"
-  - "&83 &f> &e%name3% &8- &6%value3%"
-  - "&84 &f> &e%name4% &8- &6%value4%"
-  - "&85 &f> &e%name5% &8- &6%value5%"
-  - "&86 &f> &e%name6% &8- &6%value6%"
-  - "&87 &f> &e%name7% &8- &6%value7%"
-  - "&88 &f> &e%name8% &8- &6%value8%"
-  - "&89 &f> &e%name9% &8- &6%value9%"
-  - "&810 &f> &e%name10% &8- &6%value10%"
-  - "[footer]&7&m                          &7"
+    - "[header]&7- &e&l&oPRESTIGE &6&l&oLEADERBOARD &7-"
+    - "[header]&7&m                          &7"
+    - "&81 &f> &e%name1% &8- &6%value1%"
+    - "&82 &f> &e%name2% &8- &6%value2%"
+    - "&83 &f> &e%name3% &8- &6%value3%"
+    - "&84 &f> &e%name4% &8- &6%value4%"
+    - "&85 &f> &e%name5% &8- &6%value5%"
+    - "&86 &f> &e%name6% &8- &6%value6%"
+    - "&87 &f> &e%name7% &8- &6%value7%"
+    - "&88 &f> &e%name8% &8- &6%value8%"
+    - "&89 &f> &e%name9% &8- &6%value9%"
+    - "&810 &f> &e%name10% &8- &6%value10%"
+    - "[footer]&7&m                          &7"
   top-prestiges-last-page-reached: "&e&oThere are only &6&o%page% &e&opage(s)."
   top-rebirths:
-  - "[header]&7- &c&l&oREBIRTH &4&l&oLEADERBOARD &7-"
-  - "[header]&7&m                          &7"
-  - "&81 &f> &c%name1% &8- &4%value1%"
-  - "&82 &f> &c%name2% &8- &4%value2%"
-  - "&83 &f> &c%name3% &8- &4%value3%"
-  - "&84 &f> &c%name4% &8- &4%value4%"
-  - "&85 &f> &c%name5% &8- &4%value5%"
-  - "&86 &f> &c%name6% &8- &4%value6%"
-  - "&87 &f> &c%name7% &8- &4%value7%"
-  - "&88 &f> &c%name8% &8- &4%value8%"
-  - "&89 &f> &c%name9% &8- &4%value9%"
-  - "&810 &f> &c%name10% &8- &4%value10%"
-  - "[footer]&7&m                          &7"
+    - "[header]&7- &c&l&oREBIRTH &4&l&oLEADERBOARD &7-"
+    - "[header]&7&m                          &7"
+    - "&81 &f> &c%name1% &8- &4%value1%"
+    - "&82 &f> &c%name2% &8- &4%value2%"
+    - "&83 &f> &c%name3% &8- &4%value3%"
+    - "&84 &f> &c%name4% &8- &4%value4%"
+    - "&85 &f> &c%name5% &8- &4%value5%"
+    - "&86 &f> &c%name6% &8- &4%value6%"
+    - "&87 &f> &c%name7% &8- &4%value7%"
+    - "&88 &f> &c%name8% &8- &4%value8%"
+    - "&89 &f> &c%name9% &8- &4%value9%"
+    - "&810 &f> &c%name10% &8- &4%value10%"
+    - "[footer]&7&m                          &7"
   top-rebirths-last-page-reached: "&c&oThere are only &4&o%page% &c&opage(s)."
   rebirth-not-enough-prestiges: "&cYou need &4&n%prestiges_amount_left%&c prestiges more to rebirth."
   # placeholders: %rank% %rank_display% %rankup% %rankup_display% %cost%

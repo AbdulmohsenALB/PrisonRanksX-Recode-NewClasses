@@ -12,16 +12,19 @@ import co.aikar.taskchain.TaskChain;
 import co.aikar.taskchain.TaskChainFactory;
 import me.prisonranksx.commands.CommandLoader;
 import me.prisonranksx.commands.PRXCommand;
+import me.prisonranksx.commands.PrestigeCommand;
 import me.prisonranksx.commands.RanksCommand;
 import me.prisonranksx.commands.RankupCommand;
-import me.prisonranksx.data.UserController;
 import me.prisonranksx.data.PrestigeStorage;
 import me.prisonranksx.data.RankStorage;
 import me.prisonranksx.data.RebirthStorage;
+import me.prisonranksx.data.UserController;
 import me.prisonranksx.data.YamlUserController;
 import me.prisonranksx.executors.AdminExecutor;
-import me.prisonranksx.executors.RankupExecutor;
+import me.prisonranksx.executors.InfinitePrestigeExecutor;
+import me.prisonranksx.executors.PrestigeExecutor;
 import me.prisonranksx.executors.PrimaryRankupExecutor;
+import me.prisonranksx.executors.RankupExecutor;
 import me.prisonranksx.hooks.IHologramManager;
 import me.prisonranksx.listeners.PlayerChatListener;
 import me.prisonranksx.listeners.PlayerLoginListener;
@@ -63,6 +66,7 @@ public class PrisonRanksX extends JavaPlugin {
 
 	// Executors
 	private RankupExecutor rankupExecutor;
+	private PrestigeExecutor prestigeExecutor;
 	private IHologramManager hologramManager;
 	private AdminExecutor adminExecutor;
 
@@ -73,6 +77,7 @@ public class PrisonRanksX extends JavaPlugin {
 	private PRXCommand prxCommand;
 	private RankupCommand rankupCommand;
 	private RanksCommand ranksCommand;
+	private PrestigeCommand prestigeCommand;
 
 	// User Management
 	private UserController userController;
@@ -85,9 +90,11 @@ public class PrisonRanksX extends JavaPlugin {
 	private RanksTextList ranksTextList;
 	private RanksGUIList ranksGUIList;
 
+
+
 	@Override
 	public void onEnable() {
-
+		instance = this;
 		ConversionManager.convertConfigFiles();
 
 		if (GlobalSettings.SUPPORTS_ACTION_BAR) ActionBarManager.cache(); // Only load if using 1.8+ cuz action bars
@@ -103,9 +110,28 @@ public class PrisonRanksX extends JavaPlugin {
 		globalSettings = new GlobalSettings();
 		userController = new YamlUserController(this);
 		playerGroupUpdater = new PlayerGroupUpdater(this);
-		instance = this;
-		registerListeners();
 
+		registerListeners();
+		prepareHooks();
+		prepareRanks();
+		preparePrestiges();
+		prepareRebirths();
+		prepareAdmin();
+
+		log("Enabled.");
+	}
+
+	@Override
+	public void onDisable() {
+		CommandLoader.unregisterCommand(prxCommand, rankupCommand, ranksCommand);
+		userController.saveUsers(true).thenRun(() -> log("Data saved.")).exceptionally(throwable -> {
+			logSevere("Failed to save data. Please report the stack trace below to the developer.");
+			throwable.printStackTrace();
+			return null;
+		});
+	}
+
+	public void prepareHooks() {
 		if (StringManager.isPlaceholderAPI()) {
 			logNeutral("Loading PlaceholderAPI placeholders...");
 			placeholderAPISettings = new PlaceholderAPISettings();
@@ -125,32 +151,9 @@ public class PrisonRanksX extends JavaPlugin {
 			hologramSettings = new HologramSettings();
 			log("HolographicDisplays soft dependency loaded.");
 		}
-		if (globalSettings.isRankEnabled()) {
-			RankStorage.loadRanks();
-			rankSettings = new RankSettings();
-			ranksListSettings = new RanksListSettings();
-			rankupExecutor = new PrimaryRankupExecutor(this);
-			if (RankupCommand.isEnabled()) {
-				rankupCommand = new RankupCommand(this);
-				rankupCommand.register();
-			}
-			if (RanksCommand.isEnabled()) {
-				ranksCommand = new RanksCommand(this);
-				ranksCommand.register();
-			}
-			if (globalSettings.isGuiRankList())
-				ranksGUIList = new RanksGUIList(this);
-			else
-				ranksTextList = new RanksTextList(this);
-		}
-		if (globalSettings.isPrestigeEnabled()) {
-			PrestigeStorage.initAndLoad(globalSettings.isInfinitePrestige());
-			prestigeSettings = new PrestigeSettings();
-		}
-		if (globalSettings.isRebirthEnabled()) {
-			RebirthStorage.loadRebirths();
-			rebirthSettings = new RebirthSettings();
-		}
+	}
+
+	public void prepareAdmin() {
 		adminExecutor = new AdminExecutor(this);
 		if (PRXCommand.isEnabled()) {
 			prxCommand = new PRXCommand(this);
@@ -161,17 +164,46 @@ public class PrisonRanksX extends JavaPlugin {
 			for (Player player : Bukkit.getOnlinePlayers())
 				userController.loadUser(UniqueId.getUUID(player), player.getName());
 		}
-		log("Enabled.");
 	}
 
-	@Override
-	public void onDisable() {
-		CommandLoader.unregisterCommand(prxCommand, rankupCommand, ranksCommand);
-		userController.saveUsers(true).thenRun(() -> log("data saved.")).exceptionally(throwable -> {
-			logSevere("failed to save data.");
-			throwable.printStackTrace();
-			return null;
-		});
+	public void prepareRanks() {
+		if (!globalSettings.isRankEnabled()) return;
+		RankStorage.loadRanks();
+		rankSettings = new RankSettings();
+		ranksListSettings = new RanksListSettings();
+		rankupExecutor = new PrimaryRankupExecutor(this);
+		if (RankupCommand.isEnabled()) {
+			rankupCommand = new RankupCommand(this);
+			rankupCommand.register();
+		}
+		if (RanksCommand.isEnabled()) {
+			ranksCommand = new RanksCommand(this);
+			ranksCommand.register();
+		}
+		if (globalSettings.isGuiRankList())
+			ranksGUIList = new RanksGUIList(this);
+		else
+			ranksTextList = new RanksTextList(this);
+	}
+
+	public void preparePrestiges() {
+		if (globalSettings.isPrestigeEnabled()) {
+			prestigeSettings = new PrestigeSettings();
+			boolean infinitePrestige = globalSettings.isInfinitePrestige();
+			PrestigeStorage.initAndLoad(true);
+			prestigeExecutor = new InfinitePrestigeExecutor(this);
+			if (PrestigeCommand.isEnabled()) {
+				prestigeCommand = new PrestigeCommand(this);
+				prestigeCommand.register();
+			}
+		}
+	}
+
+	public void prepareRebirths() {
+		if (globalSettings.isRebirthEnabled()) {
+			RebirthStorage.loadRebirths();
+			rebirthSettings = new RebirthSettings();
+		}
 	}
 
 	public void registerListeners() {
@@ -205,12 +237,20 @@ public class PrisonRanksX extends JavaPlugin {
 		return SCHEDULER.runTask(this, runnable);
 	}
 
+	public static BukkitTask sync(Runnable runnable) {
+		return SCHEDULER.runTask(instance, runnable);
+	}
+
 	public BukkitTask doSyncRepeating(Runnable runnable, int delay, int speed) {
 		return SCHEDULER.runTaskTimer(this, runnable, delay, speed);
 	}
 
 	public BukkitTask doAsync(Runnable runnable) {
 		return SCHEDULER.runTaskAsynchronously(this, runnable);
+	}
+
+	public static BukkitTask async(Runnable runnable) {
+		return SCHEDULER.runTaskAsynchronously(instance, runnable);
 	}
 
 	public BukkitTask doAsyncRepeating(Runnable runnable, int delay, int speed) {
@@ -239,6 +279,10 @@ public class PrisonRanksX extends JavaPlugin {
 
 	public RankupExecutor getRankupExecutor() {
 		return rankupExecutor;
+	}
+
+	public PrestigeExecutor getPrestigeExecutor() {
+		return prestigeExecutor;
 	}
 
 	public RankSettings getRankSettings() {

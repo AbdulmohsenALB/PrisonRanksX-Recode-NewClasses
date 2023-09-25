@@ -3,11 +3,7 @@ package me.prisonranksx.listeners;
 import java.util.UUID;
 
 import org.bukkit.entity.Player;
-import org.bukkit.event.Event;
-import org.bukkit.event.EventException;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.EventPriority;
-import org.bukkit.event.Listener;
+import org.bukkit.event.*;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.plugin.EventExecutor;
 
@@ -16,6 +12,7 @@ import me.prisonranksx.data.PrestigeStorage;
 import me.prisonranksx.data.RankStorage;
 import me.prisonranksx.data.RebirthStorage;
 import me.prisonranksx.holders.User;
+import me.prisonranksx.managers.StringManager;
 import me.prisonranksx.reflections.UniqueId;
 
 public class PlayerChatListener implements EventExecutor, Listener {
@@ -61,6 +58,14 @@ public class PlayerChatListener implements EventExecutor, Listener {
 				? RebirthStorage.getRebirth(user.getRebirthName()).getDisplayName() + colorReset + space
 				: plugin.getGlobalSettings().getNoRebirthDisplay();
 
+		String additionalFormat = getAdditionalFormat(playerRank, playerPrestige, playerRebirth);
+
+		String spacer = playerRank.equals(empty) ? playerRank : space;
+
+		e.setFormat(StringManager.parsePlaceholders(additionalFormat + spacer + originalFormat, player));
+	}
+
+	private String getAdditionalFormat(String playerRank, String playerPrestige, String playerRebirth) {
 		String rankDisplayName = plugin.getGlobalSettings().isRankForceDisplay() ? playerRank : empty;
 		String prestigeDisplayName = plugin.getGlobalSettings().isPrestigeForceDisplay() ? playerPrestige : empty;
 		String rebirthDisplayName = plugin.getGlobalSettings().isRebirthForceDisplay() ? playerRebirth : empty;
@@ -70,10 +75,7 @@ public class PlayerChatListener implements EventExecutor, Listener {
 				.replace("{rank}", rankDisplayName)
 				.replace("{prestige}", prestigeDisplayName)
 				.replace("{rebirth}", rebirthDisplayName);
-
-		String spacer = playerRank.equals(empty) ? playerRank : space;
-
-		e.setFormat(additionalFormat + spacer + originalFormat);
+		return additionalFormat;
 	}
 
 }

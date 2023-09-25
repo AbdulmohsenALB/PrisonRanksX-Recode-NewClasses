@@ -146,8 +146,8 @@ public class GUIItemParser {
 		 * 
 		 * @param <T>
 		 * @param actionName          action name without brackets
-		 * @param preFunction         to setup things, so they don't executed every time
-		 *                            an item is clicked for better performance, like
+		 * @param preFunction         to setup things, so they don't get executed every time
+		 *                            an item is clicked, made for better performance, like
 		 *                            parsing an itemstack.
 		 * @param clickActionFunction live things
 		 */

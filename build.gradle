@@ -1,0 +1,109 @@
+import org.apache.tools.ant.filters.ReplaceTokens
+
+plugins {
+    id 'java'
+    id 'com.github.johnrengelman.shadow' version '8.1.1'
+    id 'eclipse'
+}
+
+group 'me.prisonranksx'
+version '3.0'
+
+repositories {
+    mavenCentral()
+    mavenLocal()
+    maven { url = 'https://hub.spigotmc.org/nexus/content/repositories/snapshots/' }
+    maven { url = 'https://repo.extendedclip.com/content/repositories/placeholderapi/' }
+    maven { url = 'https://oss.sonatype.org/content/repositories/snapshots' }
+    maven { url = 'https://oss.sonatype.org/content/repositories/central' }
+    maven { url = 'https://jitpack.io' }
+    maven { url = 'https://repo.codemc.io/repository/maven-public/' }
+    maven { url = 'https://repo.papermc.io/repository/maven-public/' }
+
+    flatDir {
+        dirs 'libs'
+        dirs 'resources'
+    }
+}
+
+shadowJar {}
+
+test {
+    useJUnitPlatform()
+}
+
+jar {
+    manifest {
+        attributes "Main-Class": "me.prisonranksx.PrisonRanksX"
+    }
+    tasks.withType(JavaCompile).configureEach {
+        options.encoding = "UTF-8"
+    }
+
+    from {
+        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+}
+
+sourceSets {
+
+    main {
+        java {
+            srcDirs = ['src']
+        }
+        resources {
+            srcDirs = ['resources']
+        }
+    }
+
+    /*
+   test {
+        java {
+            srcDirs = ['test/java']
+       }
+   }
+   */
+}
+
+// For testing, not used
+tasks.named('test', Test) {
+    useJUnitPlatform()
+
+    maxHeapSize = '1G'
+
+    testLogging {
+        events "passed"
+    }
+}
+
+dependencies {
+
+    // For testing, couldn't get MockBukkit to work...
+    // testImplementation 'org.junit.jupiter:junit-jupiter:5.8.1'
+    // testImplementation 'org.junit.platform:junit-platform-launcher:1.9.2'
+    // testRuntimeOnly 'org.junit.platform:junit-platform-suite-engine:1.9.1'
+    // testImplementation 'org.mockito:mockito-all:2.0.2-beta'
+    // testImplementation 'com.github.seeseemelk:MockBukkit-v1.19:3.1.0'
+    // testImplementation fileTree(dir: 'libs', include: ['*.jar'])
+    // implementation "io.papermc.paper:paper-api:1.20.1-R0.1-SNAPSHOT"
+    // testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    // implementation 'com.github.TheGaming999:SegmentedTasks:1.0'
+    compileOnly "com.github.MilkBowl:VaultAPI:1.7"
+    compileOnly fileTree(dir: 'libs', include: ['*.jar'])
+    compileOnly 'me.clip:placeholderapi:2.11.3'
+    compileOnly 'com.github.decentsoftware-eu:decentholograms:2.8.3'
+    compileOnly 'net.luckperms:api:5.4'
+    compileOnly 'com.github.ElgarL:groupmanager:3.2'
+    compileOnly 'me.filoghost.holographicdisplays:holographicdisplays-api:3.0.0'
+    compileOnly 'org.spigotmc:spigot-api:1.16.5-R0.1-SNAPSHOT'
+    // The full Spigot server with no shadowing. Requires mavenLocal.
+}
+
+processResources {
+    duplicatesStrategy = 'exclude'
+    from(sourceSets.main.resources.srcDirs) {
+        filter ReplaceTokens, tokens: [version: version]
+    }
+}
+
+

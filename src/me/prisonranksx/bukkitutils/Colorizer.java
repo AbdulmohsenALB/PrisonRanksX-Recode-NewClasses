@@ -6,8 +6,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import org.bukkit.entity.Player;
 
@@ -33,7 +33,7 @@ public class Colorizer extends StaticCache {
 	 * @return text with colors
 	 * <p> "" if textToColorize is null
 	 */
-	@Nonnull
+	@NotNull
 	public static String colorize(@Nullable String textToColorize) {
 		return COLORIZER.colorize(textToColorize);
 	}
