@@ -1,15 +1,16 @@
 package me.prisonranksx.managers;
 
-import me.prisonranksx.bukkitutils.Colorizer;
-import me.prisonranksx.common.StaticCache;
-import org.apache.commons.lang.text.StrSubstitutor;
-import org.bukkit.Bukkit;
-import org.bukkit.entity.Player;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
+import org.apache.commons.lang.text.StrSubstitutor;
+import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
+
+import me.prisonranksx.bukkitutils.Colorizer;
+import me.prisonranksx.common.StaticCache;
 
 /**
  * Controls string replacements (color codes, PlaceholderAPI placeholders, and
@@ -120,6 +121,19 @@ public class StringManager extends StaticCache {
 	 */
 	public static String parsePlaceholders(String string, Player player) {
 		return string == null || player == null ? null : STRING_MANAGER.parsePlaceholders(string, player);
+	}
+
+	/**
+	 *
+	 * @param stringList parses a list of strings' PlaceholderAPI placeholders
+	 * @param player     to parse PlaceholderAPI placeholders for
+	 * @return list of strings with parsed PlaceholderAPI placeholders and colors
+	 */
+	public static List<String> parsePlaceholders(List<String> stringList, Player player) {
+		return stringList == null || stringList.isEmpty() ? null
+				: stringList.stream()
+						.map(stringLine -> parsePlaceholders(stringLine, player))
+						.collect(Collectors.toList());
 	}
 
 	/**

@@ -1,27 +1,13 @@
 package me.prisonranksx.bukkitutils;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.StringWriter;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
-import me.prisonranksx.PrisonRanksX;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -36,7 +22,7 @@ public class ConfigCreator {
 
 	private static final Map<String, ConfigOptions> CONFIGS = new ConcurrentHashMap<>();
 	private static final List<String> EMPTY_LIST = new ArrayList<>();
-	private static final Plugin PLUGIN = PrisonRanksX.getInstance(); //JavaPlugin.getProvidingPlugin(ConfigCreator.class);
+	private static final Plugin PLUGIN = JavaPlugin.getProvidingPlugin(ConfigCreator.class);
 
 	/**
 	 * Creates a non usable config file.
@@ -52,7 +38,8 @@ public class ConfigCreator {
 	}
 
 	/**
-	 * Creates a config file and load it if it doesn't exist. Otherwise, just load
+	 * Creates a config file and load it from resources if it doesn't exist.
+	 * Otherwise, just load
 	 * it.
 	 * <p>
 	 * This is equivalent to: {
@@ -76,6 +63,26 @@ public class ConfigCreator {
 		return copyAndSaveDefaults(configName, EMPTY_LIST);
 	}
 
+	/**
+	 * Creates a config file for each given config name and load it from resources
+	 * if it doesn't exist. Otherwise, just load it.
+	 * <br>
+	 * This is equivalent to: {
+	 * <p>
+	 * <i>{@code	getConfig().options().copyDefaults(true);}</i>
+	 * <p>
+	 * <i>{@code	saveDefaultConfig();}</i>
+	 * <p>
+	 * }
+	 * <p>
+	 * which is mostly written within onEnable()
+	 *
+	 * @param configNames (config .yml name) for each config file to be saved from
+	 *                    resources to disk (example: "data.yml",
+	 *                    "anotherconfig.yml")
+	 * @return Map of strings that represent config file names, and
+	 *         FileConfigurations of those config files.
+	 */
 	public static Map<String, FileConfiguration> copyAndSaveDefaults(String... configNames) {
 		Map<String, FileConfiguration> createdConfigFiles = Maps.newHashMap();
 		for (String configName : configNames) {
@@ -84,6 +91,31 @@ public class ConfigCreator {
 		return createdConfigFiles;
 	}
 
+	/**
+	 * Creates a config file for each given config name and load it from resources
+	 * if it doesn't exist. Otherwise, just load it.
+	 * <br>
+	 * This is equivalent to: {
+	 * <p>
+	 * <i>{@code	getConfig().options().copyDefaults(true);}</i>
+	 * <p>
+	 * <i>{@code	saveDefaultConfig();}</i>
+	 * <p>
+	 * }
+	 * <p>
+	 * which is mostly written within onEnable()
+	 *
+	 * @param configNames    (config .yml name) for each config file to be saved
+	 *                       from
+	 *                       resources to disk (example: "data.yml",
+	 *                       "anotherconfig.yml")
+	 * @param ignoreComments whether to ignore having special consideration for
+	 *                       config comments to preserve them upon saving and
+	 *                       reloading. In addition to that, new config fields and
+	 *                       sections will be added into old config versions of the
+	 *                       same config.
+	 * @return
+	 */
 	public static Map<String, FileConfiguration> copyAndSaveDefaults(boolean ignoreComments, String... configNames) {
 		Map<String, FileConfiguration> createdConfigFiles = Maps.newHashMap();
 		for (String configName : configNames) {
@@ -239,7 +271,7 @@ public class ConfigCreator {
 			}
 			Path filePath = Paths.get(savePath, configName);
 			File file = new File(filePath.toString());
-			if (!file.exists()) Files.copy(stream, Paths.get(savePath, configName));
+			if (!file.exists()) Files.copy(stream, filePath);
 		} catch (IOException e) {
 			System.out.print("Unable to load or copy configuration file <?>");
 			e.printStackTrace();
@@ -272,14 +304,16 @@ public class ConfigCreator {
 	}
 
 	/**
-	 * Reloads a config file. Same as {@code reloadConfig();}
+	 * Reloads a config file. Same behavior as {@code reloadConfig();} in addition
+	 * to comments preservation if config was initiated with.
 	 * 
-	 * @param configName config name to reload (customconfig.yml)
+	 * @param configName config name to reload (customconfig.yml) for example. It
+	 *                   must be a config created by this class.
 	 * @return reloaded FileConfiguration config file retrieved from config name.
 	 */
 	public static FileConfiguration reloadConfig(String configName) {
 		ConfigOptions options = CONFIGS.get(configName);
-		FileConfiguration configYaml = options.getFileConfiguration();
+		FileConfiguration configYaml;
 		File pathName = options.hasCustomPath() ? new File(options.getCustomPath()) : PLUGIN.getDataFolder();
 		File file = new File(pathName, configName);
 		if (!options.isIgnoreComments()) {

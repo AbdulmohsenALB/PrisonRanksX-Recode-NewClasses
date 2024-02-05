@@ -13,18 +13,9 @@ import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.*;
 import java.util.AbstractMap.SimpleEntry;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -195,7 +186,8 @@ public class Rina {
 	 * @param <T>   class type
 	 * @param clazz class to retrieve methods from
 	 * @return a map consisting of keys representing method names and values
-	 *         represting a map that contains keys with different method parameters
+	 *         representing a map that contains keys with different method
+	 *         parameters
 	 *         that has the same method name and
 	 *         method handle values that correspond to these parameters
 	 */

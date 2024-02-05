@@ -35,7 +35,6 @@ public class AutoRankupCommand extends PluginCommand {
 	@Override
 	public boolean execute(CommandSender sender, String label, String[] args) {
 		if (!testPermission(sender)) return true;
-
 		if (args.length == 0) {
 			if (!(sender instanceof Player)) {
 				Messages.sendMessage(sender, Messages.getPlayerOnlyCommand());
@@ -116,8 +115,6 @@ public class AutoRankupCommand extends PluginCommand {
 				plugin.getRankupExecutor().toggleAutoRankup(target, true);
 				Messages.sendMessage(sender, Messages.getAutoRankupEnabledOther(),
 						s -> s.replace("%player%", target.getName()));
-
-				return true;
 			} else if (disableSubCommands.contains(args[1].toLowerCase())) {
 				plugin.getRankupExecutor().toggleAutoRankup(target, false);
 				Messages.sendMessage(sender, Messages.getAutoRankupDisabledOther(),

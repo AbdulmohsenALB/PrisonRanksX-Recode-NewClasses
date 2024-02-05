@@ -10,8 +10,12 @@ import org.jetbrains.annotations.Nullable;
 
 import com.google.common.collect.Sets;
 
+import me.prisonranksx.bukkitutils.bukkittickbalancer.ConcurrentTask;
+import me.prisonranksx.bukkitutils.bukkittickbalancer.DistributedTask;
 import me.prisonranksx.components.RequirementsComponent.RequirementEvaluationResult;
+import me.prisonranksx.events.AsyncAutoRankupEvent;
 import me.prisonranksx.events.RankUpdateCause;
+import me.prisonranksx.events.RankUpdateEvent;
 import me.prisonranksx.holders.Level;
 import me.prisonranksx.holders.Rank;
 import me.prisonranksx.holders.User;
@@ -30,17 +34,6 @@ public interface RankupExecutor extends PromotionExecutor {
 	 */
 	public static Set<UUID> getAutoRankupPlayers() {
 		return AUTO_RANKUP_PLAYERS;
-	}
-
-	public static boolean switchAutoRankup(Player player) {
-		UUID uniqueId = UniqueId.getUUID(player);
-		return AUTO_RANKUP_PLAYERS.contains(uniqueId) ? AUTO_RANKUP_PLAYERS.remove(uniqueId)
-				: AUTO_RANKUP_PLAYERS.add(uniqueId);
-	}
-
-	public static boolean switchAutoRankup(Player player, boolean enable) {
-		UUID uniqueId = UniqueId.getUUID(player);
-		return enable ? AUTO_RANKUP_PLAYERS.add(uniqueId) : AUTO_RANKUP_PLAYERS.remove(uniqueId);
 	}
 
 	public static boolean isAutoRankup(Player player) {
@@ -129,6 +122,11 @@ public interface RankupExecutor extends PromotionExecutor {
 			return this;
 		}
 
+		/**
+		 * Usually next rank name.
+		 * 
+		 * @return
+		 */
 		@Nullable
 		public String getStringResult() {
 			return stringResult;
@@ -230,6 +228,8 @@ public interface RankupExecutor extends PromotionExecutor {
 	RankupResult rankup(Player player);
 
 	/**
+	 * Money is taken from player instead of target.
+	 * 
 	 * @param player player that will promote target to the next rank
 	 * @param target target to be promoted
 	 * @return RankupResult that notifies you of the outcome of the promotion,
@@ -278,22 +278,19 @@ public interface RankupExecutor extends PromotionExecutor {
 	void executeComponents(Level rank, Player player);
 
 	/**
-	 * @param player      player to include in the event
-	 * @param cause       the cause of the rankup
-	 * @param result      rankup outcome
-	 * @param updatedRank rank that player will get promoted to
-	 * @return false if event is cancelled, true otherwise
+	 * @param player player to include in the event
+	 * @param cause  the cause of the rankup
+	 * @param result rankup outcome
+	 * @return RankUpdateEvent that will be called.
 	 */
-	boolean callRankUpdateEvent(Player player, RankUpdateCause cause, RankupResult result,
-			@Nullable String updatedRank);
+	RankUpdateEvent callRankUpdateEvent(Player player, RankUpdateCause cause, RankupResult result);
 
 	/**
-	 * @param player      player to include in the event
-	 * @param result      rankup outcome
-	 * @param updatedRank rank that player will get promoted to
-	 * @return false if event is cancelled, true otherwise
+	 * @param player player to include in the event
+	 * @param result rankup outcome
+	 * @return AsyncAutoRankupEvent that will be called.
 	 */
-	boolean callAsyncAutoRankupEvent(Player player, RankupResult result, @Nullable String updatedRank);
+	AsyncAutoRankupEvent callAsyncAutoRankupEvent(Player player, RankupResult result);
 
 	/**
 	 * @param player          player to include in the event
@@ -322,5 +319,9 @@ public interface RankupExecutor extends PromotionExecutor {
 	 * @param player whom group will get updated
 	 */
 	void updateGroup(Player player);
+
+	DistributedTask<Player> getAutoRankupTask();
+
+	ConcurrentTask<Player> getMaxRankupTask();
 
 }

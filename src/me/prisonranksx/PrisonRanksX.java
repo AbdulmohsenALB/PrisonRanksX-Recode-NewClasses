@@ -3,94 +3,123 @@ package me.prisonranksx;
 import org.bukkit.Bukkit;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
-import org.bukkit.event.EventPriority;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitScheduler;
 import org.bukkit.scheduler.BukkitTask;
 
 import co.aikar.taskchain.TaskChain;
 import co.aikar.taskchain.TaskChainFactory;
-import me.prisonranksx.commands.CommandLoader;
-import me.prisonranksx.commands.PRXCommand;
-import me.prisonranksx.commands.PrestigeCommand;
-import me.prisonranksx.commands.RanksCommand;
-import me.prisonranksx.commands.RankupCommand;
-import me.prisonranksx.data.PrestigeStorage;
-import me.prisonranksx.data.RankStorage;
-import me.prisonranksx.data.RebirthStorage;
-import me.prisonranksx.data.UserController;
-import me.prisonranksx.data.YamlUserController;
-import me.prisonranksx.executors.AdminExecutor;
-import me.prisonranksx.executors.InfinitePrestigeExecutor;
-import me.prisonranksx.executors.PrestigeExecutor;
-import me.prisonranksx.executors.PrimaryRankupExecutor;
-import me.prisonranksx.executors.RankupExecutor;
+import me.prisonranksx.commands.*;
+import me.prisonranksx.data.*;
+import me.prisonranksx.executors.*;
 import me.prisonranksx.hooks.IHologramManager;
 import me.prisonranksx.listeners.PlayerChatListener;
+import me.prisonranksx.listeners.PlayerJoinListener;
 import me.prisonranksx.listeners.PlayerLoginListener;
-import me.prisonranksx.lists.RanksGUIList;
-import me.prisonranksx.lists.RanksTextList;
-import me.prisonranksx.managers.ActionBarManager;
-import me.prisonranksx.managers.ConversionManager;
-import me.prisonranksx.managers.EconomyManager;
-import me.prisonranksx.managers.HologramManager;
-import me.prisonranksx.managers.MySQLManager;
-import me.prisonranksx.managers.PermissionsManager;
-import me.prisonranksx.managers.StringManager;
+import me.prisonranksx.listeners.PlayerQuitListener;
+import me.prisonranksx.lists.*;
+import me.prisonranksx.managers.*;
 import me.prisonranksx.permissions.PlayerGroupUpdater;
 import me.prisonranksx.reflections.UniqueId;
-import me.prisonranksx.settings.GlobalSettings;
-import me.prisonranksx.settings.HologramSettings;
-import me.prisonranksx.settings.PlaceholderAPISettings;
-import me.prisonranksx.settings.PrestigeSettings;
-import me.prisonranksx.settings.RankSettings;
-import me.prisonranksx.settings.RanksListSettings;
-import me.prisonranksx.settings.RebirthSettings;
+import me.prisonranksx.settings.*;
 
-// Will continue only if dep is gone
+/**
+ * Plugin main class.
+ */
 public class PrisonRanksX extends JavaPlugin {
 
+	/**
+	 * Prefix used for log messages.
+	 */
 	private static final String PREFIX = "§e[§3PrisonRanks§cX§e]";
 	private static final BukkitScheduler SCHEDULER = Bukkit.getScheduler();
 	private static final ConsoleCommandSender CONSOLE = Bukkit.getConsoleSender();
 	private static PrisonRanksX instance;
 
 	// Settings loaded from config files
+	/**
+	 * Holds the settings that are under the section named 'Options'
+	 * that's inside config.yml
+	 */
 	private GlobalSettings globalSettings;
+	/**
+	 * Holds the settings that are under the section named
+	 * 'Rank-Options' that's inside config.yml
+	 */
 	private RankSettings rankSettings;
+	/**
+	 * Holds the settings that are under the section named
+	 * 'Prestige-Options' that's inside config.yml
+	 */
 	private PrestigeSettings prestigeSettings;
+	/**
+	 * Holds the settings that are under the section named
+	 * 'Rebirth-Options' that's inside config.yml
+	 */
 	private RebirthSettings rebirthSettings;
+	/**
+	 * Holds the settings that are under the section named
+	 * 'PlaceholderAPI-Options' that's inside config.yml
+	 */
 	private PlaceholderAPISettings placeholderAPISettings;
+	/**
+	 * Holds the settings that are under the section named 'Holograms'
+	 * that's inside config.yml
+	 */
 	private HologramSettings hologramSettings;
+	/**
+	 * Holds the settings that are under the section named
+	 * 'Ranks-List-Options' that's inside config.yml
+	 */
 	private RanksListSettings ranksListSettings;
+	private PrestigesListSettings prestigesListSettings;
 
 	// Executors
+	/** Provides methods for ranking up the players */
 	private RankupExecutor rankupExecutor;
+	/** Provides methods for prestiging the players */
 	private PrestigeExecutor prestigeExecutor;
+	/** Responsible for summoning holograms */
 	private IHologramManager hologramManager;
+	/**
+	 * Provides methods for creating and editing
+	 * ranks, and managing players data
+	 */
 	private AdminExecutor adminExecutor;
 
 	// Interfaces holding classes
+	/**
+	 * For updating players groups through permissions plugins APIs
+	 */
 	private PlayerGroupUpdater playerGroupUpdater;
 
 	// Commands
 	private PRXCommand prxCommand;
 	private RankupCommand rankupCommand;
+	private AutoRankupCommand autoRankupCommand;
 	private RanksCommand ranksCommand;
 	private PrestigeCommand prestigeCommand;
+	private AutoPrestigeCommand autoPrestigeCommand;
+	private PrestigesCommand prestigesCommand;
 
 	// User Management
+	/**
+	 * Provides methods for managing players data such
+	 * as loading and saving them.
+	 */
 	private UserController userController;
 
 	// Listeners
 	protected PlayerLoginListener playerLoginListener;
+	protected PlayerJoinListener playerJoinListener;
+	protected PlayerQuitListener playerQuitListener;
 	protected PlayerChatListener playerChatListener;
 
 	// Lists
 	private RanksTextList ranksTextList;
 	private RanksGUIList ranksGUIList;
-
-
+	private PrestigesTextList prestigesTextList;
+	private PrestigesGUIList prestigesGUIList;
 
 	@Override
 	public void onEnable() {
@@ -108,7 +137,10 @@ public class PrisonRanksX extends JavaPlugin {
 		MySQLManager.cache(); // A check is inside the class to determine whether MySQL should be enabled or
 								// not.
 		globalSettings = new GlobalSettings();
-		userController = new YamlUserController(this);
+		userController = getDataStorageType() == UserControllerType.MYSQL ? new MySQLUserController(this)
+				: getDataStorageType() == UserControllerType.YAML_PER_USER ? new YamlPerUserController(this)
+				: new YamlUserController(this);
+		logNeutral("Data storage type: " + userController.getType().name());
 		playerGroupUpdater = new PlayerGroupUpdater(this);
 
 		registerListeners();
@@ -180,6 +212,10 @@ public class PrisonRanksX extends JavaPlugin {
 			ranksCommand = new RanksCommand(this);
 			ranksCommand.register();
 		}
+		if (AutoRankupCommand.isEnabled()) {
+			autoRankupCommand = new AutoRankupCommand(this);
+			autoRankupCommand.register();
+		}
 		if (globalSettings.isGuiRankList())
 			ranksGUIList = new RanksGUIList(this);
 		else
@@ -187,15 +223,31 @@ public class PrisonRanksX extends JavaPlugin {
 	}
 
 	public void preparePrestiges() {
+		boolean infinitePrestige = globalSettings.isInfinitePrestige();
 		if (globalSettings.isPrestigeEnabled()) {
 			prestigeSettings = new PrestigeSettings();
-			boolean infinitePrestige = globalSettings.isInfinitePrestige();
-			PrestigeStorage.initAndLoad(true);
+			PrestigeStorage.initAndLoad(infinitePrestige);
+			prestigesListSettings = new PrestigesListSettings();
 			prestigeExecutor = new InfinitePrestigeExecutor(this);
 			if (PrestigeCommand.isEnabled()) {
 				prestigeCommand = new PrestigeCommand(this);
 				prestigeCommand.register();
 			}
+			if (AutoPrestigeCommand.isEnabled()) {
+				autoPrestigeCommand = new AutoPrestigeCommand(this);
+				autoPrestigeCommand.register();
+			}
+			if (PrestigesCommand.isEnabled()) {
+				prestigesCommand = new PrestigesCommand(this);
+				prestigesCommand.register();
+			}
+		}
+		if (globalSettings.isGuiPrestigeList()) {
+			prestigesGUIList = infinitePrestige ? new InfinitePrestigesGUIList(this)
+					: new RegularPrestigesGUIList(this);
+		} else {
+			prestigesTextList = infinitePrestige ? new InfinitePrestigesTextList(this)
+					: new RegularPrestigesTextList(this);
 		}
 	}
 
@@ -207,10 +259,11 @@ public class PrisonRanksX extends JavaPlugin {
 	}
 
 	public void registerListeners() {
-		playerLoginListener = new PlayerLoginListener(this,
-				EventPriority.valueOf(globalSettings.getLoginEventHandlingPriority()));
-		if (globalSettings.isFormatChat()) playerChatListener = new PlayerChatListener(this,
-				EventPriority.valueOf(globalSettings.getChatEventHandlingPriority()));
+		playerLoginListener = PlayerLoginListener.register(this, globalSettings.getLoginEventHandlingPriority());
+		playerJoinListener = PlayerJoinListener.register(this, globalSettings.getLoginEventHandlingPriority());
+		playerQuitListener = PlayerQuitListener.register(this, globalSettings.getLoginEventHandlingPriority());
+		if (globalSettings.isFormatChat())
+			playerChatListener = PlayerChatListener.register(this, globalSettings.getChatEventHandlingPriority());
 	}
 
 	public static void log(String message) {
@@ -273,6 +326,17 @@ public class PrisonRanksX extends JavaPlugin {
 		return userController;
 	}
 
+	public void setUserController(UserController userController) {
+		this.userController = userController;
+	}
+
+	private UserControllerType getDataStorageType() {
+		String dataStorageType = globalSettings.getDataStorageType().toUpperCase();
+		return dataStorageType.equals("YAML") ? UserControllerType.YAML
+				: dataStorageType.equals("YAML_PER_USER") ? UserControllerType.YAML_PER_USER
+				: dataStorageType.equals("MYSQL") ? UserControllerType.MYSQL : UserControllerType.YAML;
+	}
+
 	public PlaceholderAPISettings getPlaceholderAPISettings() {
 		return placeholderAPISettings;
 	}
@@ -323,6 +387,10 @@ public class PrisonRanksX extends JavaPlugin {
 		return ranksListSettings;
 	}
 
+	public PrestigesListSettings getPrestigesListSettings() {
+		return prestigesListSettings;
+	}
+
 	public AdminExecutor getAdminExecutor() {
 		return adminExecutor;
 	}
@@ -333,6 +401,14 @@ public class PrisonRanksX extends JavaPlugin {
 
 	public RanksGUIList getRanksGUIList() {
 		return ranksGUIList;
+	}
+
+	public PrestigesGUIList getPrestigesGUIList() {
+		return prestigesGUIList;
+	}
+
+	public PrestigesTextList getPrestigesTextList() {
+		return prestigesTextList;
 	}
 
 	public void initRanksGUIList() {

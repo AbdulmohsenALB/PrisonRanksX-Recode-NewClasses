@@ -10,8 +10,8 @@ import me.prisonranksx.executors.PrestigeExecutor.PrestigeResult;
 public class PrestigeUpdateEvent extends Event implements Cancellable {
 
 	private Player player;
-	private String newPrestigeName;
 	private boolean isCancelled;
+	private PrestigeResult prestigeResult;
 	private PrestigeUpdateCause prestigeUpdateCause;
 	private static final HandlerList handlers = new HandlerList();
 
@@ -24,12 +24,11 @@ public class PrestigeUpdateEvent extends Event implements Cancellable {
 		return handlers;
 	}
 
-	public PrestigeUpdateEvent(Player player, PrestigeUpdateCause prestigeUpdateCause, PrestigeResult prestigeResult,
-			String newPrestigeName) {
+	public PrestigeUpdateEvent(Player player, PrestigeUpdateCause prestigeUpdateCause, PrestigeResult prestigeResult) {
 		this.player = player;
 		this.prestigeUpdateCause = prestigeUpdateCause;
+		this.prestigeResult = prestigeResult;
 		this.isCancelled = false;
-		this.newPrestigeName = newPrestigeName;
 	}
 
 	@Override
@@ -51,12 +50,11 @@ public class PrestigeUpdateEvent extends Event implements Cancellable {
 		return this.prestigeUpdateCause;
 	}
 
-	public void setCause(PrestigeUpdateCause prestigeUpdateCause) {
-		this.prestigeUpdateCause = prestigeUpdateCause;
+	public PrestigeResult getPrestigeResult() {
+		return prestigeResult;
 	}
 
-	public String getNewPrestigeName() {
-		return newPrestigeName;
+	public void setPrestigeResult(PrestigeResult prestigeResult) {
+		this.prestigeResult = prestigeResult;
 	}
-
 }

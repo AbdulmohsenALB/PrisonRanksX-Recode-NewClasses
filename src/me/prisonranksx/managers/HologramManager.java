@@ -20,9 +20,9 @@ public class HologramManager extends StaticCache {
 	static {
 		IHologramManager hologramManager = null;
 		if (Bukkit.getPluginManager().isPluginEnabled("DecentHolograms")) {
-			hologramManager = new HDHologramManager(PLUGIN);
-		} else if (Bukkit.getPluginManager().isPluginEnabled("HolographicDisplays")) {
 			hologramManager = new DHHologramManager(PLUGIN);
+		} else if (Bukkit.getPluginManager().isPluginEnabled("HolographicDisplays")) {
+			hologramManager = new HDHologramManager(PLUGIN);
 		}
 		HOLOGRAM_MANAGER = hologramManager;
 		HOLOGRAM_PLUGIN = HOLOGRAM_MANAGER != null;

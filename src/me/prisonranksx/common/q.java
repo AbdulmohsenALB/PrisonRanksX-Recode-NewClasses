@@ -4,11 +4,6 @@ import java.util.function.Function;
 
 import org.bukkit.Bukkit;
 
-/**
- * 
- * Violates naming conventions for the sake of fast debugging.
- * q = Quick
- */
 public class q {
 
 	public static void msg(String msg) {

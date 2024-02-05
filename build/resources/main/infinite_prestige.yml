@@ -1,0 +1,49 @@
+# Enable the this configuration file by turning off the server and changing the option 'infinite-prestige' from false to true inside config.yml.
+# placeholders:
+# {number} = prestige number
+# {rankcost} = current rank cost
+# %player% = player name
+Global-Settings:
+  display: "&8[&9P{number}&8]"
+  cost-expression: "{number} * 100000"
+  commands: []
+  broadcast: []
+  final-prestige: 1000000
+  max-prestige-commands:
+  - "eco give %player% %amount%"
+# Execute at that specific prestige number.
+Prestiges-Settings:
+  # ~Possible actions~
+  # executecmds:
+  # - "command %player%"
+  # broadcast:
+  # - "&6a broadcast message line."
+  # - "&e%player% &7just prestiged."
+  500:
+    executecmds:
+    - "say 500"
+  1000:
+    executecmds:
+    - "say 1000"
+  1500:
+    executecmds:
+    - "say 1500"
+  2000:
+    executecmds:
+    - "say 2000"
+# Execute every X prestige.
+# Actions that will be performed every time the player passes X amount of prestiges.
+# So if a player passes 500/1000/1500/etc.... prestiges, this message will be broadcasted.
+# Accepts: executecmds, broadcast.
+Continuous-Prestiges-Settings:
+  500:
+    executecmds:
+    - "say 500"
+# Show a different display name if player prestige is within a range of prestiges (inclusive). For example, from prestige 500 to 999 it will show the light blue display name, otherwise show the default one specified under Global-Settings section above.
+Constant-Prestiges-Settings:
+  500:
+    display: "&8[&bP{number}&8]"
+    to: 999
+  1000:
+    display: "&8[&cP{number}&8]"
+    to: 2000

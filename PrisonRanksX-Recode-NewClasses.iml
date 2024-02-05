@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module version="4">
+  <component name="EclipseModuleManager">
+    <libelement value="jar://$MODULE_DIR$/../../../../Downloads/Vault.jar!/" />
+    <libelement value="jar://$MODULE_DIR$/../../../../Downloads/HolographicDisplays.jar!/" />
+    <libelement value="jar://$MODULE_DIR$/../../../../Downloads/ActionUtil-1.4.jar!/" />
+    <libelement value="jar://$MODULE_DIR$/../../../../Downloads/PermissionsEx-1.23.4.jar!/" />
+    <libelement value="jar://$MODULE_DIR$/../../../../Downloads/GroupManager.jar!/" />
+    <libelement value="jar://$MODULE_DIR$/../../../../Downloads/PlaceholderAPI-2.10.10.jar!/" />
+    <libelement value="jar://$MODULE_DIR$/../../../../Downloads/MVdWPlaceholderAPI.jar!/" />
+    <libelement value="jar://$MODULE_DIR$/../../../../Downloads/spigot-1.16.1.jar!/" />
+    <libelement value="jar://$MODULE_DIR$/../../../../Downloads/DecentHolograms-2.2.7.jar!/" />
+    <libelement value="jar://$MODULE_DIR$/../../../../Downloads/LuckPerms-Bukkit-5.4.13.jar!/" />
+    <src_description expected_position="1">
+      <src_folder value="file://$MODULE_DIR$/src" expected_position="1" />
+    </src_description>
+  </component>
+</module>

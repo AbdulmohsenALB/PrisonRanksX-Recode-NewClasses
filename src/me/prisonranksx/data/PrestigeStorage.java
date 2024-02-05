@@ -1,24 +1,13 @@
 package me.prisonranksx.data;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Consumer;
 
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 
 import me.prisonranksx.PrisonRanksX;
-import me.prisonranksx.components.ActionBarComponent;
-import me.prisonranksx.components.CommandsComponent;
-import me.prisonranksx.components.ComponentsHolder;
-import me.prisonranksx.components.FireworkComponent;
-import me.prisonranksx.components.PermissionsComponent;
-import me.prisonranksx.components.RandomCommandsComponent;
-import me.prisonranksx.components.RequirementsComponent;
+import me.prisonranksx.components.*;
 import me.prisonranksx.holders.Prestige;
 import me.prisonranksx.holders.UniversalPrestige;
 import me.prisonranksx.managers.ConfigManager;
@@ -103,18 +92,47 @@ public class PrestigeStorage {
 		return PRESTIGE_STORAGE_HANDLER.getPrestiges();
 	}
 
+	/**
+	 *
+	 * @param name prestige name to match with (case-insensitive)
+	 * @return prestigeName with matching name in correct case, or null if no
+	 *         matching prestige name was found.
+	 */
 	public static String matchPrestigeName(String name) {
 		return PRESTIGE_STORAGE_HANDLER.matchPrestigeName(name);
 	}
 
+	/**
+	 *
+	 * @param name prestige name to match with (case-insensitive)
+	 * @return prestige with matching name, or null if no matching prestige name was
+	 *         found.
+	 */
 	public static Prestige matchPrestige(String name) {
 		return PRESTIGE_STORAGE_HANDLER.matchPrestige(name);
 	}
 
+	/**
+	 * Gets correct display name from prestige number
+	 * 
+	 * @param prestige number of prestige to get display name for
+	 * @return Infinite prestige: gets prestige display name from constant settings
+	 *         if available, otherwise default one. <br>
+	 *         <br>
+	 *         Regular prestige: prestige
+	 *         display name.
+	 */
 	public static String getRangedDisplay(long prestige) {
 		return PRESTIGE_STORAGE_HANDLER.getRangedDisplay(prestige);
 	}
 
+	/**
+	 * Executes continuous components if available for infinite prestige, does
+	 * nothing for regular prestige.
+	 * 
+	 * @param prestige         number of prestige to execute components from
+	 * @param componentsAction handle the components
+	 */
 	public static void useContinuousComponents(long prestige, Consumer<ComponentsHolder> componentsAction) {
 		PRESTIGE_STORAGE_HANDLER.useContinuousComponents(prestige, componentsAction);
 	}
@@ -387,6 +405,8 @@ public class PrestigeStorage {
 
 		@Override
 		public String matchPrestigeName(String name) {
+			Prestige prestige = prestiges.get(name);
+			if (prestige != null) return prestige.getName();
 			String altName = alternativeNames.get(name.toLowerCase());
 			if (altName != null) return altName;
 			int intName = IntParser.asInt(name, -1);
@@ -576,12 +596,12 @@ public class PrestigeStorage {
 
 		@Override
 		public String matchPrestigeName(String name) {
-			return String.valueOf(IntParser.readLong(name));
+			return prestigeExists(name) ? String.valueOf(IntParser.readLong(name)) : null;
 		}
 
 		@Override
 		public Prestige matchPrestige(String name) {
-			return prestiges.get(Long.parseLong(name));
+			return prestigeExists(name) ? prestiges.get(Long.parseLong(name)) : null;
 		}
 
 		@Override

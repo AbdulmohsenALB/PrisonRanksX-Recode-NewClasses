@@ -8,10 +8,12 @@ import java.util.Properties;
 
 import org.bukkit.configuration.file.FileConfiguration;
 
+import me.prisonranksx.PrisonRanksX;
 import me.prisonranksx.common.StaticCache;
 
 public class MySQLManager extends StaticCache {
 
+	// This performs the setup as well.
 	private static final MySQLHolder HOLDER = new MySQLHolder();
 
 	public static void reload() {
@@ -36,6 +38,14 @@ public class MySQLManager extends StaticCache {
 
 	public static boolean isOpen() {
 		return HOLDER.isOpen();
+	}
+
+	public static String getDatabase() {
+		return HOLDER.getDatabase();
+	}
+
+	public static String getTable() {
+		return HOLDER.getTable();
 	}
 
 	public static Statement newStatement() {
@@ -75,10 +85,12 @@ public class MySQLManager extends StaticCache {
 			table = config.getString("MySQL.table");
 			Statement statement;
 			try {
+				openConnection();
 				statement = getConnection().createStatement();
 				statement.executeUpdate("CREATE TABLE IF NOT EXISTS " + database + "." + table
-						+ " (`uuid` varchar(255), `name` varchar(255), `rank` varchar(255), `prestige` varchar(255), `rebirth` varchar(255), `path` varchar(255), `rankscore` int(10), `prestigescore` int(10), `rebirthscore` int(10), `stagescore` int(24));");
-				openConnection();
+						+ " (`uuid` varchar(255), `name` varchar(255), `rank` varchar(255), `path` varchar(255), `prestige` varchar(255), `rebirth` varchar(255), `score` int(10));");
+				statement.close();;
+				PrisonRanksX.log("Successfully connected to MySQL database.");
 			} catch (SQLException | ClassNotFoundException e) {
 				e.printStackTrace();
 			}
@@ -87,6 +99,14 @@ public class MySQLManager extends StaticCache {
 
 		public Connection getConnection() {
 			return connection;
+		}
+
+		public String getDatabase() {
+			return database;
+		}
+
+		public String getTable() {
+			return table;
 		}
 
 		public boolean isOpen() {

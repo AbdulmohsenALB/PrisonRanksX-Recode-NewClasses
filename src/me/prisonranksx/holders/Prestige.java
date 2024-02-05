@@ -227,4 +227,8 @@ public class Prestige implements Level {
 		this.number = number;
 	}
 
+	public boolean isLast() {
+		return number == PrestigeStorage.getLastPrestigeAsNumber();
+	}
+
 }

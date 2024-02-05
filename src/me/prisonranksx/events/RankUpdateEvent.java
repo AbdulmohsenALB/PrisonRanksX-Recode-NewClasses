@@ -10,7 +10,7 @@ import me.prisonranksx.executors.RankupExecutor.RankupResult;
 public class RankUpdateEvent extends Event implements Cancellable {
 
 	private Player player;
-	private String newRankName;
+	private RankupResult rankupResult;
 	private boolean isCancelled;
 	private RankUpdateCause rankUpdateCause;
 	private static final HandlerList handlers = new HandlerList();
@@ -24,12 +24,11 @@ public class RankUpdateEvent extends Event implements Cancellable {
 		return handlers;
 	}
 
-	public RankUpdateEvent(Player player, RankUpdateCause rankUpdateCause, RankupResult rankupResult,
-			String newRankName) {
+	public RankUpdateEvent(Player player, RankUpdateCause rankUpdateCause, RankupResult rankupResult) {
 		this.player = player;
 		this.rankUpdateCause = rankUpdateCause;
 		this.isCancelled = false;
-		this.newRankName = newRankName;
+		this.rankupResult = rankupResult;
 	}
 
 	@Override
@@ -44,19 +43,25 @@ public class RankUpdateEvent extends Event implements Cancellable {
 
 	public Player getPlayer() {
 		return this.player;
-
 	}
 
 	public RankUpdateCause getCause() {
 		return this.rankUpdateCause;
 	}
 
-	public void setCause(RankUpdateCause rankUpdateCause) {
-		this.rankUpdateCause = rankUpdateCause;
-	}
-
 	public String getNewRankName() {
-		return newRankName;
+		return rankupResult.getStringResult();
 	}
 
+	public void setNewRankName(String newRankName) {
+		this.rankupResult.withString(newRankName);
+	}
+
+	public RankupResult getRankupResult() {
+		return rankupResult;
+	}
+
+	public void setRankupResult(RankupResult rankupResult) {
+		this.rankupResult = rankupResult;
+	}
 }

@@ -1,6 +1,14 @@
 package me.prisonranksx.api;
 
+import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+
+import org.bukkit.entity.Player;
+import org.jetbrains.annotations.Nullable;
+
 import me.prisonranksx.PrisonRanksX;
+import me.prisonranksx.common.Common;
 import me.prisonranksx.data.PrestigeStorage;
 import me.prisonranksx.data.RankStorage;
 import me.prisonranksx.executors.RankupExecutor;
@@ -9,13 +17,6 @@ import me.prisonranksx.holders.Prestige;
 import me.prisonranksx.holders.Rank;
 import me.prisonranksx.holders.User;
 import me.prisonranksx.reflections.UniqueId;
-import me.prisonranksx.utils.Rina;
-import org.bukkit.entity.Player;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.Set;
-import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 
 public class PRXAPI {
 
@@ -107,21 +108,21 @@ public class PRXAPI {
     public static double getRankFinalCost(Rank rank, UUID uniqueId) {
         Prestige prestige = getPlayerPrestige(uniqueId);
         if (!hasPrestige(uniqueId)) return rank.getCost();
-        return Double.parseDouble(Rina.evaluateMathExpression(plugin.getPrestigeSettings()
+        return Common.eval(plugin.getPrestigeSettings()
                 .getIncreaseExpression()
                 .replace("{increase_percentage}", String.valueOf(prestige.getCostIncrease()))
                 .replace("{rank_cost}", String.valueOf(rank.getCost()))
-                .replace("{prestige_number}", String.valueOf(getPlayerPrestigeNumber(uniqueId)))));
+                .replace("{prestige_number}", String.valueOf(getPlayerPrestigeNumber(uniqueId))));
     }
 
     public static double getRankFinalCost(Rank rank, Player player) {
         Prestige prestige = getPlayerPrestige(player);
         if (!hasPrestige(player)) return rank.getCost();
-        return Double.parseDouble(Rina.evaluateMathExpression(plugin.getPrestigeSettings()
+        return Common.eval(plugin.getPrestigeSettings()
                 .getIncreaseExpression()
                 .replace("{increase_percentage}", String.valueOf(prestige.getCostIncrease()))
                 .replace("{rank_cost}", String.valueOf(rank.getCost()))
-                .replace("{prestige_number}", String.valueOf(getPlayerPrestigeNumber(player)))));
+                .replace("{prestige_number}", String.valueOf(getPlayerPrestigeNumber(player))));
     }
 
     public static String getPlayerPathOrDefault(Player player) {

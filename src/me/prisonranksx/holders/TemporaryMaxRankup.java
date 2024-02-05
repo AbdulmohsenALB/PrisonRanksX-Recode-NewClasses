@@ -7,6 +7,9 @@ import org.jetbrains.annotations.NotNull;
 
 import me.prisonranksx.executors.RankupExecutor;
 
+/**
+ * Used to track player max rankup data during max rankup process.
+ */
 public class TemporaryMaxRankup {
 
 	private UUID uniqueId;

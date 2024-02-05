@@ -11,6 +11,7 @@ import me.prisonranksx.PrisonRanksX;
 import me.prisonranksx.data.RankStorage;
 import me.prisonranksx.holders.Rank;
 import me.prisonranksx.managers.StringManager;
+import me.prisonranksx.utils.IntParser;
 
 public class RanksCommand extends PluginCommand {
 
@@ -48,10 +49,10 @@ public class RanksCommand extends PluginCommand {
 			if (args.length == 0)
 				plugin.getRanksGUIList().openGUI((Player) sender);
 			else
-				plugin.getRanksGUIList().getPlayerPagedGUI().openInventory((Player) sender, Integer.parseInt(args[0]));
+				plugin.getRanksGUIList().openGUI((Player) sender, IntParser.asInt(args[0], 1));
 			return true;
 		}
-		plugin.getRanksTextList().sendPagedList(sender, args.length == 0 ? "1" : args[0]);
+		plugin.getRanksTextList().send(sender, args.length == 0 ? "1" : args[0]);
 		return true;
 	}
 }

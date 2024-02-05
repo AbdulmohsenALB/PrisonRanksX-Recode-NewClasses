@@ -1,86 +1,90 @@
 package me.prisonranksx.holders;
 
-import me.prisonranksx.executors.PrestigeExecutor;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
+import org.jetbrains.annotations.NotNull;
+
+import me.prisonranksx.executors.PrestigeExecutor;
+
+/**
+ * Used to track player max prestige data during max prestige process.
+ */
 public class TemporaryMaxPrestige {
 
-    private UUID uniqueId;
-    private double takenBalance;
+	private UUID uniqueId;
+	private double takenBalance;
 
-    private long prestiges;
+	private long prestiges;
 
-    private CompletableFuture<PrestigeExecutor.PrestigeResult> finalPrestigeResult;
+	private CompletableFuture<PrestigeExecutor.PrestigeResult> finalPrestigeResult;
 
-    private PrestigeExecutor.PrestigeResult currentPrestigeResult;
+	private PrestigeExecutor.PrestigeResult currentPrestigeResult;
 
-    private String firstPrestigeName;
+	private String firstPrestigeName;
 
-    private String firstPrestigeDisplayName;
+	private String firstPrestigeDisplayName;
 
-    public TemporaryMaxPrestige(UUID uniqueId) {
-        this.uniqueId = uniqueId;
-    }
+	public TemporaryMaxPrestige(UUID uniqueId) {
+		this.uniqueId = uniqueId;
+	}
 
-    public static TemporaryMaxPrestige hold(UUID uniqueId) {
-        return new TemporaryMaxPrestige(uniqueId);
-    }
+	public static TemporaryMaxPrestige hold(UUID uniqueId) {
+		return new TemporaryMaxPrestige(uniqueId);
+	}
 
-    public double getTakenBalance() {
-        return takenBalance;
-    }
+	public double getTakenBalance() {
+		return takenBalance;
+	}
 
-    public TemporaryMaxPrestige setTakenBalance(double takenBalance) {
-        this.takenBalance = takenBalance;
-        return this;
-    }
+	public TemporaryMaxPrestige setTakenBalance(double takenBalance) {
+		this.takenBalance = takenBalance;
+		return this;
+	}
 
-    public long getPrestiges() {
-        return prestiges;
-    }
+	public long getPrestiges() {
+		return prestiges;
+	}
 
-    public TemporaryMaxPrestige setPrestiges(long prestiges) {
-        this.prestiges = prestiges;
-        return this;
-    }
+	public TemporaryMaxPrestige setPrestiges(long prestiges) {
+		this.prestiges = prestiges;
+		return this;
+	}
 
-    @NotNull
-    public CompletableFuture<PrestigeExecutor.PrestigeResult> getFinalPrestigeResult() {
-        return finalPrestigeResult == null ? finalPrestigeResult = new CompletableFuture<>() : finalPrestigeResult;
-    }
+	@NotNull
+	public CompletableFuture<PrestigeExecutor.PrestigeResult> getFinalPrestigeResult() {
+		return finalPrestigeResult == null ? finalPrestigeResult = new CompletableFuture<>() : finalPrestigeResult;
+	}
 
-    public void setFinalPrestigeResult(CompletableFuture<PrestigeExecutor.PrestigeResult> finalPrestigeResult) {
-        this.finalPrestigeResult = finalPrestigeResult;
-    }
+	public void setFinalPrestigeResult(CompletableFuture<PrestigeExecutor.PrestigeResult> finalPrestigeResult) {
+		this.finalPrestigeResult = finalPrestigeResult;
+	}
 
-    public String getFirstPrestigeName() {
-        return firstPrestigeName;
-    }
+	public String getFirstPrestigeName() {
+		return firstPrestigeName;
+	}
 
-    public TemporaryMaxPrestige setFirstPrestigeName(String firstPrestigeName) {
-        this.firstPrestigeName = firstPrestigeName;
-        return this;
-    }
+	public TemporaryMaxPrestige setFirstPrestigeName(String firstPrestigeName) {
+		this.firstPrestigeName = firstPrestigeName;
+		return this;
+	}
 
-    public String getFirstPrestigeDisplayName() {
-        return firstPrestigeDisplayName;
-    }
+	public String getFirstPrestigeDisplayName() {
+		return firstPrestigeDisplayName;
+	}
 
-    public TemporaryMaxPrestige setFirstPrestigeDisplayName(String firstPrestigeDisplayName) {
-        this.firstPrestigeDisplayName = firstPrestigeDisplayName;
-        return this;
-    }
+	public TemporaryMaxPrestige setFirstPrestigeDisplayName(String firstPrestigeDisplayName) {
+		this.firstPrestigeDisplayName = firstPrestigeDisplayName;
+		return this;
+	}
 
-    public PrestigeExecutor.PrestigeResult getCurrentPrestigeResult() {
-        return currentPrestigeResult;
-    }
+	public PrestigeExecutor.PrestigeResult getCurrentPrestigeResult() {
+		return currentPrestigeResult;
+	}
 
-    public TemporaryMaxPrestige setCurrentPrestigeResult(PrestigeExecutor.PrestigeResult currentPrestigeResult) {
-        this.currentPrestigeResult = currentPrestigeResult;
-        return this;
-    }
+	public TemporaryMaxPrestige setCurrentPrestigeResult(PrestigeExecutor.PrestigeResult currentPrestigeResult) {
+		this.currentPrestigeResult = currentPrestigeResult;
+		return this;
+	}
 
 }

@@ -29,6 +29,10 @@ public class PlayerChatListener implements EventExecutor, Listener {
 				.registerEvent(AsyncPlayerChatEvent.class, this, priority, this, plugin, true);
 	}
 
+	public static PlayerChatListener register(PrisonRanksX plugin, String priority) {
+		return new PlayerChatListener(plugin, EventPriority.valueOf(priority.toUpperCase()));
+	}
+
 	@Override
 	public void execute(Listener listener, Event event) throws EventException {
 		onChat((AsyncPlayerChatEvent) event);
@@ -70,12 +74,11 @@ public class PlayerChatListener implements EventExecutor, Listener {
 		String prestigeDisplayName = plugin.getGlobalSettings().isPrestigeForceDisplay() ? playerPrestige : empty;
 		String rebirthDisplayName = plugin.getGlobalSettings().isRebirthForceDisplay() ? playerRebirth : empty;
 
-		String additionalFormat = plugin.getGlobalSettings()
+		return plugin.getGlobalSettings()
 				.getForceDisplayOrder()
 				.replace("{rank}", rankDisplayName)
 				.replace("{prestige}", prestigeDisplayName)
 				.replace("{rebirth}", rebirthDisplayName);
-		return additionalFormat;
 	}
 
 }

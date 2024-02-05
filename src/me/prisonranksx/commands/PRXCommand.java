@@ -14,9 +14,12 @@ import com.google.common.collect.Sets;
 
 import me.prisonranksx.PrisonRanksX;
 import me.prisonranksx.api.PRXAPI;
-import me.prisonranksx.data.PrestigeStorage;
-import me.prisonranksx.data.RankStorage;
+import me.prisonranksx.bukkitutils.Colorizer;
+import me.prisonranksx.bukkitutils.SingleReplacementMessage;
+import me.prisonranksx.data.*;
 import me.prisonranksx.holders.Rank;
+import me.prisonranksx.managers.ConfigManager;
+import me.prisonranksx.managers.MySQLManager;
 import me.prisonranksx.managers.StringManager;
 import me.prisonranksx.reflections.UniqueId;
 import me.prisonranksx.settings.Messages;
@@ -26,10 +29,10 @@ public class PRXCommand extends PluginCommand {
 	private PrisonRanksX plugin;
 	private final double invalidDouble = -69420.69420;
 	private final int invalidInt = -69420;
-	private final Set<String> availableSubCommands = Sets.newHashSet("help", "setrank", "changerank", "resetrank",
-			"createrank", "newrank", "addrank", "setrankdisplay", "changerankdisplay", "setrankcost", "changerankcost",
-			"delrank", "deleterank", "moverankpath", "setrankpath", "ranks", "reload", "forcerankup", "setprestige",
-			"changeprestige", "test", "test2");
+	private final Set<String> availableSubCommands = Sets.newHashSet("help", "convert", "convertdata", "setrank",
+			"changerank", "resetrank", "createrank", "newrank", "addrank", "setrankdisplay", "changerankdisplay",
+			"setrankcost", "changerankcost", "delrank", "deleterank", "moverankpath", "setrankpath", "ranks", "reload",
+			"forcerankup", "setprestige", "changeprestige", "test", "test2");
 	private final List<String> helpMessage = StringManager.parseColorsAndSymbols(Lists.newArrayList(
 			"&3[&bPrisonRanks&cX&3] &7<> = required, [] = optional", "&7&m+------------------------------------------+",
 			"&7/prx &chelp &f[page]", "&7/prx &creload", "&7/prx &csetrank &f<player> <rank> [path]",
@@ -63,7 +66,6 @@ public class PRXCommand extends PluginCommand {
 		if (!availableSubCommands.contains(subCommand)) {
 			sender.sendMessage(
 					StringManager.parseColors("&4Subcommand &c" + subCommand + " &4doesn't exist. See &e/prx help&4."));
-			helpMessage.forEach(sender::sendMessage);
 			return null;
 		}
 		return subCommand;
@@ -145,6 +147,10 @@ public class PRXCommand extends PluginCommand {
 		return parsedInt;
 	}
 
+	private void sendMsg(CommandSender sender, String msg) {
+		sender.sendMessage(StringManager.parseColors(msg));
+	}
+
 	@Override
 	public boolean execute(CommandSender sender, String label, String[] args) {
 		if (!testPermission(sender)) return true;
@@ -168,63 +174,68 @@ public class PRXCommand extends PluginCommand {
 						return true;
 					case "setrank":
 					case "changerank":
-						sender.sendMessage(
-								StringManager.parseColors("&4Syntax: &7/prx &csetrank &f<player> <rank> [path]"));
+						sendMsg(sender, "&4Syntax: &7/prx &csetrank &f<player> <rank> [path]");
+						sendMsg(sender, "&41. Example: &7/prx &csetrank &fNotch A");
+						sendMsg(sender, "&42. Example: &7/prx &csetrank &fNotch Bplus anotherpath");
 						return true;
 					case "setprestige":
 					case "changeprestige":
-						sender.sendMessage(
-								StringManager.parseColors("&4Syntax: &7/prx &csetprestige &f<player> <prestige>"));
+						sendMsg(sender, "&4Syntax: &7/prx &csetprestige &f<player> <prestige>");
 						return true;
 					case "resetrank":
-						sender.sendMessage(StringManager.parseColors("&4Syntax: &7/prx &cresetrank &f<player>"));
+						sendMsg(sender, "&4Syntax: &7/prx &cresetrank &f<player>");
 						return true;
 					case "forcerankup":
-						sender.sendMessage(StringManager.parseColors("&4Syntax: &7/prx &cforcerankup &f<player>"));
+						sendMsg(sender, "&4Syntax: &7/prx &cforcerankup &f<player>");
 						return true;
 					case "createrank":
 					case "newrank":
 					case "addrank":
-						sender.sendMessage(StringManager
-								.parseColors("&4Syntax: &7/prx &ccreaterank &f<rank> <cost> [prefix] [-path:<name>]"));
-						sender.sendMessage(
-								StringManager.parseColors("&41. Example:\n&7/prx &ccreaterank &fC 2500 ") + "&b[C]");
-						sender.sendMessage(StringManager.parseColors("&42. Example:\n&7/prx &ccreaterank &fAlpha 5000 ")
-								+ "&4[Alpha] -path:newpath");
+						sendMsg(sender, "&4Syntax: &7/prx &ccreaterank &f<rank> <cost> [prefix] [-path:<name>]");
+						sendMsg(sender, "&41. Example:\n&7/prx &ccreaterank &fC 2500 &b[C]");
+						sendMsg(sender, "&42. Example:\n&7/prx &ccreaterank &fAlpha 5000 &4[Alpha] -path:myotherpath");
 						return true;
 					case "setrankdisplay":
 					case "changerankdisplay":
-						sender.sendMessage(StringManager
-								.parseColors("&4Syntax: &7/prx &csetrankdisplay &f<rank> <display> [-path:<name>]"));
+						sendMsg(sender, "&4Syntax: &7/prx &csetrankdisplay &f<rank> <display> [-path:<name>]");
 						return true;
 					case "setrankcost":
 					case "changerankcost":
-						sender.sendMessage(
-								StringManager.parseColors("&4Syntax: &7/prx &csetrankcost &f<rank> <cost> [path]"));
+						sendMsg(sender, "&4Syntax: &7/prx &csetrankcost &f<rank> <cost> [path]");
 						return true;
 					case "delrank":
 					case "deleterank":
-						sender.sendMessage(StringManager.parseColors("&4Syntax: &7/prx &cdelrank &f<rank> [path]"));
+						sendMsg(sender, "&4Syntax: &7/prx &cdelrank &f<rank> [path]");
 						return true;
 					case "setrankpath":
 					case "moverankpath":
-						sender.sendMessage(StringManager
-								.parseColors("&4Syntax: &7/prx &cmoverankpath &f<rank> <currentpath> <newpath>"));
+						sendMsg(sender, "&4Syntax: &7/prx &cmoverankpath &f<rank> <currentpath> <newpath>");
 						return true;
 					case "ranks":
 						RankStorage.PATHS.keySet().forEach(pathName -> {
 							Set<Rank> ranks = Sets.newLinkedHashSet(RankStorage.getPathRanks(pathName));
 							ranks.forEach(rank -> {
-								sender.sendMessage(StringManager
-										.parseColors("&7Path: &f" + pathName + " &cRank: &f" + rank.getName()));
+								sendMsg(sender, "&7Path: &f" + pathName + " &cRank: &f" + rank.getName());
 							});
 						});
 						return true;
 					case "test":
-						//
+						SingleReplacementMessage srm = new SingleReplacementMessage(
+								Colorizer.colorize("&6You prestiged to &e%num%&7."), "%num%");
+						long time = System.currentTimeMillis();
+						for (int i = 0; i < 9999; i++) {
+							srm.send(sender, String.valueOf(i));
+						}
+						sender.sendMessage("[SRM] Command executed in " + (System.currentTimeMillis() - time) + " ms.");
 						return true;
 					case "test2":
-						//
+						long time2 = System.currentTimeMillis();
+						String msg = Colorizer.colorize("&6You prestiged to &e%num%&7.");
+						for (int i = 0; i < 9999; i++) {
+							((Player) sender).sendRawMessage(msg.replace("%num%", String.valueOf(i)));
+						}
+						sender.sendMessage(
+								"[NORMAL] Command executed in " + (System.currentTimeMillis() - time2) + " ms.");
 						return true;
 				}
 			case 2:
@@ -233,15 +244,13 @@ public class PRXCommand extends PluginCommand {
 				switch (subCommand) {
 					case "setrank":
 					case "changerank":
-						sender.sendMessage(StringManager.parseColors("&4Missing arguments: &c<rank>"));
-						sender.sendMessage(
-								StringManager.parseColors("&4Syntax: &7/prx &csetrank &f<player> <rank> [path]"));
+						sendMsg(sender, "&4Missing arguments: &c<rank>");
+						sendMsg(sender, "&4Syntax: &7/prx &csetrank &f<player> <rank> [path]");
 						return true;
 					case "setprestige":
 					case "changeprestige":
-						sender.sendMessage(StringManager.parseColors("&4Missing arguments: &c<prestige>"));
-						sender.sendMessage(
-								StringManager.parseColors("&4Syntax: &7/prx &csetprestige &f<player> <prestige>"));
+						sendMsg(sender, "&4Missing arguments: &c<prestige>");
+						sendMsg(sender, "&4Syntax: &7/prx &csetprestige &f<player> <prestige>");
 						return true;
 					case "resetrank": {
 						readTarget(sender, args[1], target -> {
@@ -260,29 +269,22 @@ public class PRXCommand extends PluginCommand {
 					case "createrank":
 					case "newrank":
 					case "addrank":
-						sender.sendMessage(StringManager.parseColors("&4Missing arguments: &c<cost>"));
-						sender.sendMessage(StringManager
-								.parseColors("&4Syntax: &7/prx &ccreaterank &f<rank> <cost> [display] [-path:<name>]"));
-						sender.sendMessage(
-								StringManager.parseColors("&41. Example:\n&7/prx &ccreaterank &fC 2500 ") + "&b[C]");
-						sender.sendMessage(StringManager.parseColors("&42. Example:\n&7/prx &ccreaterank &fAlpha 5000 ")
-								+ "&4[Alpha] -path:newpath");
+						sendMsg(sender, "&4Missing arguments: &c<cost>");
+						sendMsg(sender, "&4Syntax: &7/prx &ccreaterank &f<rank> <cost> [display] [-path:<name>]");
+						sendMsg(sender, "&41. Example:\n&7/prx &ccreaterank &fC 2500 &b[C]");
+						sendMsg(sender, "&42. Example:\n&7/prx &ccreaterank &fAlpha 5000 &4[Alpha] -path:mypath");
 						return true;
 					case "setrankdisplay":
 					case "changerankdisplay":
-						sender.sendMessage(StringManager.parseColors("&4Missing arguments: &c<display>"));
-						sender.sendMessage(StringManager
-								.parseColors("&4Syntax: &7/prx &csetrankdisplay &f<rank> <display> [-path:<name>]"));
-						sender.sendMessage(
-								StringManager.parseColors("&4Example: \n&7/prx &csetrankdisplay &f") + "A &7[&bA&7]");
+						sendMsg(sender, "&4Missing arguments: &c<display>");
+						sendMsg(sender, "&4Syntax: &7/prx &csetrankdisplay &f<rank> <display> [-path:<name>]");
+						sendMsg(sender, "&4Example: \n&7/prx &csetrankdisplay &fA &7[&bA&7]");
 						return true;
 					case "setrankcost":
 					case "changerankcost":
-						sender.sendMessage(StringManager.parseColors("&4Missing arguments: &c<cost>"));
-						sender.sendMessage(
-								StringManager.parseColors("&4Syntax: &7/prx &csetrankcost &f<rank> <cost> [path]"));
-						sender.sendMessage(
-								StringManager.parseColors("&4Example: \n&7/prx &csetrankcost &f") + "A 25000");
+						sendMsg(sender, "&4Missing arguments: &c<cost>");
+						sendMsg(sender, "&4Syntax: &7/prx &csetrankcost &f<rank> <cost> [path]");
+						sendMsg(sender, "&4Example: \n&7/prx &csetrankcost &fA 25000");
 						return true;
 					case "delrank":
 					case "deleterank":
@@ -293,14 +295,79 @@ public class PRXCommand extends PluginCommand {
 						return true;
 					case "setrankpath":
 					case "moverankpath":
-						sender.sendMessage(StringManager
-								.parseColors("&4Syntax: &7/prx &cmoverankpath &f<rank> <currentpath> <newpath>"));
+						sendMsg(sender, "&4Syntax: &7/prx &cmoverankpath &f<rank> <currentpath> <newpath>");
 						return true;
 					case "test":
 
 						return true;
 					case "test2":
 
+						return true;
+					case "convert":
+					case "convertdata":
+						switch (args[1].toUpperCase()) {
+							case "MYSQL":
+							case "SQL":
+								Messages.sendMessage(sender, Messages.getDataConversion());
+								ConfigManager.getConfig().set("MySQL.enable", true);
+								ConfigManager.getConfig().set("Options.data-storage-type", "MYSQL");
+								plugin.getGlobalSettings().setDataStorageType("MYSQL");
+								ConfigManager.saveConfig("config.yml");
+								MySQLManager.reload();
+								plugin.getUserController().convert(UserControllerType.MYSQL).thenAcceptAsync(users -> {
+									plugin.setUserController(new MySQLUserController(plugin));
+									plugin.getUserController().setUsers(users);
+								})
+										.thenRun(() -> Messages.sendMessage(sender, Messages.getDataConversionSuccess(),
+												s -> s.replace("%type%", "MySQL")))
+										.exceptionally(throwable -> {
+											Messages.sendMessage(sender, Messages.getDataConversionFail());
+											throwable.printStackTrace();
+											return null;
+										});
+								return true;
+							case "YAML":
+							case "YML":
+								Messages.sendMessage(sender, Messages.getDataConversion());
+								ConfigManager.getConfig().set("MySQL.enable", false);
+								ConfigManager.getConfig().set("Options.data-storage-type", "YAML");
+								ConfigManager.saveConfig("config.yml");
+								plugin.getUserController().convert(UserControllerType.YAML).thenAcceptAsync(users -> {
+									plugin.setUserController(new YamlUserController(plugin));
+									plugin.getUserController().setUsers(users);
+									MySQLManager.closeConnection();
+								})
+										.thenRun(() -> Messages.sendMessage(sender, Messages.getDataConversionSuccess(),
+												s -> s.replace("%type%", "Yaml")))
+										.exceptionally(throwable -> {
+											Messages.sendMessage(sender, Messages.getDataConversionFail());
+											throwable.printStackTrace();
+											return null;
+										});
+
+								return true;
+							case "YAML_PER_USER":
+							case "YAMLPERUSER":
+								Messages.sendMessage(sender, Messages.getDataConversion());
+								ConfigManager.getConfig().set("MySQL.enable", false);
+								ConfigManager.getConfig().set("Options.data-storage-type", "YAML_PER_USER");
+								ConfigManager.saveConfig("config.yml");
+								plugin.getUserController()
+										.convert(UserControllerType.YAML_PER_USER)
+										.thenAcceptAsync(users -> {
+											plugin.setUserController(new YamlPerUserController(plugin));
+											plugin.getUserController().setUsers(users);
+											MySQLManager.closeConnection();
+										})
+										.thenRun(() -> Messages.sendMessage(sender, Messages.getDataConversionSuccess(),
+												s -> s.replace("%type%", "Yaml Per User")))
+										.exceptionally(throwable -> {
+											Messages.sendMessage(sender, Messages.getDataConversionFail());
+											throwable.printStackTrace();
+											return null;
+										});
+								return true;
+						}
 						return true;
 				}
 			case 3:

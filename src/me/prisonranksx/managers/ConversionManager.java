@@ -14,6 +14,10 @@ public class ConversionManager {
 	private static SenileConfigConverter messagesConfigConverter;
 	private static JavaPlugin plugin = UniqueId.getProvidingPlugin(ConversionManager.class);
 
+	/**
+	 * Performs checks to determine which config files need to be converted, then
+	 * converts them, otherwise does nothing.
+	 */
 	public static void convertConfigFiles() {
 		mainConfigConverter = new SenileConfigConverter(plugin.getDataFolder() + "/config.yml");
 		messagesConfigConverter = new SenileConfigConverter(plugin.getDataFolder() + "/messages.yml");

@@ -11,16 +11,18 @@ import org.jetbrains.annotations.Nullable;
 import com.google.common.collect.Sets;
 
 import me.prisonranksx.components.RequirementsComponent.RequirementEvaluationResult;
+import me.prisonranksx.events.AsyncAutoPrestigeEvent;
 import me.prisonranksx.events.PrestigeUpdateCause;
+import me.prisonranksx.events.PrestigeUpdateEvent;
 import me.prisonranksx.holders.Prestige;
 import me.prisonranksx.holders.User;
 import me.prisonranksx.reflections.UniqueId;
 
 public interface PrestigeExecutor extends PromotionExecutor {
 
-	static final Set<UUID> AUTO_PRESTIGE_PLAYERS = new HashSet<>();
+	public static final Set<UUID> AUTO_PRESTIGE_PLAYERS = new HashSet<>();
 
-	static final Set<UUID> MAX_PRESTIGE_PLAYERS = Sets.newConcurrentHashSet();
+	public static final Set<UUID> MAX_PRESTIGE_PLAYERS = Sets.newConcurrentHashSet();
 
 	public final Set<UUID> MAX_PRESTIGE_BREAKER = Sets.newConcurrentHashSet();
 
@@ -203,7 +205,9 @@ public interface PrestigeExecutor extends PromotionExecutor {
 	 * </ul>
 	 *
 	 * @param player            check if specified player can prestige or not
-	 * @param balance           balance to check other than player's actual balance
+	 * @param balance           balance to check, if balance is set to -1, then all
+	 *                          checks will be skipped except for last prestige
+	 *                          check. This was made for force prestige.
 	 * @param skipLastRankCheck whether last rank should be checked or not, this is
 	 *                          normally used with prestige max
 	 * @return PrestigeResult with the reason of prestige failure or success
@@ -262,31 +266,28 @@ public interface PrestigeExecutor extends PromotionExecutor {
 	CompletableFuture<PrestigeResult> maxPrestige(Player player);
 
 	/**
-	 * @param player          player to include in the event
-	 * @param cause           the cause of the prestige
-	 * @param result          prestige outcome
-	 * @param updatedPrestige prestige that player will get prestiged to
-	 * @param successful      whether player gonna successfully prestige or not
-	 * @return false if event is cancelled, true otherwise
+	 * @param player player to include in the event
+	 * @param cause  the cause of the prestige
+	 * @param result prestige outcome
+	 * @return event that got called
 	 */
-	boolean callPrestigeUpdateEvent(Player player, PrestigeUpdateCause cause, PrestigeResult result,
-			@Nullable String updatedPrestige, boolean successful);
+	PrestigeUpdateEvent callPrestigeUpdateEvent(Player player, PrestigeUpdateCause cause, PrestigeResult result);
 
 	/**
-	 * @param player          player to include in the event
-	 * @param cause           the cause of the prestige
-	 * @param result          prestige outcome
-	 * @param updatedPrestige prestige that player will get prestiged to
-	 * @param currentPrestige prestige that player will prestige from
-	 * @param successful      whether player gonna successfully prestige or not
-	 * @return false if event is cancelled, true otherwise
+	 * @param player player to include in the event
+	 * @param result prestige outcome
+	 * @return event that got called
 	 */
-	boolean callAsyncAutoPrestigeEvent(Player player, PrestigeUpdateCause cause, PrestigeResult result,
-			@Nullable String updatedPrestige, @Nullable String currentPrestige, boolean successful);
+	AsyncAutoPrestigeEvent callAsyncAutoPrestigeEvent(Player player, PrestigeResult result);
 
+	/**
+	 * 
+	 * @param player that's about to max prestige
+	 * @return false if event is cancelled, true otherwise.
+	 */
 	boolean callPrePrestigeMaxEvent(Player player);
 
 	void callAsyncPrestigeMaxEvent(Player player, PrestigeResult lastResult, String fromPrestige, String toPrestige,
-			long totalPrestiges, double takenBalance);
+			long totalPrestiges, double takenBalance, boolean limited);
 
 }

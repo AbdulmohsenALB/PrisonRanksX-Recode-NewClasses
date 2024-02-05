@@ -18,7 +18,7 @@ public interface Level {
 	String getName();
 
 	/**
-	 * Change level name to a new one (memory change only).
+	 * Changes level name to a new one (memory change only).
 	 * AdminExecutor should be used for file changes.
 	 * 
 	 * @param name new name to change to
@@ -34,7 +34,7 @@ public interface Level {
 	String getDisplayName();
 
 	/**
-	 * Set a new display name (memory change only).
+	 * Sets a new display name (memory change only).
 	 * AdminExecutor should be used for file changes.
 	 * 
 	 * @param displayName new display name.
@@ -52,7 +52,8 @@ public interface Level {
 
 	/**
 	 *
-	 * @return cost of level. Increased cost is not included, just the plain cost
+	 * @return Gets cost of level. Increased cost is not included, just the plain
+	 *         cost
 	 *         specified in config file.
 	 */
 	double getCost();
@@ -114,6 +115,11 @@ public interface Level {
 
 	void setRequirementsMessages(List<String> requirementsMessages);
 
+	/**
+	 * Index used for organizing lists.
+	 * 
+	 * @return level number in the ladder of the same type of levels.
+	 */
 	long getIndex();
 
 	void setIndex(long index);
@@ -124,6 +130,10 @@ public interface Level {
 
 	default void setNumber(long number) {
 		setIndex((int) number);
+	}
+
+	default boolean isMultiAccess() {
+		return false;
 	}
 
 }

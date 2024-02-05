@@ -1,17 +1,12 @@
 package me.prisonranksx.bukkitutils;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Consumer;
 
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
@@ -64,8 +59,10 @@ public class PlayerPagedGUI implements Listener {
 		} else {
 			lastPage = (int) Math.ceil((double) expectedUsedSlots / (double) size);
 		}
+
 		for (int i = 0; i < size; i++) pagedItemsSlots.add(i);
-		plugin.getServer().getPluginManager().registerEvents(this, plugin);
+		if (!HandlerList.getRegisteredListeners(plugin).contains(this))
+			plugin.getServer().getPluginManager().registerEvents(this, plugin);
 	}
 
 	public synchronized void setStaticItem(int slot, GUIItem guiItem) {

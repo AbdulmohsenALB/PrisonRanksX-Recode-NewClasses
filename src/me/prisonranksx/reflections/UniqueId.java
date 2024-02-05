@@ -1,14 +1,8 @@
 package me.prisonranksx.reflections;
 
 import java.lang.reflect.Field;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
-import me.prisonranksx.PrisonRanksX;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
@@ -22,7 +16,8 @@ import me.prisonranksx.common.StaticCache;
 
 /**
  * 
- * Get uuid for legacy versions (1.6-) and modern versions (1.7+)
+ * Get uuid from player names and cache them for legacy versions (1.6-) or stick
+ * to modern versions unique ids (1.7+)
  *
  */
 @SuppressWarnings("deprecation")
@@ -36,7 +31,7 @@ public class UniqueId extends StaticCache {
 	private static final UUIDRetriever UUID_RETRIEVER = LEGACY ? new UUIDRetrieverLegacy() : new UUIDRetrieverDefault();
 
 	public static JavaPlugin getProvidingPlugin(Class<?> providingClass) {
-		if (!LEGACY) return PrisonRanksX.getInstance(); //JavaPlugin.getProvidingPlugin(providingClass);
+		if (!LEGACY) return JavaPlugin.getProvidingPlugin(providingClass);
 
 		ClassLoader loader = providingClass.getClassLoader();
 		String pluginName = null;

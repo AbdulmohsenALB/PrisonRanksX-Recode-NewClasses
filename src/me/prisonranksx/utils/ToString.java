@@ -49,7 +49,7 @@ public class ToString {
 			if (!field.isAccessible()) field.setAccessible(true);
 			try {
 				string += "(" + field.getType().getSimpleName() + ")" + field.getName() + "->"
-						+ (obj != null ? field.get(obj).toString() : "?") + ", ";
+						+ (obj != null ? field.get(obj) != null ? field.get(obj).toString() : "null" : "?") + ", ";
 			} catch (IllegalArgumentException | IllegalAccessException e) {
 				e.printStackTrace();
 			}
@@ -65,7 +65,7 @@ public class ToString {
 			if (!field.isAccessible()) field.setAccessible(true);
 			try {
 				string += "\n(" + field.getType().getName() + ")" + readModifiers(field) + field.getName() + "->"
-						+ (obj != null ? field.get(obj).toString() : "?");
+						+ (obj != null ? field.get(obj) != null ? field.get(obj).toString() : "null" : "?");
 			} catch (IllegalArgumentException | IllegalAccessException e) {
 				e.printStackTrace();
 			}

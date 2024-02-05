@@ -9,9 +9,10 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.Nullable;
 
 import me.prisonranksx.PrisonRanksX;
-import me.prisonranksx.bukkitutils.segmentedtasks.ConcurrentTask;
-import me.prisonranksx.bukkitutils.segmentedtasks.DistributedTask;
-import me.prisonranksx.bukkitutils.segmentedtasks.SegmentedTasks;
+import me.prisonranksx.api.PRXAPI;
+import me.prisonranksx.bukkitutils.bukkittickbalancer.BukkitTickBalancer;
+import me.prisonranksx.bukkitutils.bukkittickbalancer.ConcurrentTask;
+import me.prisonranksx.bukkitutils.bukkittickbalancer.DistributedTask;
 import me.prisonranksx.commands.CommandSetting;
 import me.prisonranksx.components.RequirementsComponent;
 import me.prisonranksx.components.RequirementsComponent.RequirementEvaluationResult;
@@ -57,12 +58,13 @@ public class PrimaryRankupExecutor implements RankupExecutor {
 
 	private void setupAutoRankup() {
 		int speed = plugin.getGlobalSettings().getAutoRankupDelay();
-		autoRankupTask = SegmentedTasks.scheduleDistributedTask(this::silentPromote, p -> !isAutoRankupEnabled(p), 20);
+		autoRankupTask = BukkitTickBalancer.scheduleDistributedTask(this::silentPromote, p -> !isAutoRankupEnabled(p),
+				speed);
 		autoRankupTask.initAsync(plugin, speed, speed);
 	}
 
 	private void setupMaxRankup() {
-		maxRankupTask = SegmentedTasks.scheduleConcurrentTask(player -> {
+		maxRankupTask = BukkitTickBalancer.scheduleConcurrentTask(player -> {
 			RankupResult rankupResult = canRankup(player);
 			UUID uniqueId = UniqueId.getUUID(player);
 			if (rankupResult.isSuccessful() && !MAX_RANKUP_BREAKER.contains(uniqueId)) {
@@ -74,7 +76,14 @@ public class PrimaryRankupExecutor implements RankupExecutor {
 				tempHolder.setRankups(tempHolder.getRankups() + 1);
 				tempHolder.setCurrentRankupResult(rankupResult);
 				updateGroup(player);
-				Optional.ofNullable(tempHolder.getLastAllowedRankName()).ifPresent(s -> breakMaxRankup(uniqueId));
+				Optional.ofNullable(tempHolder.getLastAllowedRankName()).ifPresent(s -> {
+					breakMaxRankup(uniqueId);
+					if (plugin.getGlobalSettings().isRankupMaxWithPrestige()) {
+						plugin.getPrestigeExecutor().maxPrestige(player);
+					}
+				});
+			} else {
+				MAX_RANKUP_BREAKER.add(uniqueId);
 			}
 		}, player -> finishBreakMaxRankup(player), player -> {
 			UUID uniqueId = UniqueId.getUUID(player);
@@ -121,6 +130,9 @@ public class PrimaryRankupExecutor implements RankupExecutor {
 			plugin.getUserController().getUser(uniqueId).setRankName(rankupResult.getStringResult());
 			maxRankupData.remove(uniqueId);
 			tempHolder.getFinalRankupResult().complete(rankupResult);
+			if (plugin.getGlobalSettings().isRankupMaxWithPrestige()) {
+				plugin.getPrestigeExecutor().maxPrestige(player);
+			}
 		});
 		maxRankupTask.initAsync();
 	}
@@ -154,7 +166,7 @@ public class PrimaryRankupExecutor implements RankupExecutor {
 				&& !player.hasPermission(CommandSetting.getStringSetting("rankup", "permission") + "." + nextRankName))
 			return RankupResult.FAIL_NO_PERMISSION.withUser(user).withString(nextRankName).withRank(nextRank);
 
-		double nextRankCost = nextRank.getCost();
+		double nextRankCost = PRXAPI.getRankFinalCost(nextRank, player);
 		if (continueChecking && balance < nextRankCost) return RankupResult.FAIL_NOT_ENOUGH_BALANCE.withUser(user)
 				.withDouble(nextRankCost)
 				.withString(nextRankName)
@@ -204,9 +216,9 @@ public class PrimaryRankupExecutor implements RankupExecutor {
 
 	@Override
 	public RankupResult rankup(Player player) {
-		RankupResult rankupResult = canRankup(player);
-		if (!callRankUpdateEvent(player, RankUpdateCause.RANKUP, rankupResult, rankupResult.getStringResult()))
-			return rankupResult;
+		RankUpdateEvent event = callRankUpdateEvent(player, RankUpdateCause.RANKUP, canRankup(player));
+		if (event.isCancelled()) return event.getRankupResult();
+		RankupResult rankupResult = event.getRankupResult();
 		switch (rankupResult) {
 			case FAIL_LAST_RANK:
 				Messages.sendMessage(player, Messages.getLastRank());
@@ -246,9 +258,10 @@ public class PrimaryRankupExecutor implements RankupExecutor {
 
 	@Override
 	public RankupResult rankup(Player player, Player target) {
-		RankupResult rankupResult = canRankup(target, EconomyManager.getBalance(player));
-		if (!callRankUpdateEvent(target, RankUpdateCause.RANKUP, rankupResult, rankupResult.getStringResult()))
-			return rankupResult;
+		RankUpdateEvent event = callRankUpdateEvent(player, RankUpdateCause.RANKUP_OTHER,
+				canRankup(target, EconomyManager.getBalance(player)));
+		if (event.isCancelled()) return event.getRankupResult();
+		RankupResult rankupResult = event.getRankupResult();
 		switch (rankupResult) {
 			case FAIL_LAST_RANK:
 				Messages.sendMessage(player, Messages.getLastRank());
@@ -300,11 +313,16 @@ public class PrimaryRankupExecutor implements RankupExecutor {
 	@Override
 	public RankupResult rankup(Player player, boolean silent) {
 		if (!silent) return rankup(player);
-		RankupResult rankupResult = canRankup(player);
-		if (!callAsyncAutoRankupEvent(player, rankupResult, rankupResult.getStringResult())) return rankupResult;
+		RankupResult tempRankupResult = canRankup(player);
+		AsyncAutoRankupEvent event = callAsyncAutoRankupEvent(player, tempRankupResult);
+		if (event.isCancelled()) return tempRankupResult;
+		RankupResult rankupResult = event.getRankupResult();
 		if (rankupResult.isSuccessful()) {
 			EconomyManager.takeBalance(player, rankupResult.getDoubleResult());
 			executeComponents(rankupResult.getRankResult(), player);
+			Messages.sendMessage(player, Messages.getRankup(),
+					s -> s.replace("%rankup%", rankupResult.getStringResult())
+							.replace("%rankup_display%", rankupResult.getRankResult().getDisplayName()));
 			rankupResult.getUserResult().setRankName(rankupResult.getStringResult());
 			spawnHologram(rankupResult.getRankResult(), player, true);
 			updateGroup(player);
@@ -314,9 +332,9 @@ public class PrimaryRankupExecutor implements RankupExecutor {
 
 	@Override
 	public RankupResult forceRankup(Player player) {
-		RankupResult rankupResult = canRankup(player, -1);
-		if (!callRankUpdateEvent(player, RankUpdateCause.FORCE_RANKUP, rankupResult, rankupResult.getStringResult()))
-			return rankupResult;
+		RankUpdateEvent event = callRankUpdateEvent(player, RankUpdateCause.FORCE_RANKUP, canRankup(player, -1));
+		if (event.isCancelled()) return event.getRankupResult();
+		RankupResult rankupResult = event.getRankupResult();
 		switch (rankupResult) {
 			case FAIL_LAST_RANK:
 				Messages.sendMessage(player, Messages.getLastRank());
@@ -354,7 +372,7 @@ public class PrimaryRankupExecutor implements RankupExecutor {
 		// Clone of the ranks
 		Set<Rank> ranks = new LinkedHashSet<>(RankStorage.getPathRanks(user.getPathName()));
 
-		// Remove unneccessary ranks to make sure we don't go through them in the loop
+		// Remove unnecessary ranks to make sure we don't go through them in the loop
 		ranks.removeIf(rank -> rank.getIndex() <= currentRank.getIndex());
 
 		if (!callPreRankupMaxEvent(player, currentRank, ranks)) return CompletableFuture.completedFuture(
@@ -377,17 +395,17 @@ public class PrimaryRankupExecutor implements RankupExecutor {
 	}
 
 	@Override
-	public boolean callRankUpdateEvent(Player player, RankUpdateCause cause, RankupResult result, String updatedRank) {
-		RankUpdateEvent rankUpdateEvent = new RankUpdateEvent(player, cause, result, updatedRank);
+	public RankUpdateEvent callRankUpdateEvent(Player player, RankUpdateCause cause, RankupResult result) {
+		RankUpdateEvent rankUpdateEvent = new RankUpdateEvent(player, cause, result);
 		Bukkit.getPluginManager().callEvent(rankUpdateEvent);
-		return !rankUpdateEvent.isCancelled();
+		return rankUpdateEvent;
 	}
 
 	@Override
-	public boolean callAsyncAutoRankupEvent(Player player, RankupResult result, String updatedRank) {
-		AsyncAutoRankupEvent asyncAutoRankupEvent = new AsyncAutoRankupEvent(player, result, updatedRank);
+	public AsyncAutoRankupEvent callAsyncAutoRankupEvent(Player player, RankupResult result) {
+		AsyncAutoRankupEvent asyncAutoRankupEvent = new AsyncAutoRankupEvent(player, result);
 		Bukkit.getPluginManager().callEvent(asyncAutoRankupEvent);
-		return !asyncAutoRankupEvent.isCancelled();
+		return asyncAutoRankupEvent;
 	}
 
 	@Override
@@ -407,41 +425,47 @@ public class PrimaryRankupExecutor implements RankupExecutor {
 
 	@Override
 	public void executeComponents(Level rank, Player player) {
-		String rankName = rank.getName();
-		double cost = rank.getCost();
-		String definition = "prx_" + rankName + player.getName();
-		Map<String, String> replacements = new HashMap<>();
-		replacements.put("player", player.getName());
-		replacements.put("rankup", rankName);
-		replacements.put("rankup_display", rank.getDisplayName());
-		replacements.put("rankup_cost", String.valueOf(cost));
-		replacements.put("rankup_cost_formatted", EconomyManager.shortcutFormat(cost));
-		replacements.put("rankup_cost_us_format", EconomyManager.commaFormatWithDecimals(cost));
-		StringManager.defineReplacements(definition, replacements);
+		// not affected by do sync, still under pseudo async from segmented tasks
+		// when needed, this for delaying only in case a /prx command is executed under
+		// commands
+		plugin.doSyncLater(() -> {
+			String rankName = rank.getName();
+			double cost = rank.getCost();
+			String definition = "prx_" + rankName + player.getName();
+			Map<String, String> replacements = new HashMap<>();
+			replacements.put("player", player.getName());
+			replacements.put("rankup", rankName);
+			replacements.put("rankup_display", rank.getDisplayName());
+			replacements.put("rankup_cost", String.valueOf(cost));
+			replacements.put("rankup_cost_formatted", EconomyManager.shortcutFormat(cost));
+			replacements.put("rankup_cost_us_format", EconomyManager.commaFormatWithDecimals(cost));
+			StringManager.defineReplacements(definition, replacements);
 
-		// Messages
-		Messages.sendMessage(player, rank.getMessages(), s -> StringManager.parseReplacements(s, definition));
-		Messages.sendMessage(player, rank.getBroadcastMessages(), s -> StringManager.parseReplacements(s, definition));
+			// Messages
+			Messages.sendMessage(player, rank.getMessages(), s -> StringManager.parseReplacements(s, definition));
+			Messages.sendMessage(player, rank.getBroadcastMessages(),
+					s -> StringManager.parseReplacements(s, definition));
 
-		// Console and Player Commands
-		rank.useCommandsComponent(
-				component -> component.dispatchCommands(player, s -> StringManager.parseReplacements(s, definition)));
+			// Console and Player Commands
+			rank.useCommandsComponent(component -> component.dispatchCommands(player,
+					s -> StringManager.parseReplacements(s, definition)));
 
-		// Action Bar Messages
-		rank.useActionBarComponent(
-				component -> component.sendActionBar(player, s -> StringManager.parseReplacements(s, definition)));
+			// Action Bar Messages
+			rank.useActionBarComponent(
+					component -> component.sendActionBar(player, s -> StringManager.parseReplacements(s, definition)));
 
-		// Random Commands
-		rank.useRandomCommandsComponent(
-				component -> component.dispatchCommands(player, s -> StringManager.parseReplacements(s, definition)));
+			// Random Commands
+			rank.useRandomCommandsComponent(component -> component.dispatchCommands(player,
+					s -> StringManager.parseReplacements(s, definition)));
 
-		// Permissions Addition and Deletion
-		rank.usePermissionsComponent(component -> component.updatePermissions(player));
+			// Permissions Addition and Deletion
+			rank.usePermissionsComponent(component -> component.updatePermissions(player));
 
-		// Firework
-		rank.useFireworkComponent(component -> SegmentedTasks.sync(() -> component.spawnFirework(player)));
+			// Firework
+			rank.useFireworkComponent(component -> BukkitTickBalancer.sync(() -> component.spawnFirework(player)));
 
-		StringManager.deleteReplacements(definition);
+			StringManager.deleteReplacements(definition);
+		}, 1);
 	}
 
 	@Override
@@ -472,6 +496,16 @@ public class PrimaryRankupExecutor implements RankupExecutor {
 	public void updateGroup(Player player) {
 		if (plugin.getGlobalSettings().isVaultGroups())
 			if (plugin.getPlayerGroupUpdater() != null) plugin.getPlayerGroupUpdater().update(player);
+	}
+
+	@Override
+	public DistributedTask<Player> getAutoRankupTask() {
+		return autoRankupTask;
+	}
+
+	@Override
+	public ConcurrentTask<Player> getMaxRankupTask() {
+		return maxRankupTask;
 	}
 
 }

@@ -1,0 +1,26 @@
+# Everything you can put in ranks.yml config file, you can put it here too, such as random-commands, action-bar, etc...
+# Additionally, this config file has the following option:
+# cost-increase: <number>
+# ========================
+# Example:-
+# cost-increase: 150
+# ========================
+# It increases rankup cost for you when you are at the said prestige. This value is used by the cost expression
+# inside config.yml that is under Prestige-Options section.
+Prestiges:
+  'P1':
+    display-name: "&8[&9P1&8]"
+    cost: 250000.0
+    next-prestige: P2
+    commands: []
+    broadcast: []
+    message: []
+    cost-increase: 125
+  'P2':
+    display-name: "&8[&9P2&8]"
+    cost: 500000.0
+    next-prestige: LASTPRESTIGE
+    commands: []
+    broadcast: []
+    messsage: []
+    cost-increase: 150
