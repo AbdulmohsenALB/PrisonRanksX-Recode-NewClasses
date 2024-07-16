@@ -1,10 +1,13 @@
 package me.prisonranksx.listeners;
 
+import org.bukkit.entity.Player;
 import org.bukkit.event.*;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.EventExecutor;
 
 import me.prisonranksx.PrisonRanksX;
+import me.prisonranksx.managers.ActionBarManager;
+import me.prisonranksx.reflections.UniqueId;
 
 public class PlayerQuitListener implements EventExecutor, Listener {
 
@@ -28,8 +31,14 @@ public class PlayerQuitListener implements EventExecutor, Listener {
 
 	@EventHandler
 	public void onQuit(PlayerQuitEvent e) {
-		plugin.getRankupExecutor().toggleAutoRankup(e.getPlayer(), false);
-		plugin.getUserController().saveUser(e.getPlayer().getUniqueId(), false);
+		Player player = e.getPlayer();
+		plugin.getRankupExecutor().toggleAutoRankup(player, false);
+
+		if (plugin.getGlobalSettings().isActionBarProgress()) ActionBarManager.getActionBarProgress().disable(player);
+
+		plugin.getUserController().saveUser(UniqueId.getUUID(player), false).thenRun(() -> {
+			plugin.getUserController().unloadUser(UniqueId.getUUID(player));
+		});
 	}
 
 }

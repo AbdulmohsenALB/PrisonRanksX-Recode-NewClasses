@@ -4,13 +4,18 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Properties;
+import java.util.function.Consumer;
 
 import javax.sql.rowset.CachedRowSet;
 
 import com.sun.rowset.CachedRowSetImpl;
 
 /**
- * Start with {@linkplain #createTable(StupidColumn...)} method
+ * Utility to query or update your database with easy to use methods,
+ * eliminating the need to write commonly used SQL statements manually.
+ * Start with {@linkplain #createTable(StupidColumn...)} method.
+ * <br>
  */
 public class StupidMySQL {
 
@@ -85,6 +90,7 @@ public class StupidMySQL {
 	private String insertStatement = "INSERT INTO ";
 	private String selectStatement = "SELECT * FROM ";
 	private String setStatement = "UPDATE ";
+	private String alterStatement = "ALTER TABLE ";
 	private PreparedStatement preparedStatement, preparedStatement2, selectPreparedStatement;
 
 	public StupidMySQL(Connection connection, String database, String table) {
@@ -94,11 +100,18 @@ public class StupidMySQL {
 		this.insertStatement += database + "." + table + " ";
 		this.selectStatement += database + "." + table + " WHERE ";
 		this.setStatement += database + "." + table + " SET ";
+		this.alterStatement += database + "." + table + " ";
 	}
 
 	/**
 	 * Creates the database table if it doesn't exist. Otherwise, it does nothing.
-	 *
+	 * The following statement is used here: <b>CREATE TABLE IF NOT EXISTS </b>
+	 * <br>
+	 * Example:
+	 * <br>
+	 * {@code createTable(StupidColumn.parse("name",  String.class, 16),  StupidColumn.parse("age", int.class, 3));}
+	 * <br>
+	 * 
 	 * @param columns columns the table will have in order.
 	 *                <br>
 	 *                {@linkplain StupidColumn#parse(String, Class, int)}
@@ -106,12 +119,30 @@ public class StupidMySQL {
 	 */
 	public StupidMySQL createTable(StupidColumn... columns) {
 		String createStatement = "CREATE TABLE IF NOT EXISTS " + database + "." + table + " ";
-		String columnsPart = "";
+		StringBuilder columnsPart = new StringBuilder();
 		for (StupidColumn column : columns) {
-			if (!columnsPart.equals("")) {
-				columnsPart += "(`" + column.columnName + "` " + column.valueSQLType + "(" + column.valueLength + ")";
+			if (columnsPart.length() > 0) {
+				if (column.valueLength == -1)
+					columnsPart.append("(`").append(column.columnName).append("` ").append(column.valueSQLType);
+				else
+					columnsPart.append("(`")
+							.append(column.columnName)
+							.append("` ")
+							.append(column.valueSQLType)
+							.append("(")
+							.append(column.valueLength)
+							.append(")");
 			} else {
-				columnsPart += ", `" + column.columnName + "` " + column.valueSQLType + "(" + column.valueLength + ")";
+				if (column.valueLength == -1)
+					columnsPart.append(", `").append(column.columnName).append("` ").append(column.valueSQLType);
+				else
+					columnsPart.append(", `")
+							.append(column.columnName)
+							.append("` ")
+							.append(column.valueSQLType)
+							.append("(")
+							.append(column.valueLength)
+							.append(")");
 			}
 		}
 		String finalStatement = createStatement + columnsPart + ");";
@@ -122,6 +153,34 @@ public class StupidMySQL {
 		} catch (SQLException e) {
 			throw new RuntimeException(e);
 		}
+		return this;
+	}
+
+	/**
+	 * Removes / drops a column from the table if it exists, uses the following
+	 * statement:
+	 * <b>ALTER TABLE table_name DROP COLUMN column1, DROP COLUMN column2,...</b>
+	 * An exception is supposed to be thrown if trying to remove a column that
+	 * doesn't exist, but it is ignored due to absence of a SQL statement that drops
+	 * columns only if they exist.
+	 * 
+	 * @param columns to remove
+	 * @return this instance for further usage.
+	 */
+	public StupidMySQL removeColumn(String... columns) {
+		StringBuilder columnsPart = new StringBuilder();
+		for (String column : columns) {
+			if (columnsPart.length() == 0)
+				columnsPart.append("DROP COLUMN ").append(column);
+			else
+				columnsPart.append(", DROP COLUMN ").append(column);
+		}
+		String finalStatement = alterStatement + columnsPart + ";";
+		try {
+			Statement statement = connection.createStatement();
+			statement.executeUpdate(finalStatement);
+			statement.close();
+		} catch (SQLException ignored) {}
 		return this;
 	}
 
@@ -138,8 +197,79 @@ public class StupidMySQL {
 		return new StupidMySQL(connection, database, table);
 	}
 
+	/**
+	 * Creates a new instance of StupidMySQL. This instance should be re-used after
+	 * each execution (execute()) method.
+	 *
+	 * @param user     database user
+	 * @param password database password
+	 * @param database database
+	 * @param table    database table
+	 * @param host     database host
+	 * @param port     database port
+	 * @return new StupidMySQL instance.
+	 */
+	public static StupidMySQL use(String user, String password, String database, String table, String host,
+			String port) {
+		StupidMySQL stupidMySQL = new StupidMySQL(null, database, table);
+		stupidMySQL.openConnection(user, password, "false", "true", false, host, port);
+		return stupidMySQL;
+	}
+
+	/**
+	 * Creates a new instance of StupidMySQL. This instance should be re-used after
+	 * each execution (execute()) method.
+	 *
+	 * @param user     database user
+	 * @param password database password
+	 * @param database database
+	 * @param table    database table
+	 * @param host     database host
+	 * @param port     database port
+	 * @return new StupidMySQL instance.
+	 */
+	public static StupidMySQL use(String user, String password, String database, String table, String host, String port,
+			boolean useSSL, boolean autoReconnect, boolean useCursorFetch) {
+		StupidMySQL stupidMySQL = new StupidMySQL(null, database, table);
+		stupidMySQL.openConnection(user, password, String.valueOf(useSSL), String.valueOf(autoReconnect),
+				useCursorFetch, host, port);
+		return stupidMySQL;
+	}
+
+	/**
+	 * Opens a new MySQL connection.
+	 */
+	private Connection openConnection(String username, String password, String useSSL, String autoReconnect,
+			boolean useCursorFetch, String host, String port) {
+		synchronized (this) {
+			try {
+				if (connection != null && !connection.isClosed()) return connection;
+				Class.forName("com.mysql.jdbc.Driver");
+				Properties prop = new Properties();
+				prop.setProperty("user", username);
+				prop.setProperty("password", password);
+				prop.setProperty("useSSL", String.valueOf(useSSL));
+				prop.setProperty("autoReconnect", String.valueOf(autoReconnect));
+				prop.setProperty("useCursorFetch", String.valueOf(useCursorFetch));
+				return connection = DriverManager.getConnection(
+						"jdbc:mysql://" + host + ":" + port + "/" + database + "?characterEncoding=utf8", prop);
+			} catch (SQLException | ClassNotFoundException e) {
+				throw new RuntimeException(e);
+			}
+		}
+	}
+
 	private String fixValue(String value) {
 		return value == null ? "null" : "'" + value + "'";
+	}
+
+	/**
+	 * Gets connection included in this instance.
+	 * 
+	 * @return Connection that's being used to create statements.
+	 */
+	public Connection getConnection() {
+		return connection;
 	}
 
 	/**
@@ -154,7 +284,6 @@ public class StupidMySQL {
 		String fixedValue = fixValue(value);
 		if (insertKeys == null || insertValues == null) {
 			insertKeys = "(`" + key + "`";
-
 			insertValues = " VALUES (" + fixedValue;
 		} else {
 			insertKeys += ", `" + key + "`";
@@ -201,11 +330,10 @@ public class StupidMySQL {
 		selectKey = "`" + idKey + "` ";
 		String fixedValue = fixValue(value);
 		selectValue = "= " + fixValue(idValue);
-		if (setPairs == null) {
+		if (setPairs == null)
 			setPairs = "`" + key + "` = " + fixedValue;
-		} else {
+		else
 			setPairs += ", `" + key + "` = " + fixedValue;
-		}
 		return this;
 	}
 
@@ -279,6 +407,21 @@ public class StupidMySQL {
 
 	/**
 	 *
+	 * @return all data stored
+	 */
+	public synchronized void use(Consumer<ResultSet> action) {
+		try {
+			Statement statement = connection.createStatement();
+			ResultSet resultSet = statement.executeQuery(selectStatement.replace(" WHERE ", ""));
+			action.accept(resultSet);
+			statement.close();
+		} catch (SQLException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	/**
+	 *
 	 * @param idKey   such as name
 	 * @param idValue such as johnny
 	 * @return data for specified identifier
@@ -300,6 +443,24 @@ public class StupidMySQL {
 	 *
 	 * @param idKey   such as name
 	 * @param idValue such as johnny
+	 * @return data for specified identifier
+	 */
+	public synchronized void use(String idKey, String idValue, Consumer<ResultSet> action) {
+		try {
+			Statement statement = connection.createStatement();
+			ResultSet resultSet = statement.executeQuery(selectStatement + "`" + idKey + "` = " + fixValue(idValue));
+			action.accept(resultSet);
+			statement.close();
+		} catch (SQLException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	/**
+	 *
+	 * @param wantedKey key to get value from
+	 * @param idKey     such as name
+	 * @param idValue   such as johnny
 	 * @return data from specified key for specified identifier
 	 */
 	public synchronized ResultSet get(String wantedKey, String idKey, String idValue) {
@@ -317,6 +478,25 @@ public class StupidMySQL {
 	}
 
 	/**
+	 * Uses retrieved data from specified key for specified identifier
+	 * 
+	 * @param wantedKey key to get value from
+	 * @param idKey     such as name
+	 * @param idValue   such as johnny
+	 */
+	public synchronized void use(String wantedKey, String idKey, String idValue, Consumer<ResultSet> action) {
+		try {
+			Statement statement = connection.createStatement();
+			ResultSet resultSet = statement
+					.executeQuery(selectStatement.replace("*", wantedKey) + "`" + idKey + "` = " + fixValue(idValue));
+			action.accept(resultSet);
+			statement.close();
+		} catch (SQLException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	/**
 	 * Prepares a statement which can be re-used to add multiple data all at once.
 	 * This is instead of committing each time we want to store data into the
 	 * database.
@@ -327,23 +507,23 @@ public class StupidMySQL {
 	 *             So for example,
 	 *             {@code addToPrepared("alex", "male", "20"); addToPrepared("sarah", "female", "19"); // and so on...}
 	 *             and end it with {@linkplain #execute()}
-	 * @return
+	 * @return this instance for execution.
 	 */
 	public synchronized StupidMySQL prepareInsert(String... keys) {
-		String statement = insertStatement + "(";
-		String values = " VALUES (";
+		StringBuilder statement = new StringBuilder(insertStatement + "(");
+		StringBuilder values = new StringBuilder(" VALUES (");
 		for (String key : keys) {
-			if (!statement.equals(insertStatement + "(")) {
-				statement += ", " + key;
-				values += ", ?";
+			if (!statement.toString().equals(insertStatement + "(")) {
+				statement.append(", ").append(key);
+				values.append(", ?");
 			} else {
-				statement += key;
-				values += "?";
+				statement.append(key);
+				values.append("?");
 			}
 		}
-		statement += ")";
-		values += ")";
-		String finalStatement = statement + values;
+		statement.append(")");
+		values.append(")");
+		String finalStatement = statement + values.toString();
 		try {
 			connection.setAutoCommit(false);
 			preparedStatement = connection.prepareStatement(finalStatement);
@@ -368,16 +548,16 @@ public class StupidMySQL {
 	 * @return
 	 */
 	public synchronized StupidMySQL prepareSet(String idKey, String... keys) {
-		String statement = setStatement;
+		StringBuilder statement = new StringBuilder(setStatement);
 		for (String key : keys) {
-			if (!statement.equals(setStatement)) {
-				statement += ", `" + key + "`=?";
+			if (!statement.toString().equals(setStatement)) {
+				statement.append(", `").append(key).append("`=?");
 			} else {
-				statement += "`" + key + "`=?";
+				statement.append("`").append(key).append("`=?");
 			}
 		}
-		statement += " WHERE `" + idKey + "`=?";
-		String finalStatement = statement;
+		statement.append(" WHERE `").append(idKey).append("`=?");
+		String finalStatement = statement.toString();
 		try {
 			connection.setAutoCommit(false);
 			preparedStatement = connection.prepareStatement(finalStatement);

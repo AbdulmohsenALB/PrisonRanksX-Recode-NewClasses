@@ -1,4 +1,4 @@
-# Enable the this configuration file by turning off the server and changing the option 'infinite-prestige' from false to true inside config.yml.
+# Enable this configuration file by turning off the server and changing the option 'infinite-prestige' from false to true inside config.yml.
 # placeholders:
 # {number} = prestige number
 # %player% = player name
@@ -7,6 +7,7 @@ Global-Settings:
   cost-expression: "{number} * 100000"
   commands: [ ]
   broadcast: [ ]
+  # Max value is java's long max value which is: 9,223,372,036,854,775,807 (approx. 9 quintillion)
   final-prestige: 1000000
   # Commands that are executed once a max prestige is finished with %amount% being the amount of prestiges player
   # has gone through during the process. This command gets executed also with regular prestiging commands like /prestige

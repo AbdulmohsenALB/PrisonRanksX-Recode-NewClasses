@@ -136,12 +136,28 @@ public class User {
 		this.pathName = pathName;
 	}
 
+	public boolean hasRank() {
+		return rankName != null;
+	}
+
+	public boolean hasPath() {
+		return pathName != null;
+	}
+
+	public boolean hasPrestige() {
+		return prestigeName != null;
+	}
+
+	public boolean hasRebirth() {
+		return rebirthName != null;
+	}
+
 	/**
 	 * Gets player from this user's name
 	 * 
-	 * @return user as bukkit player.
+	 * @return user as bukkit player, null if player is not online.
 	 */
-	@NotNull
+	@Nullable
 	public Player getPlayer() {
 		return Bukkit.getPlayer(name);
 	}

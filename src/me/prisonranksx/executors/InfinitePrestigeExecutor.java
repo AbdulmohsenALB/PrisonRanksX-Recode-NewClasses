@@ -9,6 +9,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
+import me.hsgamer.unihologram.common.line.TextHologramLine;
 import me.prisonranksx.PrisonRanksX;
 import me.prisonranksx.bukkitutils.SingleReplacementMessage;
 import me.prisonranksx.bukkitutils.bukkittickbalancer.BukkitTickBalancer;
@@ -21,7 +22,6 @@ import me.prisonranksx.data.RankStorage;
 import me.prisonranksx.data.UserController;
 import me.prisonranksx.events.*;
 import me.prisonranksx.holders.*;
-import me.prisonranksx.hooks.IHologram;
 import me.prisonranksx.managers.EconomyManager;
 import me.prisonranksx.managers.HologramManager;
 import me.prisonranksx.managers.StringManager;
@@ -83,10 +83,11 @@ public class InfinitePrestigeExecutor implements PrestigeExecutor {
 				tempHolder.setPrestiges(tempHolder.getPrestiges() + 1);
 				tempHolder.setCurrentPrestigeResult(prestigeResult);
 				prestigeResult.getUserResult().setPrestigeName(prestigeName);
+				plugin.getUserController().getUser(uniqueId).setPrestigeName(prestigeResult.getStringResult());
 				if (plugin.getGlobalSettings().isRankEnabled() && plugin.getPrestigeSettings().isResetRank()) {
 					plugin.getAdminExecutor()
 							.setPlayerRank(uniqueId,
-									RankStorage.getFirstRank(controlUsers().getUser(uniqueId).getPathName()));
+									RankStorage.getFirstRankName(controlUsers().getUser(uniqueId).getPathName()));
 					updateGroup(player);
 					if (plugin.getGlobalSettings().isRankupMaxWithPrestige()) {
 						plugin.getRankupExecutor().maxRankup(player);
@@ -183,9 +184,9 @@ public class InfinitePrestigeExecutor implements PrestigeExecutor {
 		String pathName = user.getPathName();
 		String prestigeName = user.getPrestigeName();
 		Prestige prestige = PrestigeStorage.getPrestige(prestigeName);
-		String nextPrestigeName = prestige.getNextPrestigeName();
+		String nextPrestigeName = prestige == null ? "1" : prestige.getNextPrestigeName();
 		Rank rank = RankStorage.getRank(rankName, pathName);
-		if (nextPrestigeName == null)
+		if (prestige != null && nextPrestigeName == null)
 			return PrestigeResult.FAIL_LAST_PRESTIGE.withUser(user).withString(prestigeName).withPrestige(prestige);
 
 		boolean continueChecking = balance != -1;
@@ -291,7 +292,7 @@ public class InfinitePrestigeExecutor implements PrestigeExecutor {
 						s -> s.replace("%number%", prestigeResult.getStringResult()).replace("%amount%", "1")));
 				if (plugin.getGlobalSettings().isRankEnabled() && plugin.getPrestigeSettings().isResetRank()) {
 					plugin.getAdminExecutor()
-							.setPlayerRank(user.getUniqueId(), RankStorage.getFirstRank(user.getPathName()));
+							.setPlayerRank(user.getUniqueId(), RankStorage.getFirstRankName(user.getPathName()));
 					updateGroup(player);
 				}
 				if (plugin.getPrestigeSettings().isResetMoney()) {
@@ -327,7 +328,7 @@ public class InfinitePrestigeExecutor implements PrestigeExecutor {
 						s -> s.replace("%number%", prestigeResult.getStringResult()).replace("%amount%", "1")));
 				if (plugin.getGlobalSettings().isRankEnabled() && plugin.getPrestigeSettings().isResetRank()) {
 					plugin.getAdminExecutor()
-							.setPlayerRank(user.getUniqueId(), RankStorage.getFirstRank(user.getPathName()));
+							.setPlayerRank(user.getUniqueId(), RankStorage.getFirstRankName(user.getPathName()));
 					updateGroup(player);
 				}
 				if (plugin.getPrestigeSettings().isResetMoney()) {
@@ -374,7 +375,7 @@ public class InfinitePrestigeExecutor implements PrestigeExecutor {
 
 		// Pre prestige max stuff
 		Rank currentRank = RankStorage.getRank(user.getRankName(), user.getPathName());
-		if (currentRank.getNextName() != null && !currentRank.isAllowPrestige()) {
+		if (currentRank != null && currentRank.getNextName() != null && !currentRank.isAllowPrestige()) {
 			Messages.sendMessage(player, Messages.getDisallowedPrestige());
 			return CompletableFuture.completedFuture(PrestigeResult.FAIL_NOT_LAST_RANK.withUser(user));
 		}
@@ -385,15 +386,15 @@ public class InfinitePrestigeExecutor implements PrestigeExecutor {
 		Prestige currentPrestige = PrestigeStorage.getPrestige(user.getPrestigeName());
 
 		// Player is already at last prestige, so don't continue
-		if (currentPrestige.getNextPrestigeName() == null) {
+		if (currentPrestige != null && currentPrestige.getNextPrestigeName() == null) {
 			Messages.sendMessage(player, Messages.getLastPrestige());
 			return CompletableFuture.completedFuture(PrestigeResult.FAIL_LAST_PRESTIGE.withUser(user));
 		}
 
 		UUID uniqueId = user.getUniqueId();
 		TemporaryMaxPrestige tempHolder = new TemporaryMaxPrestige(uniqueId);
-		tempHolder.setFirstPrestigeName(currentPrestige.getName());
-		tempHolder.setFirstPrestigeDisplayName(currentPrestige.getDisplayName());
+		tempHolder.setFirstPrestigeName(currentPrestige == null ? "0" : currentPrestige.getName());
+		tempHolder.setFirstPrestigeDisplayName(currentPrestige == null ? "0" : currentPrestige.getDisplayName());
 		maxPrestigeData.put(uniqueId, tempHolder);
 		PrestigeExecutor.addMaxPrestigePlayer(uniqueId);
 		maxPrestigeTask.addValue(() -> player);
@@ -485,16 +486,24 @@ public class InfinitePrestigeExecutor implements PrestigeExecutor {
 	public void spawnHologram(Level prestige, Player player, boolean async) {
 		if (!plugin.getGlobalSettings().isHologramsPlugin() || !plugin.getHologramSettings().isPrestigeEnabled())
 			return;
-		IHologram hologram = HologramManager.createHologram(
-				"prx_" + player.getName() + prestige.getName() + UniqueRandom.global().generate(async),
-				player.getLocation().add(0, hologramHeight, 0), async);
-		plugin.getHologramSettings()
-				.getPrestigeFormat()
-				.forEach(line -> hologram
-						.addLine(StringManager.parsePlaceholders(line.replace("%player%", player.getName())
-								.replace("%nextprestige%", prestige.getName())
-								.replace("%nextprestige_display%", prestige.getDisplayName()), player), async));
-		hologram.delete(hologramDelay);
+		plugin.doSyncLater(() -> {
+			HologramManager
+					.createHologram(
+							"prxprstg_" + player.getName() + "_" + prestige.getName() + "_"
+									+ UniqueRandom.global().generate(async),
+							player.getLocation().add(0, hologramHeight, 0))
+					.thenAccept(hologram -> {
+						plugin.getHologramSettings().getPrestigeFormat().forEach(line -> {
+							hologram.addLine(
+									new TextHologramLine(StringManager.parsePlaceholders(
+											line.replace("%player%", player.getName())
+													.replace("%nextprestige%", prestige.getName())
+													.replace("%nextprestige_display%", prestige.getDisplayName()),
+											player)));
+						});
+						plugin.doSyncLater(hologram::clear, hologramDelay);
+					});
+		}, 1);
 	}
 
 	@Override

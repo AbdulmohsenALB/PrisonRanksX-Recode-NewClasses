@@ -231,7 +231,8 @@ public class PagedArrayList<T> extends ArrayList<T> implements Iterable<T> {
 
 	/**
 	 * 
-	 * @param switches current page to the next page
+	 * switches current page to the next page
+	 * 
 	 * @return this PagedArrayList
 	 */
 	public PagedArrayList<T> next() {
@@ -241,7 +242,8 @@ public class PagedArrayList<T> extends ArrayList<T> implements Iterable<T> {
 
 	/**
 	 * 
-	 * @param switches current page to the previous page
+	 * switches current page to the previous page
+	 * 
 	 * @return this PagedArrayList
 	 */
 	public PagedArrayList<T> back() {
@@ -312,15 +314,13 @@ public class PagedArrayList<T> extends ArrayList<T> implements Iterable<T> {
 	}
 
 	public List<T> findFirst(T element) {
-		for (List<T> page : pages)
-			if (page.contains(element)) return page;
+		for (List<T> page : pages) if (page.contains(element)) return page;
 		return null;
 	}
 
 	public List<T> findLast(T element) {
 		List<T> found = null;
-		for (List<T> page : pages)
-			if (page.contains(element)) found = page;
+		for (List<T> page : pages) if (page.contains(element)) found = page;
 		return found;
 	}
 
@@ -344,8 +344,7 @@ public class PagedArrayList<T> extends ArrayList<T> implements Iterable<T> {
 	 * unoccupied place.
 	 */
 	public synchronized void add(@SuppressWarnings("unchecked") T... element) {
-		for (T elem : element)
-			add(elem);
+		for (T elem : element) add(elem);
 	}
 
 	/**
@@ -369,8 +368,7 @@ public class PagedArrayList<T> extends ArrayList<T> implements Iterable<T> {
 
 	@Override
 	public void forEach(Consumer<? super T> consumer) {
-		for (T t : pages.get(currentPage - 1))
-			consumer.accept(t);
+		for (T t : pages.get(currentPage - 1)) consumer.accept(t);
 	}
 
 	public int getMaxElementsPerPage() {

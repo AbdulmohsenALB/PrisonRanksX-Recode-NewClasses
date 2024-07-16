@@ -1,12 +1,6 @@
 package me.prisonranksx.lists;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -20,14 +14,14 @@ import org.bukkit.inventory.meta.ItemMeta;
 import me.prisonranksx.PrisonRanksX;
 import me.prisonranksx.bukkitutils.NBTEditor;
 import me.prisonranksx.bukkitutils.PlayerPagedGUI;
+import me.prisonranksx.bukkitutils.PlayerPagedGUI.GUIItem;
 import me.prisonranksx.bukkitutils.XEnchantment;
 import me.prisonranksx.bukkitutils.XMaterial;
-import me.prisonranksx.bukkitutils.PlayerPagedGUI.GUIItem;
 import me.prisonranksx.data.RankStorage;
 import me.prisonranksx.holders.Rank;
 import me.prisonranksx.managers.EconomyManager;
 import me.prisonranksx.managers.StringManager;
-import me.prisonranksx.utils.IntParser;
+import me.prisonranksx.utils.NumParser;
 
 public class GUIItemParser {
 
@@ -66,7 +60,7 @@ public class GUIItemParser {
 		if (!enchantments.isEmpty()) enchantments.forEach(line -> {
 			String[] split = line.split(" ");
 			itemMeta.addEnchant(XEnchantment.matchXEnchantment(split[0]).orElse(XEnchantment.DURABILITY).getEnchant(),
-					IntParser.asInt(split[1], s -> PrisonRanksX.logWarning(
+					NumParser.asInt(split[1], s -> PrisonRanksX.logWarning(
 							"found invalid enchantment lvl: '" + s + "' under section '" + section.getName() + "'"), 1),
 					true);
 		});
@@ -146,9 +140,9 @@ public class GUIItemParser {
 		 * 
 		 * @param <T>
 		 * @param actionName          action name without brackets
-		 * @param preFunction         to setup things, so they don't get executed every time
-		 *                            an item is clicked, made for better performance, like
-		 *                            parsing an itemstack.
+		 * @param preFunction         for caching and parsing an object, so it doesn't
+		 *                            have to be parsed every time action is called.
+		 *                            This is made for better performance.
 		 * @param clickActionFunction live things
 		 */
 		@SuppressWarnings("unchecked")

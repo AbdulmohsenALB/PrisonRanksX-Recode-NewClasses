@@ -21,12 +21,7 @@
 */
 package me.prisonranksx.utils;
 
-import java.util.Comparator;
-import java.util.Iterator;
-import java.util.NavigableSet;
-import java.util.Objects;
-import java.util.SplittableRandom;
-import java.util.TreeSet;
+import java.util.*;
 
 /**
  * ProbabilityCollection for retrieving random elements based on probability.
@@ -65,6 +60,10 @@ public final class ProbabilityCollection<E> {
 		this.totalProbability = 0;
 	}
 
+	public NavigableSet<ProbabilitySetElement<E>> getCollection() {
+		return this.collection;
+	}
+
 	/**
 	 * @return Number of objects inside the collection
 	 */
@@ -80,7 +79,7 @@ public final class ProbabilityCollection<E> {
 	}
 
 	/**
-	 * @param <E> object
+	 * @param object object
 	 * @return True if collection contains the object, else False
 	 * @throws IllegalArgumentException if object is null
 	 */
@@ -102,7 +101,7 @@ public final class ProbabilityCollection<E> {
 	/**
 	 * Add an object to this collection
 	 * 
-	 * @param <E>         object. Not null.
+	 * @param object      object. Not null.
 	 * @param probability share. Must be greater than 0.
 	 * 
 	 * @throws IllegalArgumentException if object is null
@@ -127,7 +126,7 @@ public final class ProbabilityCollection<E> {
 	/**
 	 * Remove a object from this collection
 	 * 
-	 * @param <E> object
+	 * @param object object
 	 * @return True if object was removed, else False.
 	 * 
 	 * @throws IllegalArgumentException if object is null
@@ -211,7 +210,7 @@ public final class ProbabilityCollection<E> {
 		private int index;
 
 		/**
-		 * @param <T>         object
+		 * @param object      object
 		 * @param probability share within the collection
 		 */
 		protected ProbabilitySetElement(T object, int probability) {

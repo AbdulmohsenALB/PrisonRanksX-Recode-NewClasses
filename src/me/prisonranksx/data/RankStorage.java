@@ -7,6 +7,7 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import me.prisonranksx.PrisonRanksX;
 import me.prisonranksx.components.*;
 import me.prisonranksx.holders.Rank;
 import me.prisonranksx.managers.ConfigManager;
@@ -30,6 +31,10 @@ public class RankStorage extends StorageFields {
 	 */
 	private static final Map<String, String> FIRST_RANKS = new HashMap<>();
 	/**
+	 * All available ranks
+	 */
+	private static final Set<String> AVAILABLE_RANKS = new LinkedHashSet<>();
+	/**
 	 * The first path section in the ranks config file is the default path
 	 */
 	private static final String DEFAULT_PATH = ConfigManager.getRanksConfig()
@@ -51,6 +56,7 @@ public class RankStorage extends StorageFields {
 		pathSection.getKeys(false).forEach(pathName -> {
 			ConfigurationSection rankSection = pathSection.getConfigurationSection(pathName);
 			Map<String, Rank> ranksMap = new LinkedHashMap<>();
+			AVAILABLE_RANKS.addAll(rankSection.getKeys(false));
 			rankSection.getKeys(false).forEach(rankName -> {
 				ConfigurationSection current = rankSection.getConfigurationSection(rankName);
 				Rank rank = new Rank(rankName,
@@ -79,17 +85,31 @@ public class RankStorage extends StorageFields {
 			});
 			PATHS.put(pathName.toLowerCase(), ranksMap);
 		});
+		check();
+	}
+
+	private static void check() {
+		PATHS.entrySet().forEach(entry -> {
+			Map<String, Rank> ranksMap = entry.getValue();
+			for (Map.Entry<String, Rank> rankEntry : ranksMap.entrySet()) {
+				Rank rank = rankEntry.getValue();
+				if (rank.getNextName() != null && !AVAILABLE_RANKS.contains(rank.getNextName())) {
+					PrisonRanksX.logSevere("Rank '" + rank.getName() + "' next rank named '" + rank.getNextName()
+							+ "' is non-existent. Please fix that in your config files!");
+				}
+			}
+		});
 	}
 
 	/**
 	 * @param rankName rank name to be looked up in the specified path
 	 * @param pathName name of the path to search the rank in
 	 * @return whether rank is found in the given path, path with said name actually
-	 *         exists, or not (CASE-SENSITIVE).
+	 *         exists, or not (CaSe-SeNsItIvE).
 	 */
 	public static boolean isInPath(String rankName, String pathName) {
 		Map<String, Rank> ranks = PATHS.get(pathName);
-		return ranks == null ? false : ranks.containsKey(rankName);
+		return ranks != null && ranks.containsKey(rankName);
 	}
 
 	/**
@@ -118,37 +138,68 @@ public class RankStorage extends StorageFields {
 	 * @return Rank from name and pathName or null if not found.
 	 */
 	@Nullable
-	public static Rank getRank(String name, @Nullable String pathName) {
+	public static Rank getRank(@Nullable String name, @Nullable String pathName) {
+		if (pathName == null || name == null) return null;
 		Map<String, Rank> ranks = PATHS.get(pathName);
 		return ranks == null ? null : ranks.get(name);
 	}
 
-	// Linked Hash Set
+	/**
+	 * Gets rank names within a path
+	 * 
+	 * @param pathName to get ranks of
+	 * @return names of ranks in a path
+	 */
 	public static Set<String> getPathRankNames(String pathName) {
 		return PATHS.get(pathName).keySet();
 	}
 
-	// Linked Hash Set
 	public static Collection<Rank> getPathRanks(String pathName) {
 		return PATHS.get(pathName).values();
 	}
 
 	@Nullable
-	public static String getLastRank(String pathName) {
+	public static String getLastRankName(String pathName) {
 		return LAST_RANKS.get(pathName);
 	}
 
 	@Nullable
-	public static String getFirstRank(String pathName) {
+	public static Rank getLastRank(String pathName) {
+		return RankStorage.getRank(LAST_RANKS.get(pathName), pathName);
+	}
+
+	@Nullable
+	public static String getFirstRankName(String pathName) {
 		return FIRST_RANKS.get(pathName);
+	}
+
+	/**
+	 * Gets first rank within specified path
+	 * 
+	 * @param pathName to get first rank of
+	 * @return first rank in specified path
+	 */
+	@Nullable
+	public static Rank getFirstRank(String pathName) {
+		return RankStorage.getRank(FIRST_RANKS.get(pathName), pathName);
+	}
+
+	/**
+	 * Quickly checks if rank exists
+	 * 
+	 * @param rankName to check for
+	 * @return whether rank exists or not
+	 */
+	public static boolean rankExists(String rankName) {
+		return AVAILABLE_RANKS.contains(rankName);
 	}
 
 	/**
 	 *
 	 * @return first rank in default path
 	 */
-	public static String getFirstRank() {
-		return getFirstRank(getDefaultPath());
+	public static String getFirstRankName() {
+		return getFirstRankName(getDefaultPath());
 	}
 
 	/**
@@ -190,6 +241,14 @@ public class RankStorage extends StorageFields {
 		if (isInPath(rankName, pathName)) return rankName;
 		for (String name : getPathRankNames(pathName)) if (rankName.equalsIgnoreCase(name)) return name;
 		return null;
+	}
+
+	/**
+	 *
+	 * @return all paths that are loaded from config file.
+	 */
+	public static Set<String> getPaths() {
+		return PATHS.keySet();
 	}
 
 	@Override

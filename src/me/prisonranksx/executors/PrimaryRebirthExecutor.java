@@ -9,6 +9,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
+import me.hsgamer.unihologram.common.line.TextHologramLine;
 import me.prisonranksx.PrisonRanksX;
 import me.prisonranksx.bukkitutils.bukkittickbalancer.BukkitTickBalancer;
 import me.prisonranksx.bukkitutils.bukkittickbalancer.ConcurrentTask;
@@ -20,7 +21,6 @@ import me.prisonranksx.data.RebirthStorage;
 import me.prisonranksx.data.UserController;
 import me.prisonranksx.events.*;
 import me.prisonranksx.holders.*;
-import me.prisonranksx.hooks.IHologram;
 import me.prisonranksx.managers.EconomyManager;
 import me.prisonranksx.managers.HologramManager;
 import me.prisonranksx.managers.StringManager;
@@ -78,7 +78,7 @@ public class PrimaryRebirthExecutor implements RebirthExecutor {
 				if (plugin.getGlobalSettings().isRankEnabled() && plugin.getRebirthSettings().isResetRank()) {
 					plugin.getAdminExecutor()
 							.setPlayerRank(uniqueId,
-									RankStorage.getFirstRank(controlUsers().getUser(uniqueId).getPathName()));
+									RankStorage.getFirstRankName(controlUsers().getUser(uniqueId).getPathName()));
 					updateGroup(player);
 					if (plugin.getGlobalSettings().isRankupMaxWithPrestige()) {
 						plugin.getPrestigeExecutor().maxPrestige(player);
@@ -289,7 +289,7 @@ public class PrimaryRebirthExecutor implements RebirthExecutor {
 				spawnHologram(rebirthResult.getRebirthResult(), player, true);
 				if (plugin.getGlobalSettings().isRankEnabled() && plugin.getRebirthSettings().isResetRank()) {
 					plugin.getAdminExecutor()
-							.setPlayerRank(user.getUniqueId(), RankStorage.getFirstRank(user.getPathName()));
+							.setPlayerRank(user.getUniqueId(), RankStorage.getFirstRankName(user.getPathName()));
 					updateGroup(player);
 				}
 				if (plugin.getRebirthSettings().isResetMoney()) {
@@ -322,7 +322,7 @@ public class PrimaryRebirthExecutor implements RebirthExecutor {
 				spawnHologram(rebirthResult.getRebirthResult(), player, true);
 				if (plugin.getGlobalSettings().isRankEnabled() && plugin.getRebirthSettings().isResetRank()) {
 					plugin.getAdminExecutor()
-							.setPlayerRank(user.getUniqueId(), RankStorage.getFirstRank(user.getPathName()));
+							.setPlayerRank(user.getUniqueId(), RankStorage.getFirstRankName(user.getPathName()));
 					updateGroup(player);
 				}
 				if (plugin.getRebirthSettings().isResetMoney()) {
@@ -468,16 +468,24 @@ public class PrimaryRebirthExecutor implements RebirthExecutor {
 
 	public void spawnHologram(Level rebirth, Player player, boolean async) {
 		if (!plugin.getGlobalSettings().isHologramsPlugin() || !plugin.getHologramSettings().isRebirthEnabled()) return;
-		IHologram hologram = HologramManager.createHologram(
-				"prx_" + player.getName() + rebirth.getName() + UniqueRandom.global().generate(async),
-				player.getLocation().add(0, hologramHeight, 0), async);
-		plugin.getHologramSettings()
-				.getRebirthFormat()
-				.forEach(line -> hologram
-						.addLine(StringManager.parsePlaceholders(line.replace("%player%", player.getName())
-								.replace("%nextrebirth%", rebirth.getName())
-								.replace("%nextrebirth_display%", rebirth.getDisplayName()), player), async));
-		hologram.delete(hologramDelay);
+		plugin.doSyncLater(() -> {
+			HologramManager
+					.createHologram(
+							"prxrbrth_" + player.getName() + "_" + rebirth.getName() + "_"
+									+ UniqueRandom.global().generate(async),
+							player.getLocation().add(0, hologramHeight, 0))
+					.thenAccept(hologram -> {
+						plugin.getHologramSettings().getRebirthFormat().forEach(line -> {
+							hologram.addLine(
+									new TextHologramLine(StringManager.parsePlaceholders(
+											line.replace("%player%", player.getName())
+													.replace("%nextrebirth%", rebirth.getName())
+													.replace("%nextrebirth_display%", rebirth.getDisplayName()),
+											player)));
+						});
+						plugin.doSyncLater(hologram::clear, hologramDelay);
+					});
+		}, 1);
 	}
 
 	@Override

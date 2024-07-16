@@ -103,18 +103,20 @@ public class MySQLUserController implements UserController {
 			try {
 				if (resultSet != null && resultSet.next()) {
 					String rank = resultSet.getString("rank");
-					if (rank == null) rank = RankStorage.getFirstRank();
+					if (rank == null && plugin.isRankEnabled()) rank = RankStorage.getFirstRankName();
 					String path = resultSet.getString("path");
-					if (path == null) path = RankStorage.getDefaultPath();
+					if (path == null && plugin.isRankEnabled()) path = RankStorage.getDefaultPath();
 					String prestige = resultSet.getString("prestige");
 					String rebirth = resultSet.getString("rebirth");
 					user.setRankName(rank);
 					user.setPathName(path);
-					user.setPrestigeName(prestige);
-					user.setRebirthName(rebirth);
+					user.setPrestigeName(plugin.isPrestigeEnabled() ? prestige : null);
+					user.setRebirthName(plugin.isRebirthEnabled() ? rebirth : null);
 				} else {
-					user.setRankName(RankStorage.getFirstRank());
-					user.setPathName(RankStorage.getDefaultPath());
+					if (plugin.isRankEnabled()) {
+						user.setRankName(RankStorage.getFirstRankName());
+						user.setPathName(RankStorage.getDefaultPath());
+					}
 				}
 			} catch (SQLException e) {
 				throw new RuntimeException(e);

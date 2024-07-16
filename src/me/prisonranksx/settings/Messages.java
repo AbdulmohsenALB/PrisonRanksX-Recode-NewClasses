@@ -16,35 +16,83 @@ public class Messages {
 		SETTINGS.setup();
 	}
 
+	/**
+	 * Made to avoid null checks.
+	 * Send message to sender only if it's not null.
+	 */
 	public static void sendMessage(CommandSender sender, String message) {
 		if (message == null) return;
 		sender.sendMessage(message);
 	}
 
+	/**
+	 * Made to avoid null checks.
+	 * Send message to sender only if it's not null.
+	 */
 	public static void sendMessage(CommandSender sender, String message, Function<String, String> stringFunction) {
 		if (message == null) return;
 		sender.sendMessage(stringFunction.apply(message));
 	}
 
+	/**
+	 * Made to avoid null checks.
+	 * Send message to sender only if it's not null.
+	 */
 	public static void sendMessage(Player player, String message) {
 		if (message == null) return;
 		player.sendMessage(StringManager.parsePlaceholders(message, player));
 	}
 
+	/**
+	 * Made to avoid null checks.
+	 * Send message to sender only if it's not null.
+	 */
 	public static void sendMessage(Player player, String message, Function<String, String> stringFunction) {
 		if (message == null) return;
 		player.sendMessage(StringManager.parsePlaceholders(stringFunction.apply(message), player));
 	}
 
+	/**
+	 * Made to avoid null checks.
+	 * Send message to sender only if it's not null.
+	 */
 	public static void sendMessage(Player player, List<String> message) {
 		if (message == null) return;
 		message.forEach(messageLine -> player.sendMessage(StringManager.parsePlaceholders(messageLine, player)));
 	}
 
+	/**
+	 * Made to avoid null checks.
+	 * Send message to sender only if it's not null.
+	 */
 	public static void sendMessage(Player player, List<String> message, Function<String, String> stringFunction) {
 		if (message == null) return;
 		message.forEach(messageLine -> player
 				.sendMessage(StringManager.parsePlaceholders(stringFunction.apply(messageLine), player)));
+	}
+
+	/**
+	 * Made to avoid null checks.
+	 * Send message to sender only if it's not null.
+	 */
+	public static void sendMessages(Player player, List<String> message,
+			Function<List<String>, List<String>> listFunction) {
+		if (message == null) return;
+		message = listFunction.apply(message);
+		if (message == null) return;
+		message.forEach(messageLine -> player.sendMessage(StringManager.parsePlaceholders(messageLine, player)));
+	}
+
+	/**
+	 * Made to avoid null checks.
+	 * Send message to sender only if it's not null.
+	 */
+	public static void sendMessages(CommandSender sender, List<String> message,
+			Function<List<String>, List<String>> listFunction) {
+		if (message == null) return;
+		message = listFunction.apply(message);
+		if (message == null) return;
+		message.forEach(messageLine -> sender.sendMessage(StringManager.parseColors(messageLine)));
 	}
 
 	public static String getNoPermission() {
@@ -831,26 +879,115 @@ public class Messages {
 		SETTINGS.dataConversion = dataConversion;
 	}
 
+	public static String getPrestigeConfirm() {
+		return SETTINGS.prestigeConfirm;
+	}
+
+	public static void setPrestigeConfirm(String prestigeConfirm) {
+		SETTINGS.prestigeConfirm = prestigeConfirm;
+	}
+
+	public static String getRebirthConfirm() {
+		return SETTINGS.rebirthConfirm;
+	}
+
+	public static void setRebirthConfirm(String rebirthConfirm) {
+		SETTINGS.rebirthConfirm = rebirthConfirm;
+	}
+
 	public static class MessagesSettings extends Settings {
 
-		private String noPermission, unknownPlayer, deleteRank, setRank, resetRank, createRank, setNextRank,
-				setRankDisplay, setRankCost, deletePlayerRank, addRankCommand, addRankBroadcast, addRankMsg,
-				setDefaultRank, setLastRank, setPlayerPath, setDefaultPath, setRankPath, reload, save, unknownPath,
-				unknownRank, unknownPrestige, unknownRebirth, setFirstRebirth, setLastRebirth, setRebirth, resetRebirth,
-				createRebirth, setRebirthDisplay, setRebirthCost, playerOnlyCommand, disallowedWorld, rankup,
-				rankupOther, rankupOtherRecipient, deletePrestige, setFirstPrestige, setLastPrestige, setPrestige,
-				resetPrestige, createPrestige, setNextPrestige, setPrestigeDisplay, setPrestigeCost, prestige,
-				disallowedPrestige, disallowedRebirth, deletePlayerPrestige, deletePlayerRebirth, forceRankup,
-				forceRankupLastRank, forceRankupNoPermission, rankupNoPermission, rankupOtherNoPermission,
-				autoRankupEnabled, autoRankupDisabled, autoRankupEnabledOther, autoRankupDisabledOther,
-				autoRankupNoPermission, autoRankupLastRank, autoPrestigeEnabled, autoPrestigeDisabled,
-				autoRebirthEnabled, autoRebirthDisabled, rebirth, commandSpam, rankupMaxIsOn, prestigeMaxIsOn,
-				ranksListLastPageReached, ranksListInvalidPage, prestigeLastLastPageReached,
-				prestigesListLastPageReached, prestigesListInvalidPage, rebirthsListLastPageReached,
-				rebirthsListInvalidPage, rankListConsole, prestigeListConsole, rebirthListConsole,
-				forceRankupMissingArgument, topPrestigesLastPageReached, topRebirthsLastPageReached,
-				rebirthNotEnoughPrestiges, rankupMax, prestigeMax, dataConversionSuccess, dataConversionFail,
-				dataConversion;
+		private String noPermission;
+		private String unknownPlayer;
+		private String deleteRank;
+		private String setRank;
+		private String resetRank;
+		private String createRank;
+		private String setNextRank;
+		private String setRankDisplay;
+		private String setRankCost;
+		private String deletePlayerRank;
+		private String addRankCommand;
+		private String addRankBroadcast;
+		private String addRankMsg;
+		private String setDefaultRank;
+		private String setLastRank;
+		private String setPlayerPath;
+		private String setDefaultPath;
+		private String setRankPath;
+		private String reload;
+		private String save;
+		private String unknownPath;
+		private String unknownRank;
+		private String unknownPrestige;
+		private String unknownRebirth;
+		private String setFirstRebirth;
+		private String setLastRebirth;
+		private String setRebirth;
+		private String resetRebirth;
+		private String createRebirth;
+		private String setRebirthDisplay;
+		private String setRebirthCost;
+		private String playerOnlyCommand;
+		private String disallowedWorld;
+		private String rankup;
+		private String rankupOther;
+		private String rankupOtherRecipient;
+		private String deletePrestige;
+		private String setFirstPrestige;
+		private String setLastPrestige;
+		private String setPrestige;
+		private String resetPrestige;
+		private String createPrestige;
+		private String setNextPrestige;
+		private String setPrestigeDisplay;
+		private String setPrestigeCost;
+		private String prestige;
+		private String disallowedPrestige;
+		private String disallowedRebirth;
+		private String deletePlayerPrestige;
+		private String deletePlayerRebirth;
+		private String forceRankup;
+		private String forceRankupLastRank;
+		private String forceRankupNoPermission;
+		private String rankupNoPermission;
+		private String rankupOtherNoPermission;
+		private String autoRankupEnabled;
+		private String autoRankupDisabled;
+		private String autoRankupEnabledOther;
+		private String autoRankupDisabledOther;
+		private String autoRankupNoPermission;
+		private String autoRankupLastRank;
+		private String autoPrestigeEnabled;
+		private String autoPrestigeDisabled;
+		private String autoRebirthEnabled;
+		private String autoRebirthDisabled;
+		private String rebirth;
+		private String commandSpam;
+		private String rankupMaxIsOn;
+		private String prestigeMaxIsOn;
+		private String ranksListLastPageReached;
+		private String ranksListInvalidPage;
+		private String prestigeLastLastPageReached;
+		private String prestigesListLastPageReached;
+		private String prestigesListInvalidPage;
+		private String rebirthsListLastPageReached;
+		private String rebirthsListInvalidPage;
+		private String rankListConsole;
+		private String prestigeListConsole;
+		private String rebirthListConsole;
+		private String forceRankupMissingArgument;
+		private String topPrestigesLastPageReached;
+		private String topRebirthsLastPageReached;
+		private String rebirthNotEnoughPrestiges;
+		private String rankupMax;
+		private String prestigeMax;
+		private String dataConversionSuccess;
+		private String dataConversionFail;
+		private String dataConversion;
+
+		private String prestigeConfirm;
+		private String rebirthConfirm;
 
 		private List<String> notEnoughBalance, notEnoughBalanceOther, prestigeNotEnoughBalance, lastPrestige,
 				lastPrestigeOther, lastRank, rebirthNotEnoughBalance, lastRebirth, topPrestiges, topRebirths;
@@ -955,6 +1092,8 @@ public class Messages {
 			dataConversionSuccess = getString("data-conversion-success", true);
 			dataConversionFail = getString("data-conversion-fail", true);
 			dataConversion = getString("data-conversion", true);
+			prestigeConfirm = getString("prestige-confirm", true);
+			rebirthConfirm = getString("rebirth-confirm", true);
 		}
 
 		public String getNoPermission() {
@@ -1739,6 +1878,22 @@ public class Messages {
 
 		public void setDataConversion(String dataConversion) {
 			this.dataConversion = dataConversion;
+		}
+
+		public String getPrestigeConfirm() {
+			return prestigeConfirm;
+		}
+
+		public void setPrestigeConfirm(String prestigeConfirm) {
+			this.prestigeConfirm = prestigeConfirm;
+		}
+
+		public String getRebirthConfirm() {
+			return rebirthConfirm;
+		}
+
+		public void setRebirthConfirm(String rebirthConfirm) {
+			this.rebirthConfirm = rebirthConfirm;
 		}
 	}
 

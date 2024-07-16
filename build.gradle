@@ -26,7 +26,9 @@ repositories {
     }
 }
 
-shadowJar {}
+shadowJar {
+    destinationDirectory.set(file('D:/Moved From C Disk/MyFiles/Programs/Minecraft Server 1.8.8/plugins'))
+}
 
 test {
     useJUnitPlatform()
@@ -77,17 +79,15 @@ tasks.named('test', Test) {
 }
 
 dependencies {
+    implementation 'org.jetbrains:annotations:24.0.0'
 
-    // For testing, couldn't get MockBukkit to work...
-    // testImplementation 'org.junit.jupiter:junit-jupiter:5.8.1'
-    // testImplementation 'org.junit.platform:junit-platform-launcher:1.9.2'
-    // testRuntimeOnly 'org.junit.platform:junit-platform-suite-engine:1.9.1'
-    // testImplementation 'org.mockito:mockito-all:2.0.2-beta'
-    // testImplementation 'com.github.seeseemelk:MockBukkit-v1.19:3.1.0'
-    // testImplementation fileTree(dir: 'libs', include: ['*.jar'])
-    // implementation "io.papermc.paper:paper-api:1.20.1-R0.1-SNAPSHOT"
-    // testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-    // implementation 'com.github.TheGaming999:SegmentedTasks:1.0'
+    implementation 'me.hsgamer:uni-hologram-spigot-bundle:2.5.0'
+    implementation 'me.hsgamer:uni-hologram-spigot-holographicdisplays:2.5.0'
+    implementation 'me.hsgamer:uni-hologram-spigot-decentholograms:2.5.0'
+    implementation 'me.hsgamer:uni-hologram-spigot-cmi:2.5.0'
+    implementation 'me.hsgamer:uni-hologram-spigot-fancyholograms:2.5.0'
+    implementation 'me.hsgamer:uni-hologram-spigot-vanilla:2.5.0'
+
     compileOnly "com.github.MilkBowl:VaultAPI:1.7"
     compileOnly fileTree(dir: 'libs', include: ['*.jar'])
     compileOnly 'me.clip:placeholderapi:2.11.3'
@@ -96,7 +96,7 @@ dependencies {
     compileOnly 'com.github.ElgarL:groupmanager:3.2'
     compileOnly 'me.filoghost.holographicdisplays:holographicdisplays-api:3.0.0'
     compileOnly 'org.spigotmc:spigot-api:1.16.5-R0.1-SNAPSHOT'
-    // The full Spigot server with no shadowing. Requires mavenLocal.
+
 }
 
 processResources {

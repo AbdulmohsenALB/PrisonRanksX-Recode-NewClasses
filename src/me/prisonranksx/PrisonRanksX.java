@@ -1,18 +1,11 @@
 package me.prisonranksx;
 
-import org.bukkit.Bukkit;
-import org.bukkit.command.ConsoleCommandSender;
-import org.bukkit.entity.Player;
-import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.scheduler.BukkitScheduler;
-import org.bukkit.scheduler.BukkitTask;
-
 import co.aikar.taskchain.TaskChain;
 import co.aikar.taskchain.TaskChainFactory;
 import me.prisonranksx.commands.*;
 import me.prisonranksx.data.*;
 import me.prisonranksx.executors.*;
-import me.prisonranksx.hooks.IHologramManager;
+import me.prisonranksx.hooks.PlaceholderAPIHook;
 import me.prisonranksx.listeners.PlayerChatListener;
 import me.prisonranksx.listeners.PlayerJoinListener;
 import me.prisonranksx.listeners.PlayerLoginListener;
@@ -22,401 +15,495 @@ import me.prisonranksx.managers.*;
 import me.prisonranksx.permissions.PlayerGroupUpdater;
 import me.prisonranksx.reflections.UniqueId;
 import me.prisonranksx.settings.*;
+import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
+import org.bukkit.command.ConsoleCommandSender;
+import org.bukkit.entity.Player;
+import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitScheduler;
+import org.bukkit.scheduler.BukkitTask;
 
 /**
  * Plugin main class.
  */
 public class PrisonRanksX extends JavaPlugin {
 
-	/**
-	 * Prefix used for log messages.
-	 */
-	private static final String PREFIX = "§e[§3PrisonRanks§cX§e]";
-	private static final BukkitScheduler SCHEDULER = Bukkit.getScheduler();
-	private static final ConsoleCommandSender CONSOLE = Bukkit.getConsoleSender();
-	private static PrisonRanksX instance;
+    /**
+     * Prefix used for log messages.
+     */
+    private static final String PREFIX = "§e[§3PrisonRanks§cX§e]";
+    private static final BukkitScheduler SCHEDULER = Bukkit.getScheduler();
+    private static final ConsoleCommandSender CONSOLE = Bukkit.getConsoleSender();
+    private static PrisonRanksX instance;
 
-	// Settings loaded from config files
-	/**
-	 * Holds the settings that are under the section named 'Options'
-	 * that's inside config.yml
-	 */
-	private GlobalSettings globalSettings;
-	/**
-	 * Holds the settings that are under the section named
-	 * 'Rank-Options' that's inside config.yml
-	 */
-	private RankSettings rankSettings;
-	/**
-	 * Holds the settings that are under the section named
-	 * 'Prestige-Options' that's inside config.yml
-	 */
-	private PrestigeSettings prestigeSettings;
-	/**
-	 * Holds the settings that are under the section named
-	 * 'Rebirth-Options' that's inside config.yml
-	 */
-	private RebirthSettings rebirthSettings;
-	/**
-	 * Holds the settings that are under the section named
-	 * 'PlaceholderAPI-Options' that's inside config.yml
-	 */
-	private PlaceholderAPISettings placeholderAPISettings;
-	/**
-	 * Holds the settings that are under the section named 'Holograms'
-	 * that's inside config.yml
-	 */
-	private HologramSettings hologramSettings;
-	/**
-	 * Holds the settings that are under the section named
-	 * 'Ranks-List-Options' that's inside config.yml
-	 */
-	private RanksListSettings ranksListSettings;
-	private PrestigesListSettings prestigesListSettings;
+    // Settings loaded from config files
+    /**
+     * 'Options' from config.yml
+     */
+    private GlobalSettings globalSettings;
+    /**
+     * 'Rank-Options' from config.yml
+     */
+    private RankSettings rankSettings;
+    /**
+     * 'Prestige-Options' from config.yml
+     */
+    private PrestigeSettings prestigeSettings;
+    /**
+     * 'Rebirth-Options' from config.yml
+     */
+    private RebirthSettings rebirthSettings;
+    /**
+     * 'PlaceholderAPI-Options' from config.yml
+     */
+    private PlaceholderAPISettings placeholderAPISettings;
+    /**
+     * 'Holograms' from config.yml
+     */
+    private HologramSettings hologramSettings;
+    /**
+     * 'Ranks-List-Options' from config.yml
+     */
+    private RanksListSettings ranksListSettings;
+    private PrestigesListSettings prestigesListSettings;
+    private RebirthsListSettings rebirthsListSettings;
 
-	// Executors
-	/** Provides methods for ranking up the players */
-	private RankupExecutor rankupExecutor;
-	/** Provides methods for prestiging the players */
-	private PrestigeExecutor prestigeExecutor;
-	/** Responsible for summoning holograms */
-	private IHologramManager hologramManager;
-	/**
-	 * Provides methods for creating and editing
-	 * ranks, and managing players data
-	 */
-	private AdminExecutor adminExecutor;
+    // Executors
+    // Rank up executor, for example has: auto rank up toggling, max rank up, force
+    // rank up, silent
+    // rank up, rank up by other, default rank up
+    /**
+     * For ranking up the players
+     */
+    private RankupExecutor rankupExecutor;
+    /**
+     * For prestiging the players
+     */
+    private PrestigeExecutor prestigeExecutor;
+    /**
+     * For rebirthing the players
+     */
+    private RebirthExecutor rebirthExecutor;
+    /**
+     * Provides methods for creating and editing
+     * ranks, and managing players data
+     */
+    private AdminExecutor adminExecutor;
 
-	// Interfaces holding classes
-	/**
-	 * For updating players groups through permissions plugins APIs
-	 */
-	private PlayerGroupUpdater playerGroupUpdater;
+    // Interfaces holding classes
+    /**
+     * For updating players groups through permissions plugins' APIs
+     */
+    private PlayerGroupUpdater playerGroupUpdater;
 
-	// Commands
-	private PRXCommand prxCommand;
-	private RankupCommand rankupCommand;
-	private AutoRankupCommand autoRankupCommand;
-	private RanksCommand ranksCommand;
-	private PrestigeCommand prestigeCommand;
-	private AutoPrestigeCommand autoPrestigeCommand;
-	private PrestigesCommand prestigesCommand;
+    // Commands
 
-	// User Management
-	/**
-	 * Provides methods for managing players data such
-	 * as loading and saving them.
-	 */
-	private UserController userController;
+    // Admin command.
+    private PRXCommand prxCommand;
 
-	// Listeners
-	protected PlayerLoginListener playerLoginListener;
-	protected PlayerJoinListener playerJoinListener;
-	protected PlayerQuitListener playerQuitListener;
-	protected PlayerChatListener playerChatListener;
+    // Self-promotion commands
+    private RankupCommand rankupCommand;
+    private PrestigeCommand prestigeCommand;
+    private RebirthCommand rebirthCommand;
 
-	// Lists
-	private RanksTextList ranksTextList;
-	private RanksGUIList ranksGUIList;
-	private PrestigesTextList prestigesTextList;
-	private PrestigesGUIList prestigesGUIList;
+    // Auto self-promotion commands
+    private AutoRankupCommand autoRankupCommand;
+    private AutoPrestigeCommand autoPrestigeCommand;
+    private AutoRebirthCommand autoRebirthCommand;
 
-	@Override
-	public void onEnable() {
-		instance = this;
-		ConversionManager.convertConfigFiles();
+    // Max self-promotion commands
+    private RankupMaxCommand rankupMaxCommand;
+    private PrestigeMaxCommand prestigeMaxCommand;
 
-		if (GlobalSettings.SUPPORTS_ACTION_BAR) ActionBarManager.cache(); // Only load if using 1.8+ cuz action bars
-																			// didn't exist in the older versions.
-		StringManager.cache(); // Parse colors, PlaceholderAPI placeholders if PAPI is installed, and symbols.
-		// Might stop supporting 1.6-
-		UniqueId.cache(); // UUID support for legacy versions and newer versions.
-		EconomyManager.cache(); // Vault economy and Balance Formatter.
-		HologramManager.cache(); // Load DecentHolograms, HolographicDisplays, or nothing.
-		PermissionsManager.cache(); // Vault permissions.
-		MySQLManager.cache(); // A check is inside the class to determine whether MySQL should be enabled or
-								// not.
-		globalSettings = new GlobalSettings();
-		userController = getDataStorageType() == UserControllerType.MYSQL ? new MySQLUserController(this)
-				: getDataStorageType() == UserControllerType.YAML_PER_USER ? new YamlPerUserController(this)
-				: new YamlUserController(this);
-		logNeutral("Data storage type: " + userController.getType().name());
-		playerGroupUpdater = new PlayerGroupUpdater(this);
+    // List commands
+    private RanksCommand ranksCommand;
+    private PrestigesCommand prestigesCommand;
+    private RebirthsCommand rebirthsCommand;
 
-		registerListeners();
-		prepareHooks();
-		prepareRanks();
-		preparePrestiges();
-		prepareRebirths();
-		prepareAdmin();
+    // User Management
+    /**
+     * Provides methods for managing players data such
+     * as loading and saving them.
+     */
+    private UserController userController;
 
-		log("Enabled.");
-	}
+    // Listeners
+    protected PlayerLoginListener playerLoginListener;
+    protected PlayerJoinListener playerJoinListener;
+    protected PlayerQuitListener playerQuitListener;
+    protected PlayerChatListener playerChatListener;
 
-	@Override
-	public void onDisable() {
-		CommandLoader.unregisterCommand(prxCommand, rankupCommand, ranksCommand);
-		userController.saveUsers(true).thenRun(() -> log("Data saved.")).exceptionally(throwable -> {
-			logSevere("Failed to save data. Please report the stack trace below to the developer.");
-			throwable.printStackTrace();
-			return null;
-		});
-	}
+    // Lists
+    private RanksTextList ranksTextList;
+    private RanksGUIList ranksGUIList;
+    private PrestigesTextList prestigesTextList;
+    private PrestigesGUIList prestigesGUIList;
+    private RebirthsTextList rebirthsTextList;
+    private RebirthsGUIList rebirthsGUIList;
 
-	public void prepareHooks() {
-		if (StringManager.isPlaceholderAPI()) {
-			logNeutral("Loading PlaceholderAPI placeholders...");
-			placeholderAPISettings = new PlaceholderAPISettings();
-			// load placeholders here.
-			log("PlaceholderAPI placeholders are ready to use! '/papi ecloud' is not needed.");
-		} else if (globalSettings.isMvdwPlaceholderAPILoaded()) {
-			placeholderAPISettings = new PlaceholderAPISettings();
-			// load placeholders here.
-			log("MVdWPlaceholderAPI soft dependency loaded.");
-		} else {
-			logWarning("Recommended plugin 'PlaceholderAPI' is not installed.");
-		}
-		if (globalSettings.isDecentHologramsLoaded()) {
-			hologramSettings = new HologramSettings();
-			log("DecentHolograms soft dependency loaded.");
-		} else if (globalSettings.isHolographicDisplaysLoaded()) {
-			hologramSettings = new HologramSettings();
-			log("HolographicDisplays soft dependency loaded.");
-		}
-	}
+    @Override
+    public void onEnable() {
+        instance = this;
+        ConversionManager.convertConfigFiles();
 
-	public void prepareAdmin() {
-		adminExecutor = new AdminExecutor(this);
-		if (PRXCommand.isEnabled()) {
-			prxCommand = new PRXCommand(this);
-			prxCommand.register();
-		}
-		// After a "/reload" need to load online players data
-		if (GlobalSettings.SUPPORTS_ACTION_BAR) {
-			for (Player player : Bukkit.getOnlinePlayers())
-				userController.loadUser(UniqueId.getUUID(player), player.getName());
-		}
-	}
+        if (GlobalSettings.SUPPORTS_ACTION_BAR) ActionBarManager.cache(); // Only load if using 1.8+ cuz action bars
+        // didn't exist in the older versions.
+        StringManager.cache(); // Parse colors, PlaceholderAPI placeholders if PAPI is installed, and symbols.
+        // Might stop supporting 1.6-
+        UniqueId.cache(); // UUID support for legacy versions and newer versions.
+        EconomyManager.cache(); // Vault economy and Balance Formatter.
+        HologramManager.cache(); // Load DecentHolograms, HolographicDisplays, or nothing.
+        PermissionsManager.cache(); // Vault permissions.
+        MySQLManager.cache(); // A check is inside the class to determine whether MySQL should be enabled or
+        // not.
+        try {
+            Class.forName("me.prisonranksx.executors.InfinitePrestigeExecutor");
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
 
-	public void prepareRanks() {
-		if (!globalSettings.isRankEnabled()) return;
-		RankStorage.loadRanks();
-		rankSettings = new RankSettings();
-		ranksListSettings = new RanksListSettings();
-		rankupExecutor = new PrimaryRankupExecutor(this);
-		if (RankupCommand.isEnabled()) {
-			rankupCommand = new RankupCommand(this);
-			rankupCommand.register();
-		}
-		if (RanksCommand.isEnabled()) {
-			ranksCommand = new RanksCommand(this);
-			ranksCommand.register();
-		}
-		if (AutoRankupCommand.isEnabled()) {
-			autoRankupCommand = new AutoRankupCommand(this);
-			autoRankupCommand.register();
-		}
-		if (globalSettings.isGuiRankList())
-			ranksGUIList = new RanksGUIList(this);
-		else
-			ranksTextList = new RanksTextList(this);
-	}
+        globalSettings = new GlobalSettings();
+        userController = getDataStorageType() == UserControllerType.MYSQL ? new MySQLUserController(this)
+                : getDataStorageType() == UserControllerType.YAML_PER_USER ? new YamlPerUserController(this)
+                : new YamlUserController(this);
+        logNeutral("Data storage type: " + userController.getType().name());
+        playerGroupUpdater = new PlayerGroupUpdater(this);
 
-	public void preparePrestiges() {
-		boolean infinitePrestige = globalSettings.isInfinitePrestige();
-		if (globalSettings.isPrestigeEnabled()) {
-			prestigeSettings = new PrestigeSettings();
-			PrestigeStorage.initAndLoad(infinitePrestige);
-			prestigesListSettings = new PrestigesListSettings();
-			prestigeExecutor = new InfinitePrestigeExecutor(this);
-			if (PrestigeCommand.isEnabled()) {
-				prestigeCommand = new PrestigeCommand(this);
-				prestigeCommand.register();
-			}
-			if (AutoPrestigeCommand.isEnabled()) {
-				autoPrestigeCommand = new AutoPrestigeCommand(this);
-				autoPrestigeCommand.register();
-			}
-			if (PrestigesCommand.isEnabled()) {
-				prestigesCommand = new PrestigesCommand(this);
-				prestigesCommand.register();
-			}
-		}
-		if (globalSettings.isGuiPrestigeList()) {
-			prestigesGUIList = infinitePrestige ? new InfinitePrestigesGUIList(this)
-					: new RegularPrestigesGUIList(this);
-		} else {
-			prestigesTextList = infinitePrestige ? new InfinitePrestigesTextList(this)
-					: new RegularPrestigesTextList(this);
-		}
-	}
+        registerListeners();
+        prepareHooks();
+        prepareRanks();
+        preparePrestiges();
+        prepareRebirths();
+        prepareAdmin();
 
-	public void prepareRebirths() {
-		if (globalSettings.isRebirthEnabled()) {
-			RebirthStorage.loadRebirths();
-			rebirthSettings = new RebirthSettings();
-		}
-	}
+        log("Enabled.");
+    }
 
-	public void registerListeners() {
-		playerLoginListener = PlayerLoginListener.register(this, globalSettings.getLoginEventHandlingPriority());
-		playerJoinListener = PlayerJoinListener.register(this, globalSettings.getLoginEventHandlingPriority());
-		playerQuitListener = PlayerQuitListener.register(this, globalSettings.getLoginEventHandlingPriority());
-		if (globalSettings.isFormatChat())
-			playerChatListener = PlayerChatListener.register(this, globalSettings.getChatEventHandlingPriority());
-	}
+    @Override
+    public void onDisable() {
+        CommandLoader.unregisterCommand(prxCommand, rankupCommand, ranksCommand);
+        userController.saveUsers(true).thenRun(() -> log("Data saved.")).exceptionally(throwable -> {
+            logSevere("Failed to save data. Please report the stack trace below to the developer.");
+            throwable.printStackTrace();
+            return null;
+        });
+    }
 
-	public static void log(String message) {
-		CONSOLE.sendMessage(PREFIX + " §a" + message);
-	}
+    public void prepareHooks() {
+        if (StringManager.isPlaceholderAPI()) {
+            logNeutral("Loading PlaceholderAPI placeholders...");
+            placeholderAPISettings = new PlaceholderAPISettings();
+            PlaceholderAPIHook placeholderAPIHook = new PlaceholderAPIHook();
 
-	public static void logNeutral(String message) {
-		CONSOLE.sendMessage(PREFIX + " §7" + message);
-	}
+            // load placeholders here.
+            log("PlaceholderAPI placeholders are ready to use! '/papi ecloud' is not needed.");
+        } else if (globalSettings.isMvdwPlaceholderAPILoaded()) {
+            placeholderAPISettings = new PlaceholderAPISettings();
+            // load placeholders here.
+            log("MVdWPlaceholderAPI soft dependency loaded.");
+        } else {
+            logWarning("Recommended plugin 'PlaceholderAPI' is not installed.");
+        }
+        if (globalSettings.isDecentHologramsLoaded()) {
+            hologramSettings = new HologramSettings();
+            log("DecentHolograms soft dependency loaded.");
+        } else if (globalSettings.isHolographicDisplaysLoaded()) {
+            hologramSettings = new HologramSettings();
+            log("HolographicDisplays soft dependency loaded.");
+        }
+    }
 
-	public static void logWarning(String message) {
-		CONSOLE.sendMessage(PREFIX + " §e[!] " + message);
-	}
+    public void prepareAdmin() {
+        adminExecutor = new AdminExecutor(this);
+        if (PRXCommand.isEnabled()) {
+            prxCommand = new PRXCommand(this);
+            prxCommand.register();
+        }
+        // After a "/reload" need to load online players data
+        if (GlobalSettings.SUPPORTS_ACTION_BAR) {
+            for (Player player : Bukkit.getOnlinePlayers())
+                userController.loadUser(UniqueId.getUUID(player), player.getName());
+        }
+    }
 
-	public static void logSevere(String message) {
-		CONSOLE.sendMessage(PREFIX + " §4[!] §c" + message);
-	}
+    public void prepareRanks() {
+        if (!globalSettings.isRankEnabled()) return;
+        RankStorage.loadRanks();
+        rankSettings = new RankSettings();
+        ranksListSettings = new RanksListSettings();
+        rankupExecutor = new PrimaryRankupExecutor(this);
+        if (RankupCommand.isEnabled()) {
+            rankupCommand = new RankupCommand(this);
+            rankupCommand.register();
+        }
+        if (RanksCommand.isEnabled()) {
+            ranksCommand = new RanksCommand(this);
+            ranksCommand.register();
+        }
+        if (AutoRankupCommand.isEnabled()) {
+            autoRankupCommand = new AutoRankupCommand(this);
+            autoRankupCommand.register();
+        }
+        if (RankupMaxCommand.isEnabled()) {
+            rankupMaxCommand = new RankupMaxCommand(this);
+            rankupMaxCommand.register();
+        }
+        if (globalSettings.isGuiRankList())
+            ranksGUIList = new RanksGUIList(this);
+        else
+            ranksTextList = new RanksTextList(this);
+    }
 
-	public BukkitTask doSyncLater(Runnable runnable, int delay) {
-		return SCHEDULER.runTaskLater(this, runnable, delay);
-	}
+    public void preparePrestiges() {
+        boolean infinitePrestige = globalSettings.isInfinitePrestige();
+        if (globalSettings.isPrestigeEnabled()) {
+            prestigeSettings = new PrestigeSettings();
+            PrestigeStorage.initAndLoad(infinitePrestige);
+            prestigesListSettings = new PrestigesListSettings();
+            prestigeExecutor = new InfinitePrestigeExecutor(this);
+            if (PrestigeCommand.isEnabled()) {
+                prestigeCommand = new PrestigeCommand(this);
+                prestigeCommand.register();
+            }
+            if (AutoPrestigeCommand.isEnabled()) {
+                autoPrestigeCommand = new AutoPrestigeCommand(this);
+                autoPrestigeCommand.register();
+            }
+            if (PrestigesCommand.isEnabled()) {
+                prestigesCommand = new PrestigesCommand(this);
+                prestigesCommand.register();
+            }
+            if (PrestigeMaxCommand.isEnabled()) {
+                prestigeMaxCommand = new PrestigeMaxCommand(this);
+                prestigeMaxCommand.register();
+            }
+        }
+        if (globalSettings.isGuiPrestigeList()) {
+            prestigesGUIList = infinitePrestige ? new InfinitePrestigesGUIList(this)
+                    : new RegularPrestigesGUIList(this);
+        } else {
+            prestigesTextList = infinitePrestige ? new InfinitePrestigesTextList(this)
+                    : new RegularPrestigesTextList(this);
+        }
+    }
 
-	public BukkitTask doSync(Runnable runnable) {
-		return SCHEDULER.runTask(this, runnable);
-	}
+    public void prepareRebirths() {
+        if (globalSettings.isRebirthEnabled()) {
+            RebirthStorage.loadRebirths();
+            rebirthSettings = new RebirthSettings();
+            rebirthsListSettings = new RebirthsListSettings();
+            rebirthExecutor = new PrimaryRebirthExecutor(this);
+            if (RebirthCommand.isEnabled()) {
+                rebirthCommand = new RebirthCommand(this);
+                rebirthCommand.register();
+            }
+            if (AutoRebirthCommand.isEnabled()) {
+                // autoRebirthCommand = new AutoRebirthCommand(this);
+                // autoRebirthCommand.register();
+            }
+            if (RebirthsCommand.isEnabled()) {
+                rebirthsCommand = new RebirthsCommand(this);
+                rebirthsCommand.register();
+            }
+            if (globalSettings.isGuiRebirthList())
+                rebirthsGUIList = new RebirthsGUIList(this);
+            else
+                rebirthsTextList = new RebirthsTextList(this);
+        }
+    }
 
-	public static BukkitTask sync(Runnable runnable) {
-		return SCHEDULER.runTask(instance, runnable);
-	}
+    public void registerListeners() {
+        playerLoginListener = PlayerLoginListener.register(this, globalSettings.getLoginEventHandlingPriority());
+        playerJoinListener = PlayerJoinListener.register(this, globalSettings.getLoginEventHandlingPriority());
+        playerQuitListener = PlayerQuitListener.register(this, globalSettings.getLoginEventHandlingPriority());
+        if (globalSettings.isFormatChat())
+            playerChatListener = PlayerChatListener.register(this, globalSettings.getChatEventHandlingPriority());
+    }
 
-	public BukkitTask doSyncRepeating(Runnable runnable, int delay, int speed) {
-		return SCHEDULER.runTaskTimer(this, runnable, delay, speed);
-	}
+    public static void log(String message) {
+        CONSOLE.sendMessage(PREFIX + " §a" + message);
+    }
 
-	public BukkitTask doAsync(Runnable runnable) {
-		return SCHEDULER.runTaskAsynchronously(this, runnable);
-	}
+    public static void logNeutral(String message) {
+        CONSOLE.sendMessage(PREFIX + " §7" + message);
+    }
 
-	public static BukkitTask async(Runnable runnable) {
-		return SCHEDULER.runTaskAsynchronously(instance, runnable);
-	}
+    public static void logWarning(String message) {
+        CONSOLE.sendMessage(PREFIX + " §e[!] " + StringManager.parseColors(message));
+    }
 
-	public BukkitTask doAsyncRepeating(Runnable runnable, int delay, int speed) {
-		return SCHEDULER.runTaskTimerAsynchronously(this, runnable, delay, speed);
-	}
+    public static void logSevere(String message) {
+        CONSOLE.sendMessage(PREFIX + " §4[!] §c" + StringManager.parseColors(message));
+        for (OfflinePlayer offlinePlayer : Bukkit.getOperators()) {
+            if (offlinePlayer.isOnline())
+                offlinePlayer.getPlayer().sendMessage(StringManager.parseColors(PREFIX + " §4[!] §c" + message));
+        }
+    }
 
-	public BukkitTask doAsyncLater(Runnable runnable, int delay) {
-		return SCHEDULER.runTaskLaterAsynchronously(this, runnable, delay);
-	}
+    public BukkitTask doSyncLater(Runnable runnable, int delay) {
+        return SCHEDULER.runTaskLater(this, runnable, delay);
+    }
 
-	public GlobalSettings getGlobalSettings() {
-		return globalSettings;
-	}
+    public BukkitTask doSync(Runnable runnable) {
+        return SCHEDULER.runTask(this, runnable);
+    }
 
-	public static PrisonRanksX getInstance() {
-		return instance;
-	}
+    public static BukkitTask sync(Runnable runnable) {
+        return SCHEDULER.runTask(instance, runnable);
+    }
 
-	public UserController getUserController() {
-		return userController;
-	}
+    public BukkitTask doSyncRepeating(Runnable runnable, int delay, int speed) {
+        return SCHEDULER.runTaskTimer(this, runnable, delay, speed);
+    }
 
-	public void setUserController(UserController userController) {
-		this.userController = userController;
-	}
+    public BukkitTask doAsync(Runnable runnable) {
+        return SCHEDULER.runTaskAsynchronously(this, runnable);
+    }
 
-	private UserControllerType getDataStorageType() {
-		String dataStorageType = globalSettings.getDataStorageType().toUpperCase();
-		return dataStorageType.equals("YAML") ? UserControllerType.YAML
-				: dataStorageType.equals("YAML_PER_USER") ? UserControllerType.YAML_PER_USER
-				: dataStorageType.equals("MYSQL") ? UserControllerType.MYSQL : UserControllerType.YAML;
-	}
+    public static BukkitTask async(Runnable runnable) {
+        return SCHEDULER.runTaskAsynchronously(instance, runnable);
+    }
 
-	public PlaceholderAPISettings getPlaceholderAPISettings() {
-		return placeholderAPISettings;
-	}
+    public BukkitTask doAsyncRepeating(Runnable runnable, int delay, int speed) {
+        return SCHEDULER.runTaskTimerAsynchronously(this, runnable, delay, speed);
+    }
 
-	public RankupExecutor getRankupExecutor() {
-		return rankupExecutor;
-	}
+    public BukkitTask doAsyncLater(Runnable runnable, int delay) {
+        return SCHEDULER.runTaskLaterAsynchronously(this, runnable, delay);
+    }
 
-	public PrestigeExecutor getPrestigeExecutor() {
-		return prestigeExecutor;
-	}
+    public static BukkitTask task(boolean async, Runnable runnable) {
+        return async ? async(runnable) : sync(runnable);
+    }
 
-	public RankSettings getRankSettings() {
-		return rankSettings;
-	}
+    public BukkitTask doTask(boolean async, Runnable runnable) {
+        return async ? doAsync(runnable) : doSync(runnable);
+    }
 
-	public PrestigeSettings getPrestigeSettings() {
-		return prestigeSettings;
-	}
+    public GlobalSettings getGlobalSettings() {
+        return globalSettings;
+    }
 
-	public RebirthSettings getRebirthSettings() {
-		return rebirthSettings;
-	}
+    public static PrisonRanksX getInstance() {
+        return instance;
+    }
 
-	private TaskChainFactory taskChainFactory;
+    public UserController getUserController() {
+        return userController;
+    }
 
-	public <T> TaskChain<T> newChain() {
-		return taskChainFactory.newChain();
-	}
+    public void setUserController(UserController userController) {
+        this.userController = userController;
+    }
 
-	public <T> TaskChain<T> newSharedChain(String name) {
-		return taskChainFactory.newSharedChain(name);
-	}
+    private UserControllerType getDataStorageType() {
+        return UserControllerType.matchType(globalSettings.getDataStorageType());
+    }
 
-	public PlayerGroupUpdater getPlayerGroupUpdater() {
-		return playerGroupUpdater;
-	}
+    public PlaceholderAPISettings getPlaceholderAPISettings() {
+        return placeholderAPISettings;
+    }
 
-	public IHologramManager getHologramManager() {
-		return hologramManager;
-	}
+    public RankupExecutor getRankupExecutor() {
+        return rankupExecutor;
+    }
 
-	public HologramSettings getHologramSettings() {
-		return hologramSettings;
-	}
+    public PrestigeExecutor getPrestigeExecutor() {
+        return prestigeExecutor;
+    }
 
-	public RanksListSettings getRanksListSettings() {
-		return ranksListSettings;
-	}
+    public RebirthExecutor getRebirthExecutor() {
+        return rebirthExecutor;
+    }
 
-	public PrestigesListSettings getPrestigesListSettings() {
-		return prestigesListSettings;
-	}
+    public RankSettings getRankSettings() {
+        return rankSettings;
+    }
 
-	public AdminExecutor getAdminExecutor() {
-		return adminExecutor;
-	}
+    public PrestigeSettings getPrestigeSettings() {
+        return prestigeSettings;
+    }
 
-	public RanksTextList getRanksTextList() {
-		return ranksTextList;
-	}
+    public RebirthSettings getRebirthSettings() {
+        return rebirthSettings;
+    }
 
-	public RanksGUIList getRanksGUIList() {
-		return ranksGUIList;
-	}
+    private TaskChainFactory taskChainFactory;
 
-	public PrestigesGUIList getPrestigesGUIList() {
-		return prestigesGUIList;
-	}
+    public <T> TaskChain<T> newChain() {
+        return taskChainFactory.newChain();
+    }
 
-	public PrestigesTextList getPrestigesTextList() {
-		return prestigesTextList;
-	}
+    public <T> TaskChain<T> newSharedChain(String name) {
+        return taskChainFactory.newSharedChain(name);
+    }
 
-	public void initRanksGUIList() {
-		ranksGUIList = new RanksGUIList(this);
-	}
+    public PlayerGroupUpdater getPlayerGroupUpdater() {
+        return playerGroupUpdater;
+    }
 
-	public void initGlobalSettings() {
-		globalSettings = new GlobalSettings();
-	}
+    public HologramSettings getHologramSettings() {
+        return hologramSettings;
+    }
+
+    public RanksListSettings getRanksListSettings() {
+        return ranksListSettings;
+    }
+
+    public PrestigesListSettings getPrestigesListSettings() {
+        return prestigesListSettings;
+    }
+
+    public RebirthsListSettings getRebirthsListSettings() {
+        return rebirthsListSettings;
+    }
+
+    public AdminExecutor getAdminExecutor() {
+        return adminExecutor;
+    }
+
+    public RanksTextList getRanksTextList() {
+        return ranksTextList;
+    }
+
+    public RanksGUIList getRanksGUIList() {
+        return ranksGUIList;
+    }
+
+    public PrestigesGUIList getPrestigesGUIList() {
+        return prestigesGUIList;
+    }
+
+    public PrestigesTextList getPrestigesTextList() {
+        return prestigesTextList;
+    }
+
+    public RebirthsGUIList getRebirthsGUIList() {
+        return rebirthsGUIList;
+    }
+
+    public RebirthsTextList getRebirthsTextList() {
+        return rebirthsTextList;
+    }
+
+    public void initRanksGUIList() {
+        ranksGUIList = new RanksGUIList(this);
+    }
+
+    public void initGlobalSettings() {
+        globalSettings = new GlobalSettings();
+    }
+
+    public boolean isRankEnabled() {
+        return globalSettings.isRankEnabled();
+    }
+
+    public boolean isPrestigeEnabled() {
+        return globalSettings.isPrestigeEnabled();
+    }
+
+    public boolean isRebirthEnabled() {
+        return globalSettings.isRebirthEnabled();
+    }
 
 }

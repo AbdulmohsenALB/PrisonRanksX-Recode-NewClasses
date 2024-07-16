@@ -8,9 +8,6 @@ import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.plugin.EventExecutor;
 
 import me.prisonranksx.PrisonRanksX;
-import me.prisonranksx.data.PrestigeStorage;
-import me.prisonranksx.data.RankStorage;
-import me.prisonranksx.data.RebirthStorage;
 import me.prisonranksx.holders.User;
 import me.prisonranksx.managers.StringManager;
 import me.prisonranksx.reflections.UniqueId;
@@ -52,14 +49,14 @@ public class PlayerChatListener implements EventExecutor, Listener {
 		User user = plugin.getUserController().getUser(uniqueId);
 
 		String playerRank = user.getRankName() != null && plugin.getGlobalSettings().isRankEnabled()
-				? RankStorage.getRank(user.getRankName(), user.getPathName()).getDisplayName() + colorReset : empty;
+				? user.hasRank() ? user.getRank().getDisplayName() + colorReset : empty : empty;
 
 		String playerPrestige = user.getPrestigeName() != null && plugin.getGlobalSettings().isPrestigeEnabled()
-				? PrestigeStorage.getPrestige(user.getPrestigeName()).getDisplayName() + colorReset + space
+				? user.getPrestige().getDisplayName() + colorReset + space
 				: plugin.getGlobalSettings().getNoPrestigeDisplay();
 
 		String playerRebirth = user.getRebirthName() != null && plugin.getGlobalSettings().isRebirthEnabled()
-				? RebirthStorage.getRebirth(user.getRebirthName()).getDisplayName() + colorReset + space
+				? user.getRebirth().getDisplayName() + colorReset + space
 				: plugin.getGlobalSettings().getNoRebirthDisplay();
 
 		String additionalFormat = getAdditionalFormat(playerRank, playerPrestige, playerRebirth);

@@ -1,12 +1,6 @@
 package me.prisonranksx.utils;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -17,30 +11,12 @@ import com.google.common.collect.Sets;
 
 public class CollectionUtils {
 
-	private static boolean isNearPointer(final int number, final int divideBy) {
-		double converted = ((double) number / (double) divideBy);
-		String stringDecimal = String.valueOf(converted);
-		int pointIndex = stringDecimal.indexOf('.');
-		int startIndex = ++pointIndex;
-		String decimalValue = stringDecimal.substring(startIndex, stringDecimal.length());
-		int decimalFirst = Integer.parseInt(String.valueOf(decimalValue.charAt(0)));
-		switch (decimalFirst) {
-			case 0:
-				return decimalValue.length() > 1 ? false : true;
-			default:
-				return true;
+	public static long getFinalPage(final long totalEntries, final long entryPerPage) {
+		if (totalEntries <= 0 || entryPerPage <= 0) {
+			throw new IllegalArgumentException("Total entries and entries per page must be positive.");
 		}
-	}
 
-	/**
-	 * 
-	 * @param a collection size
-	 * @param b elements per page
-	 * @return %100 accurate final page number
-	 */
-	private static int fixPages(final int a, final int b) {
-		int mathConverted = (int) Math.ceil((double) a / (double) b);
-		return isNearPointer(a, b) ? mathConverted : mathConverted - 1;
+		return (long) Math.ceil((double) totalEntries / entryPerPage);
 	}
 
 	/**
@@ -85,13 +61,9 @@ public class CollectionUtils {
 		return sbSource.toString();
 	}
 
-	public static int getAccurateFinalPage(final int elementsCount, final int elementsPerPage) {
-		return fixPages(elementsCount, elementsPerPage);
-	}
-
 	/**
 	 * <i>
-	 * 
+	 *
 	 * @param index        the index from the loop that starts with 0 and ends with
 	 *                     the size.
 	 * @param entryPerPage How many elements in a page.
@@ -99,7 +71,31 @@ public class CollectionUtils {
 	 * @return Correct position of the meant index in a paginated list.
 	 */
 	public static int paginateIndex(final int index, final int entryPerPage, final int page) {
-		return page > 1 ? index + (entryPerPage * (page - 1)) : index;
+		if (entryPerPage <= 0 || page <= 0) {
+			throw new IllegalArgumentException("Entry per page and page number must be positive.");
+		}
+
+		int totalEntries = entryPerPage * page;
+		int lastPageEntryCount = totalEntries % entryPerPage;
+
+		if (lastPageEntryCount == 0) {
+			lastPageEntryCount = entryPerPage;
+		}
+
+		int totalPages = (int) Math.ceil((double) totalEntries / entryPerPage);
+
+		if (page > totalPages) {
+			throw new IllegalArgumentException("Page number exceeds the total number of pages.");
+		}
+
+		int currentPageEntryCount = (page == totalPages) ? lastPageEntryCount : entryPerPage;
+		int offset = (page - 1) * entryPerPage;
+
+		if (index < 0 || index >= currentPageEntryCount) {
+			throw new IllegalArgumentException("Index is out of bounds for the given page.");
+		}
+
+		return index + offset;
 	}
 
 	public static class PaginatedList {
@@ -809,7 +805,8 @@ public class CollectionUtils {
 			newCollection.add(oldCollection.get(elementIndex));
 			counter++;
 		}
-		return new PaginatedList(newCollection, page, fixPages(size, maxElements), oldCollection, maxElements);
+		return new PaginatedList(newCollection, page, (int) getFinalPage(size, maxElements), oldCollection,
+				maxElements);
 	}
 
 	/**
@@ -845,7 +842,7 @@ public class CollectionUtils {
 			newCollection.add(oldCollection[elementIndex]);
 			counter++;
 		}
-		return new PaginatedCollection(newCollection, page, fixPages(size, maxElements));
+		return new PaginatedCollection(newCollection, page, (int) getFinalPage(size, maxElements));
 	}
 
 	/**
@@ -882,7 +879,7 @@ public class CollectionUtils {
 			newCollection.add(oldCollection[elementIndex]);
 			counter++;
 		}
-		return new PaginatedCollection(newCollection, page, fixPages(size, maxElements));
+		return new PaginatedCollection(newCollection, page, (int) getFinalPage(size, maxElements));
 	}
 
 	public static List<String> stringToList(String string, String seperator) {

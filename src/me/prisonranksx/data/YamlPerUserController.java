@@ -104,7 +104,7 @@ public class YamlPerUserController implements UserController {
 				String pathName = Optional.ofNullable(userConfig.getString("path"))
 						.orElse(RankStorage.getDefaultPath());
 				String rankName = Optional.ofNullable(userConfig.getString("rank"))
-						.orElse(RankStorage.getFirstRank(pathName));
+						.orElse(RankStorage.getFirstRankName(pathName));
 				user.setRankAndPathName(rankName, pathName);
 			}
 			if (plugin.getGlobalSettings().isPrestigeEnabled()) user.setPrestigeName(userConfig.getString("prestige"));

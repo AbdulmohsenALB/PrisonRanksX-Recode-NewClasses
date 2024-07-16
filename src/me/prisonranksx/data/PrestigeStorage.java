@@ -13,8 +13,8 @@ import me.prisonranksx.holders.UniversalPrestige;
 import me.prisonranksx.managers.ConfigManager;
 import me.prisonranksx.managers.StringManager;
 import me.prisonranksx.utils.HashedLongRange;
-import me.prisonranksx.utils.IntParser;
 import me.prisonranksx.utils.ModuloLongRange;
+import me.prisonranksx.utils.NumParser;
 
 public class PrestigeStorage {
 
@@ -365,6 +365,7 @@ public class PrestigeStorage {
 
 		@Override
 		public Prestige getPrestige(String name) {
+			if (name == null) return null;
 			return prestiges.get(name);
 		}
 
@@ -409,7 +410,7 @@ public class PrestigeStorage {
 			if (prestige != null) return prestige.getName();
 			String altName = alternativeNames.get(name.toLowerCase());
 			if (altName != null) return altName;
-			int intName = IntParser.asInt(name, -1);
+			int intName = NumParser.asInt(name, -1);
 			if (intName == -1) return null;
 			return prestigeNames.get(intName + 1);
 		}
@@ -505,7 +506,7 @@ public class PrestigeStorage {
 			for (String prestigeName : constantSection.getKeys(false)) {
 				long maxRange = ConfigManager.getLongOrElse(constantSection.getConfigurationSection(prestigeName),
 						StorageFields.NEXT_FIELDS);
-				long minRange = IntParser.readLong(prestigeName);
+				long minRange = NumParser.readLong(prestigeName);
 				String display = StringManager.parseColorsAndSymbols(
 						ConfigManager.getOrElse(constantSection.getConfigurationSection(prestigeName), String.class,
 								StorageFields.DISPLAY_FIELDS));
@@ -539,6 +540,18 @@ public class PrestigeStorage {
 			costExpression = globalSection.getString("cost-expression");
 		}
 
+		public Prestige getUniversalPrestige() {
+			return universalPrestige;
+		}
+
+		public Set<HashedLongRange> getRegisteredLongRanges() {
+			return constantSettings.keySet();
+		}
+
+		public Collection<String> getRangedDisplays() {
+			return constantSettings.values();
+		}
+
 		@Override
 		public boolean prestigeExists(String name) {
 			return prestigeExists(Long.parseLong(name));
@@ -551,6 +564,7 @@ public class PrestigeStorage {
 
 		@Override
 		public Prestige getPrestige(String name) {
+			if (name == null) return null;
 			Prestige regPrestige = prestiges.get(Long.parseLong(name));
 			if (regPrestige == null) {
 				regPrestige = universalPrestige;
@@ -596,7 +610,7 @@ public class PrestigeStorage {
 
 		@Override
 		public String matchPrestigeName(String name) {
-			return prestigeExists(name) ? String.valueOf(IntParser.readLong(name)) : null;
+			return prestigeExists(name) ? String.valueOf(NumParser.readLong(name)) : null;
 		}
 
 		@Override

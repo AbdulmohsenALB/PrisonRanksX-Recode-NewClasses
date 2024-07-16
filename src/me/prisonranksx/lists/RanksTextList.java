@@ -18,6 +18,7 @@ import me.prisonranksx.reflections.UniqueId;
 import me.prisonranksx.settings.Messages;
 import me.prisonranksx.utils.CollectionUtils;
 import me.prisonranksx.utils.CollectionUtils.PaginatedList;
+import me.prisonranksx.utils.NumParser;
 
 public class RanksTextList {
 
@@ -88,6 +89,7 @@ public class RanksTextList {
 		String pathName = user.getPathName();
 		String rankName = user.getRankName();
 		List<String> ranksCollection = new ArrayList<>(RankStorage.getPathRankNames(pathName));
+
 		// Header Setup
 		List<String> header = new ArrayList<>(rankListFormatHeader);
 
@@ -106,6 +108,8 @@ public class RanksTextList {
 							.replace("%nextrank_name%", rank.getNextName())
 							.replace("%nextrank_displayname%", nextRank.getDisplayName())
 							.replace("%nextrank_cost%", String.valueOf(PRXAPI.getRankFinalCost(nextRank, p)))
+							.replace("%nextrank_cost_us_format%",
+									EconomyManager.commaFormatWithDecimals(PRXAPI.getRankFinalCost(nextRank, p)))
 							.replace("%nextrank_cost_formatted%",
 									EconomyManager.shortcutFormat(PRXAPI.getRankFinalCost(nextRank, p))),
 							p);
@@ -122,6 +126,8 @@ public class RanksTextList {
 							.replace("%nextrank_name%", rank.getNextName())
 							.replace("%nextrank_displayname%", nextRank.getDisplayName())
 							.replace("%nextrank_cost%", String.valueOf(PRXAPI.getRankFinalCost(nextRank, p)))
+							.replace("%nextrank_cost_us_format%",
+									EconomyManager.commaFormatWithDecimals(PRXAPI.getRankFinalCost(nextRank, p)))
 							.replace("%nextrank_cost_formatted%",
 									EconomyManager.shortcutFormat(PRXAPI.getRankFinalCost(nextRank, p))),
 							p);
@@ -137,6 +143,8 @@ public class RanksTextList {
 							.replace("%nextrank_name%", rank.getNextName())
 							.replace("%nextrank_displayname%", nextRank.getDisplayName())
 							.replace("%nextrank_cost%", String.valueOf(PRXAPI.getRankFinalCost(nextRank, p)))
+							.replace("%nextrank_cost_us_format%",
+									EconomyManager.commaFormatWithDecimals(PRXAPI.getRankFinalCost(nextRank, p)))
 							.replace("%nextrank_cost_formatted%",
 									EconomyManager.shortcutFormat(PRXAPI.getRankFinalCost(nextRank, p))),
 							p);
@@ -157,8 +165,8 @@ public class RanksTextList {
 
 	public void sendPagedList(CommandSender sender, String pageNumber) {
 		if (isCustomList) {
-			List<String> customList = CollectionUtils.paginateList(rankWithPagesListFormat, rankPerPage,
-					Integer.parseInt(pageNumber));
+			List<String> customList = CollectionUtils.paginateList(rankWithPagesListFormat, rankPerPage, NumParser
+					.asInt(pageNumber, s -> Messages.sendMessage(sender, Messages.getRankListInvalidPage()), 1));
 			if (sender instanceof Player) customList = StringManager.parsePlaceholders(customList, (Player) sender);
 			customList.forEach(sender::sendMessage);
 			return;
@@ -169,7 +177,7 @@ public class RanksTextList {
 		String rankName = user.getRankName();
 		List<String> ranksCollection = new ArrayList<>(RankStorage.getPathRankNames(pathName));
 		PaginatedList paginatedList = CollectionUtils.paginateListCollectable(ranksCollection, rankPerPage,
-				Integer.parseInt(pageNumber));
+				NumParser.asInt(pageNumber, s -> Messages.sendMessage(sender, Messages.getRankListInvalidPage()), 1));
 		int currentPage = paginatedList.getCurrentPage();
 		int finalPage = paginatedList.getFinalPage();
 		if (currentPage > finalPage) {
@@ -198,6 +206,8 @@ public class RanksTextList {
 							.replace("%nextrank_name%", rank.getNextName())
 							.replace("%nextrank_displayname%", nextRank.getDisplayName())
 							.replace("%nextrank_cost%", String.valueOf(PRXAPI.getRankFinalCost(nextRank, p)))
+							.replace("%nextrank_cost_us_format%",
+									EconomyManager.commaFormatWithDecimals(PRXAPI.getRankFinalCost(nextRank, p)))
 							.replace("%nextrank_cost_formatted%",
 									EconomyManager.shortcutFormat(PRXAPI.getRankFinalCost(nextRank, p))),
 							p);
@@ -214,6 +224,8 @@ public class RanksTextList {
 							.replace("%nextrank_name%", rank.getNextName())
 							.replace("%nextrank_displayname%", nextRank.getDisplayName())
 							.replace("%nextrank_cost%", String.valueOf(PRXAPI.getRankFinalCost(nextRank, p)))
+							.replace("%nextrank_cost_us_format%",
+									EconomyManager.commaFormatWithDecimals(PRXAPI.getRankFinalCost(nextRank, p)))
 							.replace("%nextrank_cost_formatted%",
 									EconomyManager.shortcutFormat(PRXAPI.getRankFinalCost(nextRank, p))),
 							p);
@@ -229,6 +241,8 @@ public class RanksTextList {
 							.replace("%nextrank_name%", rank.getNextName())
 							.replace("%nextrank_displayname%", nextRank.getDisplayName())
 							.replace("%nextrank_cost%", String.valueOf(PRXAPI.getRankFinalCost(nextRank, p)))
+							.replace("%nextrank_cost_us_format%",
+									EconomyManager.commaFormatWithDecimals(PRXAPI.getRankFinalCost(nextRank, p)))
 							.replace("%nextrank_cost_formatted%",
 									EconomyManager.shortcutFormat(PRXAPI.getRankFinalCost(nextRank, p))),
 							p);

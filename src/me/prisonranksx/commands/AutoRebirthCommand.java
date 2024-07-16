@@ -11,20 +11,20 @@ import com.google.common.collect.Sets;
 import me.prisonranksx.PrisonRanksX;
 import me.prisonranksx.settings.Messages;
 
-public class AutoPrestigeCommand extends PluginCommand {
+public class AutoRebirthCommand extends PluginCommand {
 
 	private PrisonRanksX plugin;
 	private final Set<String> enableSubCommands = Sets.newHashSet("enable", "on", "true", "yes");
 	private final Set<String> disableSubCommands = Sets.newHashSet("disable", "off", "false", "no");
 
 	public static boolean isEnabled() {
-		return CommandSetting.getSetting("autoprestige", "enable");
+		return CommandSetting.getBooleanSetting("autorebirth", "enable");
 	}
 
-	public AutoPrestigeCommand(PrisonRanksX plugin) {
-		super(CommandSetting.getStringSetting("autoprestige", "name", "autoprestige"));
+	public AutoRebirthCommand(PrisonRanksX plugin) {
+		super(CommandSetting.getStringSetting("autorebirth", "name", "autorebirth"));
 		this.plugin = plugin;
-		setLabel(getCommandSection().getString("label", "autoprestige"));
+		setLabel(getCommandSection().getString("label", "autorebirth"));
 		setDescription(getCommandSection().getString("description"));
 		setUsage(getCommandSection().getString("usage"));
 		setPermission(getCommandSection().getString("permission"));
@@ -42,9 +42,8 @@ public class AutoPrestigeCommand extends PluginCommand {
 			}
 			Player p = (Player) sender;
 			if (plugin.getGlobalSettings().isWorldIncluded(p.getWorld())) return true;
-			boolean state = plugin.getPrestigeExecutor().toggleAutoPrestige(p);
-			Messages.sendMessage(sender,
-					state ? Messages.getAutoPrestigeEnabled() : Messages.getAutoPrestigeDisabled());
+			boolean state = plugin.getRebirthExecutor().toggleAutoRebirth(p);
+			Messages.sendMessage(sender, state ? Messages.getAutoRebirthEnabled() : Messages.getAutoRebirthDisabled());
 		} else if (args.length == 1) {
 			if (enableSubCommands.contains(args[0].toLowerCase())) {
 				if (!(sender instanceof Player)) {
@@ -52,8 +51,8 @@ public class AutoPrestigeCommand extends PluginCommand {
 					return true;
 				}
 				Player p = (Player) sender;
-				plugin.getPrestigeExecutor().toggleAutoPrestige(p, true);
-				Messages.sendMessage(sender, Messages.getAutoPrestigeEnabled());
+				plugin.getRebirthExecutor().toggleAutoRebirth(p, true);
+				Messages.sendMessage(sender, Messages.getAutoRebirthEnabled());
 				return true;
 			} else if (disableSubCommands.contains(args[0].toLowerCase())) {
 				if (!(sender instanceof Player)) {
@@ -61,8 +60,8 @@ public class AutoPrestigeCommand extends PluginCommand {
 					return true;
 				}
 				Player p = (Player) sender;
-				plugin.getPrestigeExecutor().toggleAutoPrestige(p, false);
-				Messages.sendMessage(sender, Messages.getAutoPrestigeDisabled());
+				plugin.getRebirthExecutor().toggleAutoRebirth(p, false);
+				Messages.sendMessage(sender, Messages.getAutoRebirthDisabled());
 				return true;
 			}
 			Player target = Bukkit.getPlayer(args[0]);
@@ -70,11 +69,6 @@ public class AutoPrestigeCommand extends PluginCommand {
 				Messages.sendMessage(sender, Messages.getUnknownPlayer(), s -> s.replace("%player%", args[0]));
 				return true;
 			}
-			boolean state = plugin.getPrestigeExecutor().toggleAutoPrestige(target);
-			Messages.sendMessage(target,
-					state ? Messages.getAutoPrestigeEnabled() : Messages.getAutoPrestigeDisabled());
-		} else if (args.length == 2) {
-
 		}
 		return true;
 	}

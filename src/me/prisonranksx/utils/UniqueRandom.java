@@ -23,7 +23,7 @@ public class UniqueRandom {
 	private int limit;
 	private LinkedList<Integer> uniqueList;
 
-	public static final synchronized UniqueRandom global() {
+	public static synchronized UniqueRandom global() {
 		return GLOBAL;
 	}
 

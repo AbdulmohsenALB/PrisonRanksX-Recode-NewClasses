@@ -9,6 +9,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
+import me.hsgamer.unihologram.common.line.TextHologramLine;
 import me.prisonranksx.PrisonRanksX;
 import me.prisonranksx.bukkitutils.bukkittickbalancer.BukkitTickBalancer;
 import me.prisonranksx.bukkitutils.bukkittickbalancer.ConcurrentTask;
@@ -20,7 +21,6 @@ import me.prisonranksx.data.RankStorage;
 import me.prisonranksx.data.UserController;
 import me.prisonranksx.events.*;
 import me.prisonranksx.holders.*;
-import me.prisonranksx.hooks.IHologram;
 import me.prisonranksx.managers.EconomyManager;
 import me.prisonranksx.managers.HologramManager;
 import me.prisonranksx.managers.StringManager;
@@ -80,7 +80,7 @@ public class PrimaryPrestigeExecutor implements PrestigeExecutor {
 				if (plugin.getGlobalSettings().isRankEnabled() && plugin.getPrestigeSettings().isResetRank()) {
 					plugin.getAdminExecutor()
 							.setPlayerRank(uniqueId,
-									RankStorage.getFirstRank(controlUsers().getUser(uniqueId).getPathName()));
+									RankStorage.getFirstRankName(controlUsers().getUser(uniqueId).getPathName()));
 					updateGroup(player);
 					if (plugin.getGlobalSettings().isRankupMaxWithPrestige()) {
 						plugin.getRankupExecutor().maxRankup(player);
@@ -278,7 +278,7 @@ public class PrimaryPrestigeExecutor implements PrestigeExecutor {
 				spawnHologram(prestigeResult.getPrestigeResult(), player, true);
 				if (plugin.getGlobalSettings().isRankEnabled() && plugin.getPrestigeSettings().isResetRank()) {
 					plugin.getAdminExecutor()
-							.setPlayerRank(user.getUniqueId(), RankStorage.getFirstRank(user.getPathName()));
+							.setPlayerRank(user.getUniqueId(), RankStorage.getFirstRankName(user.getPathName()));
 					updateGroup(player);
 				}
 				if (plugin.getPrestigeSettings().isResetMoney()) {
@@ -311,7 +311,7 @@ public class PrimaryPrestigeExecutor implements PrestigeExecutor {
 				spawnHologram(prestigeResult.getPrestigeResult(), player, true);
 				if (plugin.getGlobalSettings().isRankEnabled() && plugin.getPrestigeSettings().isResetRank()) {
 					plugin.getAdminExecutor()
-							.setPlayerRank(user.getUniqueId(), RankStorage.getFirstRank(user.getPathName()));
+							.setPlayerRank(user.getUniqueId(), RankStorage.getFirstRankName(user.getPathName()));
 					updateGroup(player);
 				}
 				if (plugin.getPrestigeSettings().isResetMoney()) {
@@ -459,16 +459,25 @@ public class PrimaryPrestigeExecutor implements PrestigeExecutor {
 	public void spawnHologram(Level prestige, Player player, boolean async) {
 		if (!plugin.getGlobalSettings().isHologramsPlugin() || !plugin.getHologramSettings().isPrestigeEnabled())
 			return;
-		IHologram hologram = HologramManager.createHologram(
-				"prx_" + player.getName() + prestige.getName() + UniqueRandom.global().generate(async),
-				player.getLocation().add(0, hologramHeight, 0), async);
-		plugin.getHologramSettings()
-				.getPrestigeFormat()
-				.forEach(line -> hologram
-						.addLine(StringManager.parsePlaceholders(line.replace("%player%", player.getName())
-								.replace("%nextprestige%", prestige.getName())
-								.replace("%nextprestige_display%", prestige.getDisplayName()), player), async));
-		hologram.delete(hologramDelay);
+		plugin.doSyncLater(() -> {
+			HologramManager
+					.createHologram(
+							"prxprstg_" + player.getName() + "_" + prestige.getName() + "_"
+									+ UniqueRandom.global().generate(async),
+							player.getLocation().add(0, hologramHeight, 0))
+					.thenAccept(hologram -> {
+						plugin.doTask(async, () -> {
+							plugin.getHologramSettings().getPrestigeFormat().forEach(line -> {
+								hologram.addLine(new TextHologramLine(StringManager.parsePlaceholders(
+										line.replace("%player%", player.getName())
+												.replace("%nextprestige%", prestige.getName())
+												.replace("%nextprestige_display%", prestige.getDisplayName()),
+										player)));
+							});
+							plugin.doSyncLater(hologram::clear, hologramDelay);
+						});
+					});
+		}, 1);
 	}
 
 	@Override

@@ -5,10 +5,6 @@ import org.bukkit.entity.Player;
 
 import net.md_5.bungee.api.chat.TextComponent;
 
-/**
- * Stupid class for sending messages with only one variable to replace using
- * TextComponents for crazy performance gain.
- */
 public class SingleReplacementMessage {
 
 	private String message;

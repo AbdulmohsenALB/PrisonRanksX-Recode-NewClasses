@@ -10,12 +10,14 @@ import org.jetbrains.annotations.Nullable;
 import me.prisonranksx.PrisonRanksX;
 import me.prisonranksx.data.PrestigeStorage;
 import me.prisonranksx.holders.Prestige;
+import me.prisonranksx.holders.UniversalPrestige;
 import me.prisonranksx.holders.User;
 import me.prisonranksx.managers.EconomyManager;
 import me.prisonranksx.managers.StringManager;
 import me.prisonranksx.reflections.UniqueId;
 import me.prisonranksx.settings.Messages;
 import me.prisonranksx.utils.CollectionUtils;
+import me.prisonranksx.utils.NumParser;
 
 public class InfinitePrestigesTextList implements PrestigesTextList {
 
@@ -128,6 +130,8 @@ public class InfinitePrestigesTextList implements PrestigesTextList {
 									.replace("%nextprestige_name%", prestige.getNextName())
 									.replace("%nextprestige_displayname%", nextPrestige.getDisplayName())
 									.replace("%nextprestige_cost%", String.valueOf(nextPrestige.getCost()))
+									.replace("%nextprestige_cost_us_format%",
+											EconomyManager.commaFormatWithDecimals(nextPrestige.getCost()))
 									.replace("%nextprestige_cost_formatted%",
 											EconomyManager.shortcutFormat(nextPrestige.getCost())),
 									p);
@@ -145,6 +149,8 @@ public class InfinitePrestigesTextList implements PrestigesTextList {
 									.replace("%nextprestige_name%", prestige.getNextName())
 									.replace("%nextprestige_displayname%", nextPrestige.getDisplayName())
 									.replace("%nextprestige_cost%", String.valueOf(nextPrestige.getCost()))
+									.replace("%nextprestige_cost_us_format%",
+											EconomyManager.commaFormatWithDecimals(nextPrestige.getCost()))
 									.replace("%nextprestige_cost_formatted%",
 											EconomyManager.shortcutFormat(nextPrestige.getCost())),
 									p);
@@ -161,6 +167,8 @@ public class InfinitePrestigesTextList implements PrestigesTextList {
 									.replace("%nextprestige_name%", prestige.getNextName())
 									.replace("%nextprestige_displayname%", nextPrestige.getDisplayName())
 									.replace("%nextprestige_cost%", String.valueOf(nextPrestige.getCost()))
+									.replace("%nextprestige_cost_us_format%",
+											EconomyManager.commaFormatWithDecimals(nextPrestige.getCost()))
 									.replace("%nextprestige_cost_formatted%",
 											EconomyManager.shortcutFormat(nextPrestige.getCost())),
 									p);
@@ -179,11 +187,16 @@ public class InfinitePrestigesTextList implements PrestigesTextList {
 		footer.forEach(sender::sendMessage);
 	}
 
+	public long getPageWherePrestigeIsFound(long prestigeNum) {
+		if (prestigeNum > 0) return (long) (Math.floor(prestigeNum - 1) / prestigePerPage) + 1;
+		return 1;
+	}
+
 	@Override
 	public void sendPagedList(CommandSender sender, String pageNumber) {
 		if (isCustomList) {
 			List<String> customList = CollectionUtils.paginateList(prestigeWithPagesListFormat, prestigePerPage,
-					Integer.parseInt(pageNumber));
+					NumParser.asInt(pageNumber, 1));
 			if (sender instanceof Player) customList = StringManager.parsePlaceholders(customList, (Player) sender);
 			customList.forEach(sender::sendMessage);
 			return;
@@ -192,8 +205,11 @@ public class InfinitePrestigesTextList implements PrestigesTextList {
 		int counter = 0;
 		User user = plugin.getUserController().getUser(UniqueId.getUUID(p));
 		long size = PrestigeStorage.getLastPrestigeAsNumber();
-		int finalPage = CollectionUtils.getAccurateFinalPage((int) size, prestigePerPage) - 1;
-		int currentPage = Integer.parseInt(pageNumber);
+		long finalPage = CollectionUtils.getFinalPage(size - 1, prestigePerPage);
+		boolean findCurrentPage = pageNumber.equals("-1") || pageNumber.equals("0");
+		long currentPage = findCurrentPage ? getPageWherePrestigeIsFound(user.getPrestige().getNumber())
+				: NumParser.asLong(pageNumber, 1);
+		if (findCurrentPage) pageNumber = String.valueOf(currentPage);
 		if (currentPage > finalPage) {
 			Messages.sendMessage(p, Messages.getPrestigeListLastPageReached(),
 					s -> s.replace("%page%", String.valueOf(finalPage)));
@@ -203,71 +219,96 @@ public class InfinitePrestigesTextList implements PrestigesTextList {
 		// Prestiges List Organization
 		List<String> currentPrestiges = new ArrayList<>(), completedPrestiges = new ArrayList<>(),
 				otherPrestiges = new ArrayList<>(), pagedPrestiges = new ArrayList<>();
-		Prestige currentPrestige = user.getPrestige();
-		long currentPrestigeNumber = currentPrestige.getNumber();
+		Prestige currentPrestige = user.hasPrestige() ? user.getPrestige() : null;
+		long currentPrestigeNumber = currentPrestige == null ? 0 : currentPrestige.getNumber();
 		for (int i = 0; i < prestigePerPage; i++) {
-			int elementIndex = CollectionUtils.paginateIndex(counter, prestigePerPage, Integer.parseInt(pageNumber));
+			int elementIndex = CollectionUtils.paginateIndex(counter, prestigePerPage, (int) currentPage);
 			if (elementIndex < 0 || elementIndex >= size) break;
-			long prestigeNumber = (elementIndex + 1);
-			if (currentPrestigeNumber == prestigeNumber) {
-				// Prestige Current
-				Prestige prestige = PrestigeStorage.getPrestige(prestigeNumber);
+			long prestigeNumber = (elementIndex) + 1;
+			if (currentPrestigeNumber == 0 && prestigeNumber == 1 && pageNumber.equals("1")) {
+				// First Prestige
+				Prestige prestige = PrestigeStorage.getPrestige(0);
 				if (!prestige.isLast()) {
-					Prestige nextPrestige = PrestigeStorage.getPrestige(prestige.getNextPrestigeName());
 					String format = prestigeCurrentFormat.replace("%prestige_name%", prestige.getName())
-							.replace("%prestige_displayname%", prestige.getDisplayName())
-							.replace("%nextprestige_name%", prestige.getNextName())
-							.replace("%nextprestige_displayname%", nextPrestige.getName())
+							.replace("%prestige_displayname%", prestige.getDisplayName());
+					Prestige nextPrestige = PrestigeStorage.getPrestige(prestige.getNextPrestigeName());
+					format = format.replace("%nextprestige_name%", prestige.getNextName())
+							.replace("%nextprestige_displayname%", nextPrestige.getDisplayName())
 							.replace("%nextprestige_cost%", String.valueOf(nextPrestige.getCost()))
+							.replace("%nextprestige_cost_us_format%",
+									EconomyManager.commaFormatWithDecimals(nextPrestige.getCost()))
 							.replace("%nextprestige_cost_formatted%",
 									EconomyManager.shortcutFormat(nextPrestige.getCost()));
 					currentPrestiges.add(format);
 				}
 			}
-			if (currentPrestigeNumber > prestigeNumber) {
-				// Prestige Completed:
+			if (currentPrestigeNumber == prestigeNumber) {
+				// Prestige Current:
 				Prestige prestige = PrestigeStorage.getPrestige(prestigeNumber);
 				if (!prestige.isLast()) {
+					String format = prestigeCurrentFormat.replace("%prestige_name%", prestige.getName())
+							.replace("%prestige_displayname%", prestige.getDisplayName());
 					Prestige nextPrestige = PrestigeStorage.getPrestige(prestige.getNextPrestigeName());
-					String format = prestigeCompletedFormat.replace("%prestige_name%", prestige.getName())
-							.replace("%prestige_displayname%", prestige.getDisplayName())
-							.replace("%nextprestige_name%", prestige.getNextName())
-							.replace("%nextprestige_displayname%", nextPrestige.getName())
+					format = format.replace("%nextprestige_name%", prestige.getNextName())
+							.replace("%nextprestige_displayname%", nextPrestige.getDisplayName())
 							.replace("%nextprestige_cost%", String.valueOf(nextPrestige.getCost()))
+							.replace("%nextprestige_cost_us_format%",
+									EconomyManager.commaFormatWithDecimals(nextPrestige.getCost()))
+							.replace("%nextprestige_cost_formatted%",
+									EconomyManager.shortcutFormat(nextPrestige.getCost()));
+					currentPrestiges.add(format);
+				}
+			} else if (currentPrestigeNumber > prestigeNumber) {
+				// Prestige Completed:
+				Prestige prestige = PrestigeStorage.getPrestige(prestigeNumber - 1);
+				Prestige nextPrestige = PrestigeStorage.getPrestige(prestige.getNextPrestigeName());
+				if (!prestige.isLast()) {
+					String format = prestigeCompletedFormat.replace("%prestige_name%", prestige.getName())
+							.replace("%prestige_displayname%", prestige.getDisplayName());
+
+					format = format.replace("%nextprestige_name%", prestige.getNextName())
+							.replace("%nextprestige_displayname%", nextPrestige.getDisplayName())
+							.replace("%nextprestige_cost%", String.valueOf(nextPrestige.getCost()))
+							.replace("%nextprestige_cost_us_format%",
+									EconomyManager.commaFormatWithDecimals(nextPrestige.getCost()))
 							.replace("%nextprestige_cost_formatted%",
 									EconomyManager.shortcutFormat(nextPrestige.getCost()));
 					completedPrestiges.add(format);
 				}
-			}
-			if (currentPrestigeNumber < prestigeNumber) {
+			} else {
 				// Prestige Other:
-				Prestige prestige = PrestigeStorage.getPrestige(prestigeNumber);
+				UniversalPrestige prestige = (UniversalPrestige) PrestigeStorage.getPrestige(prestigeNumber);
 				if (!prestige.isLast()) {
-					Prestige nextPrestige = PrestigeStorage.getPrestige(prestige.getNextPrestigeName());
 					String format = prestigeOtherFormat.replace("%prestige_name%", prestige.getName())
-							.replace("%prestige_displayname%", prestige.getDisplayName())
-							.replace("%nextprestige_name%", prestige.getNextName())
-							.replace("%nextprestige_displayname%", nextPrestige.getName())
+							.replace("%prestige_displayname%", prestige.getDisplayName());
+					UniversalPrestige nextPrestige = (UniversalPrestige) prestige.getNextPrestige();
+					format = format.replace("%nextprestige_name%", nextPrestige.getName())
+							.replace("%nextprestige_displayname%", nextPrestige.getDisplayName())
 							.replace("%nextprestige_cost%", String.valueOf(nextPrestige.getCost()))
+							.replace("%nextprestige_cost_us_format%",
+									EconomyManager.commaFormatWithDecimals(nextPrestige.getCost()))
 							.replace("%nextprestige_cost_formatted%",
 									EconomyManager.shortcutFormat(nextPrestige.getCost()));
 					otherPrestiges.add(format);
 				}
 			}
 			counter++;
+			if (PrestigeStorage.getPrestige(prestigeNumber).isLast()) break;
 		}
 		// Header Setup
 		List<String> header = new ArrayList<>();
-		for (String headerLine : prestigeListFormatHeader) header.add(
-				headerLine.replace("%currentpage%", pageNumber).replace("%totalpages%", String.valueOf(finalPage)));
+		for (String headerLine : prestigeListFormatHeader) header.add(StringManager.parsePlaceholders(
+				headerLine.replace("%currentpage%", pageNumber).replace("%totalpages%", String.valueOf(finalPage)),
+				user.getPlayer()));
 
 		pagedPrestiges.addAll(completedPrestiges);
 		pagedPrestiges.addAll(currentPrestiges);
 		pagedPrestiges.addAll(otherPrestiges);
 
 		List<String> footer = new ArrayList<>();
-		for (String footerLine : prestigeListFormatFooter) footer.add(
-				footerLine.replace("%currentpage%", pageNumber).replace("%totalpages%", String.valueOf(finalPage)));
+		for (String footerLine : prestigeListFormatFooter) footer.add(StringManager.parsePlaceholders(
+				footerLine.replace("%currentpage%", pageNumber).replace("%totalpages%", String.valueOf(finalPage)),
+				user.getPlayer()));
 
 		header.forEach(sender::sendMessage);
 		pagedPrestiges.forEach(sender::sendMessage);

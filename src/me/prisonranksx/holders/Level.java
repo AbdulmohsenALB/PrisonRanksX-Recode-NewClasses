@@ -73,6 +73,12 @@ public interface Level {
 	@Nullable
 	CommandsComponent getCommandsComponent();
 
+	/**
+	 * Uses and executes action on component only if it's not null, otherwise does
+	 * nothing.
+	 * 
+	 * @param action to perform on component.
+	 */
 	void useCommandsComponent(Consumer<CommandsComponent> action);
 
 	void setCommandsComponent(CommandsComponent commandsComponent);
@@ -85,6 +91,12 @@ public interface Level {
 	@Nullable
 	ActionBarComponent getActionBarComponent();
 
+	/**
+	 * Uses and executes action on component only if it's not null, otherwise does
+	 * nothing.
+	 * 
+	 * @param action to perform on component.
+	 */
 	void useActionBarComponent(Consumer<ActionBarComponent> action);
 
 	void setActionBarComponent(ActionBarComponent actionBarComponent);
@@ -92,6 +104,12 @@ public interface Level {
 	@Nullable
 	PermissionsComponent getPermissionsComponent();
 
+	/**
+	 * Uses and executes action on component only if it's not null, otherwise does
+	 * nothing.
+	 * 
+	 * @param action to perform on component.
+	 */
 	void usePermissionsComponent(Consumer<PermissionsComponent> action);
 
 	void setPermissionsComponent(PermissionsComponent permissionsComponent);
@@ -99,6 +117,12 @@ public interface Level {
 	@Nullable
 	FireworkComponent getFireworkComponent();
 
+	/**
+	 * Uses and executes action on component only if it's not null, otherwise does
+	 * nothing.
+	 * 
+	 * @param action to perform on component.
+	 */
 	void useFireworkComponent(Consumer<FireworkComponent> action);
 
 	void setFireworkComponent(FireworkComponent fireworkComponent);
@@ -106,6 +130,12 @@ public interface Level {
 	@Nullable
 	RandomCommandsComponent getRandomCommandsComponent();
 
+	/**
+	 * Uses and executes action on component only if it's not null, otherwise does
+	 * nothing.
+	 * 
+	 * @param action to perform on component.
+	 */
 	void useRandomCommandsComponent(Consumer<RandomCommandsComponent> action);
 
 	void setRandomCommandsComponent(RandomCommandsComponent randomCommandsComponent);

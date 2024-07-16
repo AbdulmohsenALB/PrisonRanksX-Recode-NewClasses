@@ -2,6 +2,13 @@ package me.prisonranksx.utils;
 
 import java.util.zip.Adler32;
 
+/**
+ * For fast access using {@linkplain java.util.Map#get(Object)} ->
+ * {@code // num being one of the numbers that can lie in between one of the ranges in the map.}
+ * <br>
+ * {@code int num = 50;}
+ * {@code Map.get(HashedLongRange.matchingHash(num));}
+ */
 public class HashedLongRange {
 
 	private static final int HASH_CODE;
@@ -9,7 +16,7 @@ public class HashedLongRange {
 
 	static {
 		Adler32 adl = new Adler32();
-		adl.update(String.valueOf("HashedLongRange").getBytes());
+		adl.update("HashedLongRange".getBytes());
 		HASH_CODE = (int) adl.getValue();
 	}
 

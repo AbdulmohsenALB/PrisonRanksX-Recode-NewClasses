@@ -5,7 +5,9 @@ import java.util.function.Consumer;
 
 import org.jetbrains.annotations.Nullable;
 
+import me.prisonranksx.PrisonRanksX;
 import me.prisonranksx.components.*;
+import me.prisonranksx.data.RankStorage;
 
 public class Rank implements Level {
 
@@ -79,6 +81,11 @@ public class Rank implements Level {
 	@Override
 	@Nullable
 	public String getNextName() {
+		if (nextRankName != null && !RankStorage.rankExists(nextRankName)) {
+			PrisonRanksX.logSevere("Rank '" + name + "' nextRank is set to '" + nextRankName
+					+ "' which is invalid! Fix that in config files.");
+			return null;
+		}
 		return nextRankName;
 	}
 

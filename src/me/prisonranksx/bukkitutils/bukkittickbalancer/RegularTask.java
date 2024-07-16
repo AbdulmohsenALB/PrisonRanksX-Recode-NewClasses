@@ -3,7 +3,7 @@ package me.prisonranksx.bukkitutils.bukkittickbalancer;
 import java.util.ArrayDeque;
 import java.util.Deque;
 
-public class RegularTask implements SplittableTask {
+public class RegularTask extends SplittableTask {
 
 	private static final double MAX_MILLIS_PER_TICK = 2.5;
 

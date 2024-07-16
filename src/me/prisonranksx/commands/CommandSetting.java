@@ -27,4 +27,8 @@ public interface CommandSetting {
 		return (T) ConfigManager.getCommandsConfig().get("commands." + commandName + "." + setting);
 	}
 
+	public static boolean getBooleanSetting(String commandName, String setting) {
+		return ConfigManager.getCommandsConfig().getBoolean("commands." + commandName + "." + setting, false);
+	}
+
 }

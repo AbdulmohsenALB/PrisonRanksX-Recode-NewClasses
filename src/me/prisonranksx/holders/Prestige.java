@@ -227,8 +227,14 @@ public class Prestige implements Level {
 		this.number = number;
 	}
 
+	public Prestige clone() {
+		return new Prestige(name, displayName, nextPrestigeName, cost, broadcastMessages, messages, commandsComponent,
+				requirementsComponent, actionBarComponent, permissionsComponent, fireworkComponent,
+				randomCommandsComponent, requirementsMessages, costIncrease);
+	}
+
 	public boolean isLast() {
-		return number == PrestigeStorage.getLastPrestigeAsNumber();
+		return getNumber() == PrestigeStorage.getLastPrestigeAsNumber();
 	}
 
 }

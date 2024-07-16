@@ -7,7 +7,7 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
-public class DistributedTask<T> implements SplittableTask {
+public class DistributedTask<T> extends SplittableTask {
 
 	private final Consumer<T> action;
 	private final Predicate<T> escapeCondition;

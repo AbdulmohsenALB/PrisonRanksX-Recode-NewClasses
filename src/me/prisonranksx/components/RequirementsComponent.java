@@ -6,23 +6,26 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-
-
 import org.bukkit.entity.Player;
-
-import me.prisonranksx.managers.StringManager;
-import me.prisonranksx.utils.Rina;
 import org.jetbrains.annotations.Nullable;
+
+import me.prisonranksx.PrisonRanksX;
+import me.prisonranksx.managers.StringManager;
+import me.prisonranksx.utils.NumParser;
+import me.prisonranksx.utils.Scrif;
 
 public class RequirementsComponent extends Component {
 
-	private Map<String, Double> greaterThanRequirements, lessThanRequirements;
-	private Map<String, String> equalRequirements, notEqualRequirements;
-	private Map<Rina, List<String>> scriptRequirements;
+	private final Map<String, Double> greaterThanRequirements;
+	private final Map<String, Double> lessThanRequirements;
+	private final Map<String, String> equalRequirements;
+	private final Map<String, String> notEqualRequirements;
+	private final Map<Scrif, List<String>> scriptRequirements;
+	private List<String> keys, values;
 
 	public RequirementsComponent(Map<String, Double> greaterThanRequirements, Map<String, Double> lessThanRequirements,
 			Map<String, String> equalRequirements, Map<String, String> notEqualRequirements,
-			Map<Rina, List<String>> scriptRequirements) {
+			Map<Scrif, List<String>> scriptRequirements) {
 		this.greaterThanRequirements = greaterThanRequirements;
 		this.lessThanRequirements = lessThanRequirements;
 		this.equalRequirements = equalRequirements;
@@ -124,29 +127,38 @@ public class RequirementsComponent extends Component {
 		if (requirementsList == null || requirementsList.isEmpty()) return null;
 		Map<String, Double> greaterThanRequirements = new HashMap<>(), lessThanRequirements = new HashMap<>();
 		Map<String, String> equalRequirements = new HashMap<>(), notEqualRequirements = new HashMap<>();
-		Map<Rina, List<String>> scriptRequirements = new HashMap<>();
+		Map<Scrif, List<String>> scriptRequirements = new HashMap<>();
+		List<String> keys = new ArrayList<>(), values = new ArrayList<>();
 		requirementsList.stream().map(requirementLine -> requirementLine.toLowerCase()).forEach(requirementLine -> {
 			if (requirementLine.startsWith("[script]")) {
 				String scriptRequirementLine = requirementLine.replace("[script] ", "").replace("[script]", "");
 				List<String> retrievedPlaceholders = grabPlaceholdersFromString(scriptRequirementLine);
-				scriptRequirements.put(Rina.create(scriptRequirementLine), retrievedPlaceholders);
+				scriptRequirements.put(Scrif.create(scriptRequirementLine), retrievedPlaceholders);
 			} else {
 				if (requirementLine.contains(">>")) {
 					String[] split = requirementLine.split(">>");
 					greaterThanRequirements.put(split[0], Double.parseDouble(split[1]));
+					keys.add(split[0]);
+					values.add(split[1]);
 				} else if (requirementLine.contains("<<")) {
 					String[] split = requirementLine.split("<<");
 					lessThanRequirements.put(split[0], Double.parseDouble(split[1]));
+					keys.add(split[0]);
+					values.add(split[1]);
 				} else if (requirementLine.contains("->")) {
 					String[] split = requirementLine.split("->");
 					equalRequirements.put(split[0], split[1]);
+					keys.add(split[0]);
+					values.add(split[1]);
 				} else if (requirementLine.contains("<-")) {
 					String[] split = requirementLine.split("<-");
 					notEqualRequirements.put(split[0], split[1]);
+					keys.add(split[0]);
+					values.add(split[1]);
 				} else {
 					String scriptRequirementLine = requirementLine;
 					List<String> retrievedPlaceholders = grabPlaceholdersFromString(scriptRequirementLine);
-					scriptRequirements.put(Rina.create(scriptRequirementLine), retrievedPlaceholders);
+					scriptRequirements.put(Scrif.create(scriptRequirementLine), retrievedPlaceholders);
 				}
 			}
 		});
@@ -154,7 +166,13 @@ public class RequirementsComponent extends Component {
 				lessThanRequirements.isEmpty() ? null : lessThanRequirements,
 				equalRequirements.isEmpty() ? null : equalRequirements,
 				notEqualRequirements.isEmpty() ? null : notEqualRequirements,
-				scriptRequirements.isEmpty() ? null : scriptRequirements);
+				scriptRequirements.isEmpty() ? null : scriptRequirements).setKeysAndValues(keys, values);
+	}
+
+	public RequirementsComponent setKeysAndValues(List<String> keys, List<String> values) {
+		this.keys = keys;
+		this.values = values;
+		return this;
 	}
 
 	/**
@@ -237,7 +255,7 @@ public class RequirementsComponent extends Component {
 	 *         An example of an entry in the map would be:
 	 *         {@code [(Script that contains)'%vault_group%'=='vip', %vault_group%]}
 	 */
-	public Map<Rina, List<String>> getScriptRequirements() {
+	public Map<Scrif, List<String>> getScriptRequirements() {
 		return scriptRequirements;
 	}
 
@@ -251,42 +269,82 @@ public class RequirementsComponent extends Component {
 	 *         requirements or the placeholders due to their redundancy.
 	 */
 	public RequirementEvaluationResult evaluateRequirements(Player player) {
-		boolean result = false;
+		boolean result;
+		Entry<String, ?> lastTest = null;
 		if (scriptRequirements != null) {
-			for (Rina script : scriptRequirements.keySet()) {
+			for (Scrif script : scriptRequirements.keySet()) {
 				Entry<String, String> scriptResult = script
 						.applyThenEvaluateOrGet((scriptLine) -> StringManager.parsePlaceholders(scriptLine, player));
+				lastTest = scriptResult;
 				if (scriptResult != null)
 					return RequirementEvaluationResult.SCRIPT_FAIL.setFailedPlaceholder(scriptResult);
 			}
 		}
 		if (greaterThanRequirements != null) {
 			for (Entry<String, Double> requirement : greaterThanRequirements.entrySet()) {
-				result = Double.parseDouble(
-						StringManager.parsePlaceholders(requirement.getKey(), player)) >= requirement.getValue();
+				result = NumParser.asDouble(StringManager.parsePlaceholders(requirement.getKey(), player),
+						s -> PrisonRanksX
+								.logSevere("Failed to parse placeholder '" + s + "' as number. Defaulting to 1."),
+						1) >= requirement.getValue();
+				lastTest = requirement;
 				if (!result) return RequirementEvaluationResult.GREATER_THAN_FAIL.setFailedPlaceholder(requirement);
 			}
 		}
 		if (lessThanRequirements != null) {
 			for (Entry<String, Double> requirement : lessThanRequirements.entrySet()) {
-				result = Double.parseDouble(
-						StringManager.parsePlaceholders(requirement.getKey(), player)) <= requirement.getValue();
+				result = NumParser.asDouble(StringManager.parsePlaceholders(requirement.getKey(), player),
+						s -> PrisonRanksX
+								.logSevere("Failed to parse placeholder '" + s + "' as number. Defaulting to 1."),
+						1) <= requirement.getValue();
+				lastTest = requirement;
 				if (!result) return RequirementEvaluationResult.LESS_THAN_FAIL.setFailedPlaceholder(requirement);
 			}
 		}
 		if (equalRequirements != null) {
 			for (Entry<String, String> requirement : equalRequirements.entrySet()) {
 				result = StringManager.parsePlaceholders(requirement.getKey(), player).equals(requirement.getValue());
+				lastTest = requirement;
 				if (!result) return RequirementEvaluationResult.EQUAL_FAIL.setFailedPlaceholder(requirement);
 			}
 		}
 		if (notEqualRequirements != null) {
 			for (Entry<String, String> requirement : notEqualRequirements.entrySet()) {
 				result = !StringManager.parsePlaceholders(requirement.getKey(), player).equals(requirement.getValue());
+				lastTest = requirement;
 				if (!result) return RequirementEvaluationResult.NOT_EQUAL_FAIL.setFailedPlaceholder(requirement);
 			}
 		}
-		return RequirementEvaluationResult.PASS;
+		return RequirementEvaluationResult.PASS.setFailedPlaceholder(lastTest);
+	}
+
+	private static boolean isInvalidIndex(List<?> list, int index) {
+		return index < 0 || index > list.size() - 1;
+	}
+
+	private static <T> T get(List<T> list, int index, T fallBack) {
+		if (isInvalidIndex(list, index) && !list.isEmpty())
+			return list.get(0);
+		else if (isInvalidIndex(list, index) && list.isEmpty()) return fallBack;
+		return list.get(index);
+	}
+
+	public static List<String> updateMsg(List<String> messages, RequirementsComponent requirementsComponent) {
+		if (messages == null) return null;
+		if (requirementsComponent == null || requirementsComponent.keys == null || requirementsComponent.keys.isEmpty())
+			return messages;
+		for (int i = 0; i < messages.size(); i++) {
+			String message = messages.get(i);
+			for (int j = 0; j < requirementsComponent.keys.size(); j++) {
+				message = message.replace("%key." + j + "%", get(requirementsComponent.keys, j, "unknown key"))
+						.replace("%value." + j + "%", get(requirementsComponent.values, j, "unknown value"));
+			}
+			messages.set(i, message);
+		}
+		return messages;
+	}
+
+	public List<String> updateMsg(List<String> messages) {
+		return updateMsg(messages, this);
 	}
 
 	@Override

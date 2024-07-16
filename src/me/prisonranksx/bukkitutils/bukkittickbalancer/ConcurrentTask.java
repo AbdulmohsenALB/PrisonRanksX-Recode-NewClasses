@@ -6,7 +6,7 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
-public class ConcurrentTask<T> implements SplittableTask {
+public class ConcurrentTask<T> extends SplittableTask {
 
 	private Consumer<T> action;
 	private Predicate<T> escapeCondition;
@@ -38,6 +38,13 @@ public class ConcurrentTask<T> implements SplittableTask {
 		addedValues++;
 	}
 
+	@SafeVarargs
+	public final void addValues(T... t) {
+		for (T value : t) {
+			addValue(() -> value);
+		}
+	}
+
 	private void proceedPosition() {
 		if (this.currentPosition >= addedValues - 1) {
 			this.currentPosition = 0;
@@ -62,7 +69,7 @@ public class ConcurrentTask<T> implements SplittableTask {
 		boolean removed = executeThenCheck(supplier);
 		if (removed) {
 			addedValues--;
-			escapeAction.accept(supplier.get());
+			if (escapeAction != null) escapeAction.accept(supplier.get());
 			suppliedValues.remove(currentPosition);
 		}
 		return removed ? null : supplier;
@@ -74,4 +81,11 @@ public class ConcurrentTask<T> implements SplittableTask {
 		return this.escapeCondition.test(value);
 	}
 
+	public List<Supplier<T>> getSuppliedValues() {
+		return suppliedValues;
+	}
+
+	public void setAddedValues(int i) {
+		addedValues = i;
+	}
 }

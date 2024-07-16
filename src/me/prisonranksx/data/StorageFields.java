@@ -11,8 +11,8 @@ public abstract class StorageFields {
 	public static final String[] DISPLAY_FIELDS = new String[] { "display-name", "display", "prefix", "tag", "dn" };
 	public static final String[] COST_FIELDS = new String[] { "cost", "price", "worth", "cash", "dollars", "bucks",
 			"money" };
-	public static final String[] MESSAGE_FIELDS = new String[] { "message", "msg", "messages", "private-message", "pm",
-			"m" };
+	public static final String[] MESSAGE_FIELDS = new String[] { "message", "msg", "msgs", "messages",
+			"private-message", "pm", "m" };
 	public static final String[] REQUIREMENTS_FIELDS = new String[] { "requirements", "requirement", "require",
 			"requires", "r" };
 	public static final String[] ACTION_BAR_FIELDS = new String[] { "action-bar", "actionbar", "action-bar-messages",

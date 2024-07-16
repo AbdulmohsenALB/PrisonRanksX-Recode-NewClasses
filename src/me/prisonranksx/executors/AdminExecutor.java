@@ -86,7 +86,7 @@ public class AdminExecutor {
 	public void createRank(String name, double cost, String pathName, String displayName) {
 		pathName = pathName == null ? RankStorage.getDefaultPath() : pathName;
 		ConfigurationSection pathSection = getMainSection().getConfigurationSection(pathName);
-		String lastRankName = RankStorage.getLastRank(pathName);
+		String lastRankName = RankStorage.getLastRankName(pathName);
 		// If it's a new path, then create it
 		if (pathSection == null) pathSection = getMainSection().createSection(pathName);
 		ConfigurationSection lastRankSection = lastRankName == null ? null
@@ -166,7 +166,7 @@ public class AdminExecutor {
 	public void moveRankPath(String name, String oldPathName, String newPathName) {
 		Map<String, Object> oldRankValues = deleteTemporarily(name, oldPathName);
 		ConfigurationSection newPathSection = getMainSection().getConfigurationSection(newPathName);
-		String lastRankName = RankStorage.getLastRank(newPathName);
+		String lastRankName = RankStorage.getLastRankName(newPathName);
 		// If it's a new path, then create it
 		if (newPathSection == null) newPathSection = getMainSection().createSection(newPathName);
 		ConfigurationSection lastRankSection = lastRankName == null ? null

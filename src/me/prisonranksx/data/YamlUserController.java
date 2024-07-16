@@ -130,12 +130,14 @@ public class YamlUserController implements UserController {
 	@Override
 	public CompletableFuture<User> loadUser(UUID uniqueId, String name) {
 		return CompletableFuture.supplyAsync(() -> {
-			User user = new User(uniqueId, name);
 			String stringUniqueId = uniqueId.toString();
+			if (users.containsKey(uniqueId))
+				PrisonRanksX.logWarning("Loading already loaded user: " + name + " " + stringUniqueId);
+			User user = new User(uniqueId, name);
 			if (plugin.getGlobalSettings().isRankEnabled()) user.setRankAndPathName(
 					Optional.ofNullable(
 							ConfigManager.getRankDataConfig().getString("players." + stringUniqueId + ".rank"))
-							.orElse(RankStorage.getFirstRank()),
+							.orElse(RankStorage.getFirstRankName()),
 					Optional.ofNullable(
 							ConfigManager.getRankDataConfig().getString("players." + stringUniqueId + ".path"))
 							.orElse(RankStorage.getDefaultPath()));

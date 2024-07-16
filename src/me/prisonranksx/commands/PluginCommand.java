@@ -1,5 +1,6 @@
 package me.prisonranksx.commands;
 
+import org.bukkit.command.CommandSender;
 import org.bukkit.command.defaults.BukkitCommand;
 import org.bukkit.configuration.ConfigurationSection;
 
@@ -18,6 +19,10 @@ public abstract class PluginCommand extends BukkitCommand {
 
 	public ConfigurationSection getCommandSection() {
 		return section;
+	}
+
+	public boolean hasPermission(CommandSender sender) {
+		return sender.hasPermission(getPermission());
 	}
 
 	public boolean register() {

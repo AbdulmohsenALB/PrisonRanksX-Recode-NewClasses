@@ -35,8 +35,7 @@ public class RankupCommand extends PluginCommand {
 		}
 		Player p = (Player) sender;
 		if (args.length == 0) {
-			if (plugin.getGlobalSettings().isWorldIncluded(p.getWorld())) return true;
-			plugin.getRankupExecutor().rankup(p);
+			rankup(p);
 		} else if (args.length == 1) {
 			Player target = Bukkit.getPlayer(args[0]);
 			if (target == null) {
@@ -47,9 +46,18 @@ public class RankupCommand extends PluginCommand {
 				Messages.sendMessage(p, Messages.getRankupOtherNoPermission(), s -> s.replace("%player%", args[0]));
 				return true;
 			}
-			plugin.getRankupExecutor().rankup(p, target);
+			rankupByOther(p, target);
 		}
 		return true;
+	}
+
+	public void rankup(Player p) {
+		if (plugin.getGlobalSettings().isWorldIncluded(p.getWorld())) return;
+		plugin.getRankupExecutor().rankup(p);
+	}
+
+	public void rankupByOther(Player p, Player target) {
+		plugin.getRankupExecutor().rankup(p, target);
 	}
 
 }

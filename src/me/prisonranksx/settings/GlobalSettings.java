@@ -15,20 +15,77 @@ import me.prisonranksx.managers.ConfigManager;
 import me.prisonranksx.utils.ToString;
 
 /**
- * Holds values of the main configuration file (config.yml) into variables
+ * Holds values of the main configuration file (config.yml) as well as general
+ * settings that are not necessarily found in the config into variables
  */
 public class GlobalSettings extends Settings {
 
-	private boolean mvdwPlaceholderAPILoaded, actionUtilLoaded, debug, terminateMode, legacy, luckPermsLoaded,
-			groupManagerLoaded, permissionsEXLoaded, vaultLoaded, holographicDisplaysLoaded, decentHologramsLoaded,
-			RGBSupported, rankEnabled, prestigeEnabled, rebirthEnabled, forceSave, actionBarProgress,
-			rankupMaxWarpFilter, vaultGroups, hologramsPlugin, placeholderAPILoaded, saveOnLeave, checkVault,
-			saveNotification, allowEasterEggs, enabledInsteadOfDisabled, infinitePrestige, forceRankDisplay,
-			forcePrestigeDisplay, forceRebirthDisplay, formatChat, allWorldsBroadcast, sendRankupMsg, sendPrestigeMsg,
-			sendRebirthMsg, sendRankupMaxMsg, guiRankList, guiPrestigeList, guiRebirthList, perRankPermission,
-			rankupMaxBroadcastLastRankOnly, rankupMaxMsgLastRankOnly, rankupMaxRankupMsgLastRankOnly,
-			rankupMaxWithPrestige, actionBarProgressOnlyPickaxe, expBarProgress, autoSave, enableLeaderboard,
-			prestigeMaxPrestigeMsgLastPrestigeOnly;
+	@NonConfig
+	private boolean mvdwPlaceholderAPILoaded;
+	@NonConfig
+	private boolean actionUtilLoaded;
+	@NonConfig
+	private boolean debug;
+	@NonConfig
+	private boolean terminateMode;
+	@NonConfig
+	private boolean legacy;
+	@NonConfig
+	private boolean luckPermsLoaded;
+	@NonConfig
+	private boolean groupManagerLoaded;
+	@NonConfig
+	private boolean permissionsEXLoaded;
+	@NonConfig
+	private boolean vaultLoaded;
+	@NonConfig
+	private boolean holographicDisplaysLoaded;
+	@NonConfig
+	private boolean decentHologramsLoaded;
+	@NonConfig
+	private boolean RGBSupported;
+	private boolean rankEnabled;
+	private boolean prestigeEnabled;
+	private boolean rebirthEnabled;
+	private boolean forceSave;
+	private boolean actionBarProgress;
+	private boolean rankupMaxWarpFilter;
+	private boolean vaultGroups;
+	@NonConfig
+	private boolean hologramsPlugin;
+	@NonConfig
+	private boolean placeholderAPILoaded;
+	private boolean saveOnLeave;
+	private boolean checkVault;
+	private boolean saveNotification;
+	private boolean allowEasterEggs;
+	private boolean enabledInsteadOfDisabled;
+	private boolean infinitePrestige;
+	private boolean forceRankDisplay;
+	private boolean forcePrestigeDisplay;
+	private boolean forceRebirthDisplay;
+	private boolean formatChat;
+	private boolean allWorldsBroadcast;
+	private boolean sendRankupMsg;
+	private boolean sendPrestigeMsg;
+	private boolean sendRebirthMsg;
+	private boolean sendRankupMaxMsg;
+	private boolean guiRankList;
+	private boolean guiPrestigeList;
+	private boolean guiRebirthList;
+	private boolean perRankPermission;
+	private boolean rankupMaxBroadcastLastRankOnly;
+	private boolean rankupMaxMsgLastRankOnly;
+	private boolean rankupMaxRankupMsgLastRankOnly;
+	private boolean rankupMaxWithPrestige;
+	private boolean actionBarProgressOnlyPickaxe;
+	private boolean expBarProgress;
+	private boolean autoSave;
+	private boolean enableLeaderboard;
+	private boolean prestigeMaxPrestigeMsgLastPrestigeOnly;
+	private boolean prestigeConfirm, rebirthConfirm;
+
+	private boolean autoRankupAlwaysEnabled;
 
 	private String forceDisplayOrder, noPrestigeDisplay, noRebirthDisplay, vaultGroupsPlugin, actionBarProgressFormat,
 			chatEventHandlingPriority, loginEventHandlingPriority, dataStorageType;
@@ -36,20 +93,23 @@ public class GlobalSettings extends Settings {
 	private Record rankupSound, prestigeSound, rebirthSound;
 
 	private int autoRankupDelay, autoPrestigeDelay, autoRebirthDelay, actionBarProgressUpdater, expBarProgressUpdater,
-			autoSaveTime;
+			autoSaveTime, prestigeConfirmTimeOut, rebirthConfirmTimeOut;
 
 	private Set<String> worlds = new HashSet<>();
 
 	/**
 	 * MC Versions that don't support RGB colors (1.4-1.15)
 	 */
+	@NonConfig
 	public static final Set<String> NON_RGB_VERSIONS = Sets.newHashSet("1.15", "1.14", "1.13", "1.12", "1.11", "1.10",
 			"1.9", "1.8", "1.7", "1.6", "1.5", "1.4");
 	/**
 	 * MC Versions that don't support UUIDs (1.4-1.6)
 	 */
+	@NonConfig
 	public static final Set<String> LEGACY_VERSIONS = Sets.newHashSet("1.6", "1.5", "1.4");
 
+	@NonConfig
 	public static final boolean SUPPORTS_ACTION_BAR;
 
 	static {
@@ -130,6 +190,9 @@ public class GlobalSettings extends Settings {
 		autoSave = getBoolean("auto-save");
 		enableLeaderboard = getBoolean("enable-leaderboard");
 		prestigeMaxPrestigeMsgLastPrestigeOnly = getBoolean("prestigemax-prestige-msg-last-prestige-only");
+		autoRankupAlwaysEnabled = getBoolean("auto-rankup-always-enabled");
+		prestigeConfirm = getBoolean("prestige-confirm");
+		rebirthConfirm = getBoolean("rebirth-confirm");
 
 		// Strings
 		forceDisplayOrder = getString("force-display-order", true);
@@ -165,6 +228,8 @@ public class GlobalSettings extends Settings {
 		actionBarProgressUpdater = getInt("action-bar-progress-updater");
 		expBarProgressUpdater = getInt("exp-bar-progress-updater");
 		autoSaveTime = getInt("auto-save-time");
+		prestigeConfirmTimeOut = getInt("prestige-confirm-time-out");
+		rebirthConfirmTimeOut = getInt("rebirth-confirm-time-out");
 	}
 
 	private @NotNull String recordToString(Record record) {
@@ -176,6 +241,14 @@ public class GlobalSettings extends Settings {
 	@Override
 	public String toString() {
 		return ToString.toString(this);
+	}
+
+	public boolean isAutoRankupAlwaysEnabled() {
+		return autoRankupAlwaysEnabled;
+	}
+
+	public void setAutoRankupAlwaysEnabled(boolean autoRankupAlwaysEnabled) {
+		this.autoRankupAlwaysEnabled = autoRankupAlwaysEnabled;
 	}
 
 	public boolean isLuckPermsLoaded() {
@@ -748,6 +821,38 @@ public class GlobalSettings extends Settings {
 
 	public void setDataStorageType(String dataStorageType) {
 		this.dataStorageType = dataStorageType;
+	}
+
+	public boolean isPrestigeConfirm() {
+		return prestigeConfirm;
+	}
+
+	public void setPrestigeConfirm(boolean prestigeConfirm) {
+		this.prestigeConfirm = prestigeConfirm;
+	}
+
+	public boolean isRebirthConfirm() {
+		return rebirthConfirm;
+	}
+
+	public void setRebirthConfirm(boolean rebirthConfirm) {
+		this.rebirthConfirm = rebirthConfirm;
+	}
+
+	public int getPrestigeConfirmTimeOut() {
+		return prestigeConfirmTimeOut;
+	}
+
+	public void setPrestigeConfirmTimeOut(int prestigeConfirmTimeOut) {
+		this.prestigeConfirmTimeOut = prestigeConfirmTimeOut;
+	}
+
+	public int getRebirthConfirmTimeOut() {
+		return rebirthConfirmTimeOut;
+	}
+
+	public void setRebirthConfirmTimeOut(int rebirthConfirmTimeOut) {
+		this.rebirthConfirmTimeOut = rebirthConfirmTimeOut;
 	}
 
 }

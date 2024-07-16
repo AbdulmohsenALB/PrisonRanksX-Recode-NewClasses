@@ -6,6 +6,7 @@ import org.bukkit.entity.Player;
 import me.prisonranksx.PrisonRanksX;
 import me.prisonranksx.api.PRXAPI;
 import me.prisonranksx.data.RankStorage;
+import me.prisonranksx.executors.PrestigeExecutor;
 import me.prisonranksx.executors.RankupExecutor;
 import me.prisonranksx.reflections.UniqueId;
 import me.prisonranksx.settings.Messages;
@@ -44,6 +45,13 @@ public class RankupMaxCommand extends PluginCommand {
 				plugin.getRankupExecutor().maxRankup(p);
 			else
 				plugin.getRankupExecutor().breakMaxRankup(UniqueId.getUUID(p));
+			if (plugin.getGlobalSettings().isPrestigeEnabled()
+					&& plugin.getGlobalSettings().isRankupMaxWithPrestige()) {
+				if (PrestigeExecutor.isMaxPrestiging(p))
+					plugin.getPrestigeExecutor().breakMaxPrestige(UniqueId.getUUID(p));
+				else
+					plugin.getPrestigeExecutor().maxPrestige(p);
+			}
 		} else if (args.length == 1) {
 			String rankName = RankStorage.findRankName(args[0], PRXAPI.getPlayerPathOrDefault(p));
 			if (rankName == null) {
@@ -54,6 +62,7 @@ public class RankupMaxCommand extends PluginCommand {
 				plugin.getRankupExecutor().maxRankup(p, rankName);
 			else
 				plugin.getRankupExecutor().breakMaxRankup(UniqueId.getUUID(p));
+
 		}
 		return true;
 	}

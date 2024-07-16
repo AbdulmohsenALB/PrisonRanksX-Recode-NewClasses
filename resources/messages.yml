@@ -103,6 +103,8 @@ Messages:
   set-prestige-cost: "&cChanged prestige &e%prestige% &ccost to %cost%&c."
   # placeholders: %nextprestige% %nextprestige_display%
   prestige: "&aYou have prestiged to &r%nextprestige_display%"
+  # placeholders: %nextprestige% %nextprestige_display%
+  prestige-confirm: "&cYou are going to prestige to &f%nextprestige_display%&c. Are you sure you want to do that?\nWrite &a&l/prestige&c again to proceed."
   force-prestige: "&aYou forced a prestige promotion for &f%player%"
   # placeholders: %player%
   delete-player-prestige: "&cDeleted &e%player%'s &cprestige"
@@ -170,6 +172,7 @@ Messages:
   auto-rebirth-disabled: "&6Auto rebirth &cdisabled&6."
   # placeholders: %nextrebirth% %nextrebirth_display%
   rebirth: "&7You have been reborn to %nextrebirth_display%."
+  rebirth-confirm: "&cYou are about to rebirth to &f%nextrebirth_display%. Write &b&l/rebirth&c again to confirm."
   # placeholders: %nextrebirth% %nextrebirth_display% %nextrebirth_cost% %nextrebirth_cost_formatted%
   rebirth-not-enough-balance:
   - "&4&m                                             &4&m"

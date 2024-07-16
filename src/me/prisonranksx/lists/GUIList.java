@@ -1,11 +1,6 @@
 package me.prisonranksx.lists;
 
-import java.util.AbstractMap;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
@@ -28,8 +23,8 @@ import me.prisonranksx.lists.GUIItemParser.ClickActionsFormatter;
 import me.prisonranksx.managers.ConfigManager;
 import me.prisonranksx.managers.StringManager;
 import me.prisonranksx.settings.Messages;
-import me.prisonranksx.utils.IntParser;
-import me.prisonranksx.utils.Rina;
+import me.prisonranksx.utils.NumParser;
+import me.prisonranksx.utils.Scrif;
 
 public abstract class GUIList {
 
@@ -141,7 +136,8 @@ public abstract class GUIList {
 	}
 
 	public void setupActions() {
-		clickActionsFormatter.setupAction("update-title", title -> StringManager.parseColors(title),
+		// Auto formatter garbage
+		clickActionsFormatter.setupAction("update-title", StringManager::parseColorsAndSymbols,
 				newTitle -> ClickAction.create(e -> {
 					Player p = (Player) e.getWhoClicked();
 					InventoryUpdate
@@ -159,21 +155,19 @@ public abstract class GUIList {
 																			.replace("[update-title] ", "")),
 													p));
 				}));
-		clickActionsFormatter.setupAction("switch-page", pageNum -> Integer.parseInt(pageNum),
-				parsedPageNum -> ClickAction.create(e -> {
-					Player p = (Player) e.getWhoClicked();
-					int newPage = playerPagedGUI.getCurrentPage(p) + parsedPageNum;
-					if (newPage > playerPagedGUI.getPlayerLastPage(p) - 1 || newPage < 0) {
-						Messages.sendMessage(p, Messages.getRankListLastPageReached(),
-								s -> s.replace("%page%", String.valueOf(playerPagedGUI.getPlayerLastPage(p))));
-						return;
-					}
-					playerPagedGUI.openInventory(p, newPage);
-				}));
-		clickActionsFormatter.setupAction("go-to-page", pageNum -> Integer.parseInt(pageNum),
-				parsedPageNum -> ClickAction.create(e -> {
-					playerPagedGUI.openInventory((Player) e.getWhoClicked(), parsedPageNum);
-				}));
+		clickActionsFormatter.setupAction("switch-page", NumParser::asInt, parsedPageNum -> ClickAction.create(e -> {
+			Player p = (Player) e.getWhoClicked();
+			int newPage = playerPagedGUI.getCurrentPage(p) + parsedPageNum;
+			if (newPage > playerPagedGUI.getPlayerLastPage(p) - 1 || newPage < 0) {
+				Messages.sendMessage(p, Messages.getRankListLastPageReached(),
+						s -> s.replace("%page%", String.valueOf(playerPagedGUI.getPlayerLastPage(p))));
+				return;
+			}
+			playerPagedGUI.openInventory(p, newPage);
+		}));
+		clickActionsFormatter.setupAction("go-to-page", NumParser::asInt, parsedPageNum -> ClickAction.create(e -> {
+			playerPagedGUI.openInventory((Player) e.getWhoClicked(), parsedPageNum);
+		}));
 		clickActionsFormatter.setupBasicAction("close", e -> e.getWhoClicked().closeInventory());
 		clickActionsFormatter.setupAction("console",
 				(String commandLine) -> ClickAction
@@ -193,9 +187,8 @@ public abstract class GUIList {
 		clickActionsFormatter.setupAction("switch-item-temp", stringStack -> {
 			int duration = 0;
 			for (String str : stringStack.split(" "))
-				if (str.startsWith("duration=")) duration = IntParser.readInt(str.substring(9));
-			return new AbstractMap.SimpleEntry<ItemStack, Integer>(ItemStackParser.parse(stringStack).clone(),
-					duration);
+				if (str.startsWith("duration=")) duration = NumParser.readInt(str.substring(9));
+			return new AbstractMap.SimpleEntry<>(ItemStackParser.parse(stringStack).clone(), duration);
 		}, entry -> ClickAction.create(e -> {
 			ItemStack originalStack = playerPagedGUI.pageInventories
 					.get(playerPagedGUI.getCurrentPage(e.getWhoClicked().getName()))
@@ -209,7 +202,7 @@ public abstract class GUIList {
 			ClickAction clickAction = clickActionsFormatter
 					.formatActions(Arrays.asList(unformattedCondition.substring(unformattedCondition.indexOf('['))))
 					.get(0);
-			return new AbstractMap.SimpleEntry<Rina, ClickAction>(Rina.create(parsedCondition), clickAction);
+			return new AbstractMap.SimpleEntry<>(Scrif.create(parsedCondition), clickAction);
 		}, entry -> ClickAction.create(e -> {
 			String rankName = NBTEditor.getString(e.getCurrentItem(), "prx-rank");
 			String pathName = NBTEditor.getString(e.getCurrentItem(), "prx-path");
@@ -289,7 +282,7 @@ public abstract class GUIList {
 			} else {
 				String stringSlot = itemSection.getString("slot").replace(",", ", ");
 				for (String fillerSlot : stringSlot.split(", ")) {
-					playerPagedGUI.setStaticItem(Integer.parseInt(fillerSlot), guiItem);
+					playerPagedGUI.setStaticItem(NumParser.readInt(fillerSlot), guiItem);
 				}
 			}
 		});

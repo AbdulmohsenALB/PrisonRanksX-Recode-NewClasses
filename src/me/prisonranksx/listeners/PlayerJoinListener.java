@@ -8,6 +8,7 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.plugin.EventExecutor;
 
 import me.prisonranksx.PrisonRanksX;
+import me.prisonranksx.managers.ActionBarManager;
 import me.prisonranksx.reflections.UniqueId;
 
 public class PlayerJoinListener implements EventExecutor, Listener {
@@ -35,7 +36,15 @@ public class PlayerJoinListener implements EventExecutor, Listener {
 		Player player = e.getPlayer();
 		UUID uniqueId = UniqueId.getUUID(player);
 		if (!plugin.getUserController().isLoaded(uniqueId))
-			plugin.getUserController().loadUser(uniqueId, player.getName());
+			plugin.getUserController().loadUser(uniqueId, player.getName()).thenRun(() -> {
+				if (plugin.getGlobalSettings().isAutoRankupAlwaysEnabled()
+						&& plugin.getGlobalSettings().isRankEnabled()) {
+					plugin.getRankupExecutor().toggleAutoRankup(player, true);
+				}
+				if (plugin.getGlobalSettings().isActionBarProgress()) {
+					ActionBarManager.getActionBarProgress().enable(player);
+				}
+			});
 	}
 
 }

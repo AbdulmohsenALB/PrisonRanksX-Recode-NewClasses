@@ -9,7 +9,9 @@ import org.jetbrains.annotations.Nullable;
 
 import me.prisonranksx.PrisonRanksX;
 import me.prisonranksx.data.PrestigeStorage;
+import me.prisonranksx.data.RankStorage;
 import me.prisonranksx.holders.Prestige;
+import me.prisonranksx.holders.Rank;
 import me.prisonranksx.holders.User;
 import me.prisonranksx.managers.EconomyManager;
 import me.prisonranksx.managers.StringManager;
@@ -108,6 +110,8 @@ public class RegularPrestigesTextList implements PrestigesTextList {
 									.replace("%nextprestige_name%", prestige.getNextName())
 									.replace("%nextprestige_displayname%", nextPrestige.getDisplayName())
 									.replace("%nextprestige_cost%", String.valueOf(nextPrestige.getCost()))
+									.replace("%nextprestige_cost_us_format%",
+											EconomyManager.commaFormatWithDecimals(nextPrestige.getCost()))
 									.replace("%nextprestige_cost_formatted%",
 											EconomyManager.shortcutFormat(nextPrestige.getCost())),
 									p);
@@ -125,6 +129,8 @@ public class RegularPrestigesTextList implements PrestigesTextList {
 									.replace("%nextprestige_name%", prestige.getNextName())
 									.replace("%nextprestige_displayname%", nextPrestige.getDisplayName())
 									.replace("%nextprestige_cost%", String.valueOf(nextPrestige.getCost()))
+									.replace("%nextprestige_cost_us_format%",
+											EconomyManager.commaFormatWithDecimals(nextPrestige.getCost()))
 									.replace("%nextprestige_cost_formatted%",
 											EconomyManager.shortcutFormat(nextPrestige.getCost())),
 									p);
@@ -141,6 +147,8 @@ public class RegularPrestigesTextList implements PrestigesTextList {
 									.replace("%nextprestige_name%", prestige.getNextName())
 									.replace("%nextprestige_displayname%", nextPrestige.getDisplayName())
 									.replace("%nextprestige_cost%", String.valueOf(nextPrestige.getCost()))
+									.replace("%nextprestige_cost_us_format%",
+											EconomyManager.commaFormatWithDecimals(nextPrestige.getCost()))
 									.replace("%nextprestige_cost_formatted%",
 											EconomyManager.shortcutFormat(nextPrestige.getCost())),
 									p);
@@ -193,8 +201,25 @@ public class RegularPrestigesTextList implements PrestigesTextList {
 		int currentPrestigeIndex = prestigesCollection.indexOf(prestigeName);
 		for (String cyclingPrestigeName : prestigesCollection) {
 			Prestige prestige = PrestigeStorage.getPrestige(cyclingPrestigeName);
+
 			// Current Prestige Format
 			if (currentPrestigeIndex == prestigesCollection.indexOf(cyclingPrestigeName)) {
+				if (prestige.getIndex() == 1) {
+					Prestige nextPrestige = prestige;
+					Rank lastRank = RankStorage.getLastRank(user.getPathName());
+					String format = StringManager
+							.parseAll(prestigeCurrentFormat.replace("%prestige_name%", lastRank.getName())
+									.replace("%prestige_displayname%", lastRank.getDisplayName())
+									.replace("%nextprestige_name%", nextPrestige.getName())
+									.replace("%nextprestige_displayname%", nextPrestige.getDisplayName())
+									.replace("%nextprestige_cost%", String.valueOf(nextPrestige.getCost()))
+									.replace("%nextprestige_cost_us_format%",
+											EconomyManager.commaFormatWithDecimals(nextPrestige.getCost()))
+									.replace("%nextprestige_cost_formatted%",
+											EconomyManager.shortcutFormat(nextPrestige.getCost())),
+									p);
+					currentPrestiges.add(format);
+				}
 				if (prestige.getNextName() != null) {
 					Prestige nextPrestige = PrestigeStorage.getPrestige(prestige.getNextName());
 					String format = StringManager
@@ -203,15 +228,34 @@ public class RegularPrestigesTextList implements PrestigesTextList {
 									.replace("%nextprestige_name%", prestige.getNextName())
 									.replace("%nextprestige_displayname%", nextPrestige.getDisplayName())
 									.replace("%nextprestige_cost%", String.valueOf(nextPrestige.getCost()))
+									.replace("%nextprestige_cost_us_format%",
+											EconomyManager.commaFormatWithDecimals(nextPrestige.getCost()))
 									.replace("%nextprestige_cost_formatted%",
 											EconomyManager.shortcutFormat(nextPrestige.getCost())),
 									p);
 
 					currentPrestiges.add(format);
 				}
+
 			}
 			// Completed Prestige Format
 			if (currentPrestigeIndex > prestigesCollection.indexOf(cyclingPrestigeName)) {
+				if (prestige.getIndex() == 1) {
+					Prestige nextPrestige = prestige;
+					Rank lastRank = RankStorage.getLastRank(user.getPathName());
+					String format = StringManager
+							.parseAll(prestigeCompletedFormat.replace("%prestige_name%", lastRank.getName())
+									.replace("%prestige_displayname%", lastRank.getDisplayName())
+									.replace("%nextprestige_name%", nextPrestige.getName())
+									.replace("%nextprestige_displayname%", nextPrestige.getDisplayName())
+									.replace("%nextprestige_cost%", String.valueOf(nextPrestige.getCost()))
+									.replace("%nextprestige_cost_us_format%",
+											EconomyManager.commaFormatWithDecimals(nextPrestige.getCost()))
+									.replace("%nextprestige_cost_formatted%",
+											EconomyManager.shortcutFormat(nextPrestige.getCost())),
+									p);
+					completedPrestiges.add(format);
+				}
 				if (prestige.getNextName() != null) {
 					Prestige nextPrestige = PrestigeStorage.getPrestige(prestige.getNextName());
 					String format = StringManager
@@ -220,6 +264,8 @@ public class RegularPrestigesTextList implements PrestigesTextList {
 									.replace("%nextprestige_name%", prestige.getNextName())
 									.replace("%nextprestige_displayname%", nextPrestige.getDisplayName())
 									.replace("%nextprestige_cost%", String.valueOf(nextPrestige.getCost()))
+									.replace("%nextprestige_cost_us_format%",
+											EconomyManager.commaFormatWithDecimals(nextPrestige.getCost()))
 									.replace("%nextprestige_cost_formatted%",
 											EconomyManager.shortcutFormat(nextPrestige.getCost())),
 									p);
@@ -228,6 +274,22 @@ public class RegularPrestigesTextList implements PrestigesTextList {
 			}
 			// Other Prestige Format
 			if (currentPrestigeIndex < prestigesCollection.indexOf(cyclingPrestigeName)) {
+				if (prestige.getIndex() == 1) {
+					Prestige nextPrestige = prestige;
+					Rank lastRank = RankStorage.getLastRank(user.getPathName());
+					String format = StringManager
+							.parseAll(prestigeOtherFormat.replace("%prestige_name%", lastRank.getName())
+									.replace("%prestige_displayname%", lastRank.getDisplayName())
+									.replace("%nextprestige_name%", nextPrestige.getName())
+									.replace("%nextprestige_displayname%", nextPrestige.getDisplayName())
+									.replace("%nextprestige_cost%", String.valueOf(nextPrestige.getCost()))
+									.replace("%nextprestige_cost_us_format%",
+											EconomyManager.commaFormatWithDecimals(nextPrestige.getCost()))
+									.replace("%nextprestige_cost_formatted%",
+											EconomyManager.shortcutFormat(nextPrestige.getCost())),
+									p);
+					otherPrestiges.add(format);
+				}
 				if (prestige.getNextName() != null) {
 					Prestige nextPrestige = PrestigeStorage.getPrestige(prestige.getNextName());
 					String format = StringManager
@@ -236,6 +298,8 @@ public class RegularPrestigesTextList implements PrestigesTextList {
 									.replace("%nextprestige_name%", prestige.getNextName())
 									.replace("%nextprestige_displayname%", nextPrestige.getDisplayName())
 									.replace("%nextprestige_cost%", String.valueOf(nextPrestige.getCost()))
+									.replace("%nextprestige_cost_us_format%",
+											EconomyManager.commaFormatWithDecimals(nextPrestige.getCost()))
 									.replace("%nextprestige_cost_formatted%",
 											EconomyManager.shortcutFormat(nextPrestige.getCost())),
 									p);

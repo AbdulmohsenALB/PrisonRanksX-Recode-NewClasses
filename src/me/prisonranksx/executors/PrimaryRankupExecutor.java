@@ -8,6 +8,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.Nullable;
 
+import me.hsgamer.unihologram.common.line.TextHologramLine;
 import me.prisonranksx.PrisonRanksX;
 import me.prisonranksx.api.PRXAPI;
 import me.prisonranksx.bukkitutils.bukkittickbalancer.BukkitTickBalancer;
@@ -23,7 +24,6 @@ import me.prisonranksx.holders.Level;
 import me.prisonranksx.holders.Rank;
 import me.prisonranksx.holders.TemporaryMaxRankup;
 import me.prisonranksx.holders.User;
-import me.prisonranksx.hooks.IHologram;
 import me.prisonranksx.managers.EconomyManager;
 import me.prisonranksx.managers.HologramManager;
 import me.prisonranksx.managers.StringManager;
@@ -47,10 +47,9 @@ public class PrimaryRankupExecutor implements RankupExecutor {
 
 	public PrimaryRankupExecutor(PrisonRanksX plugin) {
 		this.plugin = plugin;
-		int speed = plugin.getGlobalSettings().getAutoRankupDelay();
 		if (plugin.getGlobalSettings().isHologramsPlugin()) {
 			hologramHeight = plugin.getHologramSettings().getRankupHeight();
-			hologramDelay = plugin.getHologramSettings().getRankupRemoveDelay();
+			hologramDelay = plugin.getHologramSettings().getRankupRemoveDelay() * 20;
 		}
 		setupMaxRankup();
 		setupAutoRankup();
@@ -85,7 +84,7 @@ public class PrimaryRankupExecutor implements RankupExecutor {
 			} else {
 				MAX_RANKUP_BREAKER.add(uniqueId);
 			}
-		}, player -> finishBreakMaxRankup(player), player -> {
+		}, this::finishBreakMaxRankup, player -> {
 			UUID uniqueId = UniqueId.getUUID(player);
 			TemporaryMaxRankup tempHolder = maxRankupData.get(uniqueId);
 			RankupExecutor.removeMaxRankupPlayer(uniqueId);
@@ -112,7 +111,10 @@ public class PrimaryRankupExecutor implements RankupExecutor {
 									.replace("%rankup_display%", rankupResult.getRankResult().getDisplayName()));
 					break;
 				case FAIL_REQUIREMENTS_NOT_MET:
-					Messages.sendMessage(player, rankupResult.getRankResult().getRequirementsMessages());
+					RequirementsComponent requirementsComponent = rankupResult.getRankResult()
+							.getRequirementsComponent();
+					Messages.sendMessages(player, rankupResult.getRankResult().getRequirementsMessages(),
+							s -> requirementsComponent.updateMsg(s));
 					break;
 				default:
 					break;
@@ -426,7 +428,8 @@ public class PrimaryRankupExecutor implements RankupExecutor {
 	@Override
 	public void executeComponents(Level rank, Player player) {
 		// not affected by do sync, still under pseudo async from segmented tasks
-		// when needed, this for delaying only in case a /prx command is executed under
+		// when needed, this is for delaying only in case a /prx command is executed
+		// under
 		// commands
 		plugin.doSyncLater(() -> {
 			String rankName = rank.getName();
@@ -446,6 +449,9 @@ public class PrimaryRankupExecutor implements RankupExecutor {
 			Messages.sendMessage(player, rank.getBroadcastMessages(),
 					s -> StringManager.parseReplacements(s, definition));
 
+			// Permissions Addition and Deletion
+			rank.usePermissionsComponent(component -> component.updatePermissions(player));
+
 			// Console and Player Commands
 			rank.useCommandsComponent(component -> component.dispatchCommands(player,
 					s -> StringManager.parseReplacements(s, definition)));
@@ -457,9 +463,6 @@ public class PrimaryRankupExecutor implements RankupExecutor {
 			// Random Commands
 			rank.useRandomCommandsComponent(component -> component.dispatchCommands(player,
 					s -> StringManager.parseReplacements(s, definition)));
-
-			// Permissions Addition and Deletion
-			rank.usePermissionsComponent(component -> component.updatePermissions(player));
 
 			// Firework
 			rank.useFireworkComponent(component -> BukkitTickBalancer.sync(() -> component.spawnFirework(player)));
@@ -480,16 +483,27 @@ public class PrimaryRankupExecutor implements RankupExecutor {
 
 	public void spawnHologram(Level rank, Player player, boolean async) {
 		if (!plugin.getGlobalSettings().isHologramsPlugin() || !plugin.getHologramSettings().isRankupEnabled()) return;
-		IHologram hologram = HologramManager.createHologram(
-				"prx_" + player.getName() + rank.getName() + UniqueRandom.global().generate(async),
-				player.getLocation().add(0, hologramHeight, 0), async);
-		plugin.getHologramSettings()
-				.getRankupFormat()
-				.forEach(line -> hologram
-						.addLine(StringManager.parsePlaceholders(line.replace("%player%", player.getName())
-								.replace("%nextrank%", rank.getName())
-								.replace("%nextrank_display%", rank.getDisplayName()), player), async));
-		hologram.delete(hologramDelay);
+		// Delay 1 tick in case of teleportation from warp commands.
+		plugin.doSyncLater(() -> {
+			HologramManager
+					.createHologram(
+							"prx_" + player.getName() + "_" + rank.getName() + "_"
+									+ UniqueRandom.global().generate(async),
+							player.getLocation().add(0, hologramHeight, 0))
+					.thenAccept(hologram -> {
+						hologram.init();
+						plugin.getHologramSettings().getRankupFormat().forEach(line -> {
+							hologram.addLine(
+									new TextHologramLine(
+											StringManager.parsePlaceholders(
+													line.replace("%player%", player.getName())
+															.replace("%nextrank%", rank.getName())
+															.replace("%nextrank_display%", rank.getDisplayName()),
+													player)));
+						});
+						plugin.doSyncLater(hologram::clear, hologramDelay);
+					});
+		}, 1);
 	}
 
 	@Override

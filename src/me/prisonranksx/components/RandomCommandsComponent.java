@@ -1,15 +1,15 @@
 package me.prisonranksx.components;
 
 import java.util.List;
+import java.util.NavigableSet;
 import java.util.Optional;
 import java.util.function.Function;
-
-import org.jetbrains.annotations.Nullable;
 
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.Nullable;
 
 import me.prisonranksx.managers.StringManager;
 import me.prisonranksx.utils.ProbabilityCollection;
@@ -55,6 +55,10 @@ public class RandomCommandsComponent extends Component {
 	 */
 	public List<String> chooseRandomCommands() {
 		return randomCommandsCollection.get();
+	}
+
+	public NavigableSet<ProbabilityCollection.ProbabilitySetElement<List<String>>> getCollection() {
+		return randomCommandsCollection.getCollection();
 	}
 
 	/**

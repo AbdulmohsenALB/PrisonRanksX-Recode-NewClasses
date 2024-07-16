@@ -8,11 +8,10 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.function.Predicate;
 
-import org.jetbrains.annotations.Nullable;
-
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.jetbrains.annotations.Nullable;
 
 import com.google.common.collect.Lists;
 
@@ -33,7 +32,7 @@ public class SenileConfigConverter {
 	}
 
 	public boolean checkSenility(Predicate<FileConfiguration> oldConfigPredicate) {
-		return old = oldConfig == null ? false : oldConfigPredicate.test(oldConfig);
+		return old = oldConfig != null && oldConfigPredicate.test(oldConfig);
 	}
 
 	public FileConfiguration getSenileConfig() {
@@ -46,22 +45,21 @@ public class SenileConfigConverter {
 
 	public void addFieldRename(String oldFieldName, String newFieldName) {
 		if (oldFieldName != null && newFieldName != null && oldConfig.contains(oldFieldName))
-			conversions.put(new AbstractMap.SimpleEntry<String, String>(oldFieldName, newFieldName), "field-rename");
+			conversions.put(new AbstractMap.SimpleEntry<>(oldFieldName, newFieldName), "field-rename");
 	}
 
 	public void addConfigurationSectionRename(String oldSectionName, String newSectionName) {
 		if (oldSectionName != null && newSectionName != null
 				&& oldConfig.getConfigurationSection(oldSectionName) != null)
-			conversions.put(new AbstractMap.SimpleEntry<String, String>(oldSectionName, newSectionName),
-					"section-rename");
+			conversions.put(new AbstractMap.SimpleEntry<>(oldSectionName, newSectionName), "section-rename");
 	}
 
 	public void addStringUpdate(String fieldName, String newValue) {
-		conversions.put(new AbstractMap.SimpleEntry<String, String>(fieldName, newValue), "string-update");
+		conversions.put(new AbstractMap.SimpleEntry<>(fieldName, newValue), "string-update");
 	}
 
 	public SenileConfigConverter addAnyStringReplaceUpdate(String sectionName, String contains, String replaceWith) {
-		conversions.put(new AbstractMap.SimpleEntry<String, String>(sectionName, contains + "$$" + replaceWith),
+		conversions.put(new AbstractMap.SimpleEntry<>(sectionName, contains + "$$" + replaceWith),
 				"string-replace-update");
 		return this;
 	}
@@ -74,9 +72,8 @@ public class SenileConfigConverter {
 	public <T> void addConditionToBoolean(T t, Predicate<T> condition, String booleanField) {
 		if (condition != null && t != null && booleanField != null) {
 			boolean check = condition.test(t);
-			if (check)
-				conversions.put(new AbstractMap.SimpleEntry<String, String>(booleanField, Boolean.toString(check)),
-						"condition-boolean");
+			if (check) conversions.put(new AbstractMap.SimpleEntry<>(booleanField, Boolean.toString(check)),
+					"condition-boolean");
 		}
 	}
 

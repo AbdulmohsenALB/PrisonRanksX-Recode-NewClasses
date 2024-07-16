@@ -1,10 +1,6 @@
 package me.prisonranksx.managers;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 
@@ -33,7 +29,7 @@ public class ActionBarManager extends StaticCache {
 		ACTION_BAR_PROGRESS.setup(plugin);
 	}
 
-	public ActionBarProgress getActionBarProgress() {
+	public static ActionBarProgress getActionBarProgress() {
 		return ACTION_BAR_PROGRESS;
 	}
 
@@ -182,7 +178,7 @@ public class ActionBarManager extends StaticCache {
 
 		public void disable(Player p) {
 			players.remove(p.getUniqueId());
-			if (players.size() == 0 && isTaskOn) {
+			if (players.isEmpty() && isTaskOn) {
 				isTaskOn = false;
 				scheduler.cancel();
 			}
@@ -204,7 +200,7 @@ public class ActionBarManager extends StaticCache {
 
 		@SuppressWarnings("deprecation")
 		public boolean isHoldingPickaxe(Player player) {
-			return player == null || !player.isOnline() ? false : pickaxes.contains(player.getItemInHand().getType());
+			return player != null && player.isOnline() && pickaxes.contains(player.getItemInHand().getType());
 		}
 
 		private void startProgressTask() {

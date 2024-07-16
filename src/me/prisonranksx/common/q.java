@@ -3,11 +3,20 @@ package me.prisonranksx.common;
 import java.util.function.Function;
 
 import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
+
+import me.prisonranksx.managers.StringManager;
 
 public class q {
 
 	public static void msg(String msg) {
 		Bukkit.broadcastMessage(msg);
+	}
+
+	public static void sendToOps(String s) {
+		for (OfflinePlayer offlinePlayer : Bukkit.getOperators()) {
+			if (offlinePlayer.isOnline()) offlinePlayer.getPlayer().sendMessage(StringManager.parseColors("&c" + s));
+		}
 	}
 
 	public static void bcn(String s, Object obj) {

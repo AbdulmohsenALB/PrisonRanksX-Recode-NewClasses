@@ -93,6 +93,10 @@ public class UniversalPrestige extends Prestige {
 		return nextPrestige > PrestigeStorage.getLastPrestigeAsNumber() ? null : String.valueOf(nextPrestige);
 	}
 
+	public Prestige getNextPrestige() {
+		return PrestigeStorage.getPrestige(getNumber() + 1);
+	}
+
 	@Override
 	public void setNextPrestigeName(String nextPrestigeName) {
 		this.nextPrestigeName = nextPrestigeName;
@@ -252,6 +256,13 @@ public class UniversalPrestige extends Prestige {
 	@Override
 	public void setNumber(long number) {
 		this.number = number;
+		name = String.valueOf(number);
+	}
+
+	public UniversalPrestige clone() {
+		return new UniversalPrestige(name, displayName, nextPrestigeName, cost, broadcastMessages, messages,
+				commandsComponent, requirementsComponent, actionBarComponent, permissionsComponent, fireworkComponent,
+				randomCommandsComponent, requirementsMessages, costIncrease);
 	}
 
 	public boolean isMultiAccess() {

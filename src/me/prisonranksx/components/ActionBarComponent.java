@@ -1,12 +1,12 @@
 package me.prisonranksx.components;
 
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.function.Function;
-
-import org.jetbrains.annotations.Nullable;
 
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.Nullable;
 
 import me.prisonranksx.managers.ActionBarManager;
 import me.prisonranksx.managers.StringManager;
@@ -14,7 +14,7 @@ import me.prisonranksx.settings.GlobalSettings;
 
 public class ActionBarComponent extends Component {
 
-	private IActionBarSender actionBarSender;
+	private ActionBarSender actionBarSender;
 
 	public ActionBarComponent(List<String> actionBarMessages) {
 		this(actionBarMessages, 20);
@@ -69,11 +69,11 @@ public class ActionBarComponent extends Component {
 		actionBarSender.send(player);
 	}
 
-	public IActionBarSender getActionBarSender() {
+	public ActionBarSender getActionBarSender() {
 		return actionBarSender;
 	}
 
-	private static interface IActionBarSender {
+	public interface ActionBarSender {
 
 		void send(Player player);
 
@@ -81,9 +81,17 @@ public class ActionBarComponent extends Component {
 
 		int getInterval();
 
+		/**
+		 * Uses consumer only if messages are not null. Applies on one message if
+		 * actionbar is not animated.
+		 * 
+		 * @param messageConsumer to apply on string.
+		 */
+		void forEachMessage(Consumer<String> messageConsumer);
+
 	}
 
-	public static class AnimatedActionBarSender implements IActionBarSender {
+	public static class AnimatedActionBarSender implements ActionBarSender {
 
 		private List<String> messages;
 		private int interval;
@@ -108,13 +116,18 @@ public class ActionBarComponent extends Component {
 			return interval;
 		}
 
+		@Override
+		public void forEachMessage(Consumer<String> messageConsumer) {
+			if (messages != null) messages.forEach(messageConsumer);
+		}
+
 		public List<String> getMessages() {
 			return messages;
 		}
 
 	}
 
-	public static class StaticActionBarSender implements IActionBarSender {
+	public static class StaticActionBarSender implements ActionBarSender {
 
 		private String message;
 
@@ -139,6 +152,11 @@ public class ActionBarComponent extends Component {
 
 		public String getMessage() {
 			return message;
+		}
+
+		@Override
+		public void forEachMessage(Consumer<String> messageConsumer) {
+			if (message != null) messageConsumer.accept(message);
 		}
 
 	}
