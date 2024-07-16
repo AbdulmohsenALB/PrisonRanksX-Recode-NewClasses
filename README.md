@@ -11,5 +11,6 @@
  - More GUI click actions & more customizability.
  - Animated GUI title.
  - More storage types.
+ - Convert between storage types.
  - [Planned] Direct Bungeecord support.
- - [Planned] Convert between storage types.
+
