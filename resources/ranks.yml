@@ -61,7 +61,7 @@ Ranks:
       # - [console] executes a command as a console
       # - [player] executes a command as a player
       # =========================================
-      # Note: PlaceholderAPI placeholders are supported.
+      # PlaceholderAPI placeholders are supported.
       commands:
       - "[console] give %player% diamond 1"
       - "[player] warp %rankup%"
@@ -89,17 +89,16 @@ Ranks:
       # * Checks if 50 is less than 50 or equal to it
       # Simple Condition Script: "[script] 12>10||15<20"
       # * Checks if 12 is greater than 10, or 15 is less than 20
-      # * This is similar to JavaScript format, see the WIKI for more information.
       # Remove the # to use the below example for requirements.
       # ================================================
       # requirements:
       # - "%ezblocks_blocks%>>5000"
       # - "%vault_group%->Admin"
-      # - "[script] %player_health%==18||%player_health%==20"
+      # - "[script] %player_name%==Notch||%player_name%==jeb_"
       # requirements-fail-message:
       # - "&cYou did not meet one of the following requirements:"
       # - "&3- &65000 &ablocks"
-      # - "&3- &620 &3or &618 &ahealth"
+      # - "&3- &6name is Notch or jeb_"
       # - "&3- &6Admin &agroup"
       # ================================================
       # Random commands with chances.
@@ -109,13 +108,13 @@ Ranks:
           chance: 70
           commands:
           # prx msg is a special command that sends a color-able message without a prefix to the player
-          - "prx msg %player% You won a dirt block."
-          - "give %player% dirt 1"
+          - "prx msg %player% You won 64x dirt blocks."
+          - "give %player% dirt 64"
         '2':
           chance: 20
           commands:
-          - "prx msg %player% You won an emerald."
-          - "give %player% emerald 1"
+          - "prx msg %player% You won 1x diamond."
+          - "give %player% diamond 1"
         '3':
           chance: 10
           commands:
@@ -140,7 +139,12 @@ Ranks:
       - "essentials.warps.B"
       delete-permissions:
       - "essentials.warps.A"
-      # Firework that shows up when you rankup
+      # ================================================
+      # allow-prestige: true
+      # >>> You will be able to prestige at this rank if this is set to true. Remove the # to enable.
+      # ================================================
+      # Firework that gets summoned when you rankup
+      # Delete the firework section to disable it.
       firework:
         flicker: true
         trail: true

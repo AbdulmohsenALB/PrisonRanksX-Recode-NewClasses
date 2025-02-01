@@ -5,13 +5,10 @@ import me.prisonranksx.PrisonRanksX;
 import me.prisonranksx.api.PRXAPI;
 import me.prisonranksx.bukkitutils.Colorizer;
 import me.prisonranksx.bukkitutils.Confirmation;
-import me.prisonranksx.bukkitutils.FireworkColor;
 import me.prisonranksx.bukkitutils.bukkittickbalancer.BukkitTickBalancer;
 import me.prisonranksx.bukkitutils.bukkittickbalancer.ConcurrentTask;
-import me.prisonranksx.components.*;
 import me.prisonranksx.data.*;
 import me.prisonranksx.holders.Rank;
-import me.prisonranksx.holders.User;
 import me.prisonranksx.managers.ConfigManager;
 import me.prisonranksx.managers.MySQLManager;
 import me.prisonranksx.managers.StringManager;
@@ -19,7 +16,6 @@ import me.prisonranksx.reflections.UniqueId;
 import me.prisonranksx.settings.Messages;
 import me.prisonranksx.utils.InitHashMaps;
 import me.prisonranksx.utils.NumParser;
-import me.prisonranksx.utils.ProbabilityCollection;
 import me.prisonranksx.utils.Scrif;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -28,7 +24,10 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
 
-import java.util.*;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -208,7 +207,7 @@ public class PRXCommand extends PluginCommand {
                 if (!(sender instanceof Player)) return false;
                 action.accept((Player) sender);
                 break;
-            case "@p": // closest player to sender, regardless if it's a command block or a player
+            case "@p": // closest player to sender
                 if (sender instanceof ConsoleCommandSender) return false;
                 Location senderLocation = sender instanceof Player ? ((Player) sender).getLocation()
                         : ((BlockCommandSender) sender).getBlock().getLocation();
@@ -433,113 +432,13 @@ public class PRXCommand extends PluginCommand {
                         String rankName = testRankName(sender, args[1], RankStorage.getDefaultPath());
                         if (rankName == null) return true;
                         Rank rank = RankStorage.getRank(rankName, RankStorage.getDefaultPath());
-
-                        sendMsg(sender, "-- RANK INFO --");
-                        long playersCount = Bukkit.getOnlinePlayers().stream().filter(player -> {
-                            User user = plugin.getUserController().getUser(UniqueId.getUUID(player));
-                            return Objects.equals(user.getRankName(), rankName);
-                        }).count();
-                        sendMsg(sender, "&7Amount of online players with this rank: &f" + playersCount);
-                        sendMsg(sender, "&7Index: &f" + rank.getIndex());
-                        sendMsg(sender, "&7Name: &f" + rank.getName());
-                        sendMsg(sender, "&7Path: &f" + RankStorage.getDefaultPath());
-                        sendMsg(sender, "&7Cost: &f" + rank.getCost());
-                        sendMsg(sender, "&7Display: &f" + rank.getDisplayName());
-                        sendMsg(sender, "&7Next Rank: &f" + rank.getNextName());
-                        sendMsg(sender, "&7Is allow prestige: &f" + rank.isAllowPrestige());
-
-                        List<String> broadcastMsgs = rank.getBroadcastMessages();
-                        sendMsg(sender,
-                                broadcastMsgs == null ? "&7&mBroadcast Messages:&f none" : "&7Broadcast Messages:");
-                        if (broadcastMsgs != null) broadcastMsgs.forEach(msg -> sendMsg(sender, "&r" + msg));
-
-                        List<String> messages = rank.getMessages();
-                        sendMsg(sender, messages == null ? "&7&mMessages:&f none" : "&7Messages:");
-                        if (messages != null) messages.forEach(msg -> sendMsg(sender, "&r" + msg));
-
-                        CommandsComponent commandsComponent = rank.getCommandsComponent();
-                        sendMsg(sender, commandsComponent == null ? "&7&mCommands:&f none" : "&7Commands:");
-                        if (commandsComponent != null) {
-                            List<String> console = commandsComponent.getConsoleCommands();
-                            if (console != null)
-                                console.forEach(command -> sendMsg(sender, "&f[console] &a" + command));
-                            List<String> player = commandsComponent.getPlayerCommands();
-                            if (player != null) player.forEach(command -> sendMsg(sender, "&f[player] &e" + command));
-                        }
-
-                        ActionBarComponent actionBarComponent = rank.getActionBarComponent();
-                        sendMsg(sender, actionBarComponent == null ? "&7&mAction Bar:&f none" : "&7Action Bar:");
-                        if (actionBarComponent != null) {
-                            sendMsg(sender, "&r Interval: &r" + actionBarComponent.getActionBarSender().getInterval());
-                            actionBarComponent.getActionBarSender().forEachMessage(m -> sendMsg(sender, "&r" + m));
-                        }
-
-                        PermissionsComponent permissionsComponent = rank.getPermissionsComponent();
-                        sendMsg(sender, permissionsComponent == null ? "&7&mPermissions:&f none" : "&7Permissions:");
-                        if (permissionsComponent != null) {
-                            Set<String> add = permissionsComponent.getAddPermissionCollection();
-                            Set<String> del = permissionsComponent.getDelPermissionCollection();
-                            if (add != null) add.forEach(permission -> sendMsg(sender, "&7+ &a" + permission));
-                            if (del != null) del.forEach(permission -> sendMsg(sender, "&7- &c" + permission));
-                        }
-                        RandomCommandsComponent randomCommandsComponent = rank.getRandomCommandsComponent();
-                        sendMsg(sender,
-                                randomCommandsComponent == null ? "&7&mRandom Commands:&f none" : "&7Random Commands:");
-                        if (randomCommandsComponent != null) {
-                            NavigableSet<ProbabilityCollection.ProbabilitySetElement<List<String>>> collection = randomCommandsComponent
-                                    .getCollection();
-                            if (collection != null) {
-                                collection.forEach(probabilitySetElement -> {
-                                    sendMsg(sender, " &rChance: " + probabilitySetElement.getProbability() + " %");
-                                    sendMsg(sender, " &rCommands: " + probabilitySetElement.getObject());
-                                });
-                            }
-                        }
-                        RequirementsComponent requirementsComponent = rank.getRequirementsComponent();
-                        sendMsg(sender, requirementsComponent == null ? "&7&mRequirements:&f none" : "&7Requirements:");
-                        if (requirementsComponent != null) {
-                            Map<String, String> equalRequirements = requirementsComponent.getEqualRequirements();
-                            if (equalRequirements != null)
-                                equalRequirements.forEach((k, v) -> sendMsg(sender, "&fEqual: " + k + "&a->&f" + v));
-                            Map<String, String> notEqualRequirements = requirementsComponent.getNotEqualRequirements();
-                            if (notEqualRequirements != null) notEqualRequirements
-                                    .forEach((k, v) -> sendMsg(sender, "&fNot Equal: " + k + "&c<-&f" + v));
-                            Map<String, Double> greaterThanRequirements = requirementsComponent
-                                    .getGreaterThanRequirements();
-                            if (greaterThanRequirements != null) greaterThanRequirements
-                                    .forEach((k, v) -> sendMsg(sender, "&fGreater Than: " + k + "&a>>&f" + v));
-                            Map<String, Double> lessThanRequirements = requirementsComponent.getLessThanRequirements();
-                            if (lessThanRequirements != null) lessThanRequirements
-                                    .forEach((k, v) -> sendMsg(sender, "&fLess Than: " + k + "&c<<&f" + v));
-                            Map<Scrif, List<String>> scriptRequirements = requirementsComponent.getScriptRequirements();
-                            if (scriptRequirements != null) scriptRequirements.forEach(
-                                    (k, v) -> sendMsg(sender, "&fScript: " + k.getScript() + " Placeholders: " + v));
-
-                        }
-                        List<String> requirementsMessages = rank.getRequirementsMessages();
-                        sendMsg(sender, requirementsMessages == null ? "&7&mRequirements Messages:&f none"
-                                : "&7Requirements Messages:");
-                        if (requirementsMessages != null) {
-                            requirementsMessages.forEach(msg -> sendMsg(sender, "&r" + msg));
-                            Messages.sendMessages(sender, requirementsMessages,
-                                    l -> RequirementsComponent.updateMsg(l, requirementsComponent));
-                        }
-                        FireworkComponent fireworkComponent = rank.getFireworkComponent();
-                        sendMsg(sender, fireworkComponent == null ? "&7&mFirework:&f none" : "&7Firework:");
-
-                        if (fireworkComponent != null) {
-                            sendMsg(sender, " Power: " + fireworkComponent.getPower());
-                            fireworkComponent.getFireworkEffects().forEach(effect -> {
-                                sendMsg(sender, " Type: " + effect.getType().name());
-                                sendMsg(sender, " Colors: " + FireworkColor.stringify(effect.getColors()));
-                                sendMsg(sender, " FadeColors: " + FireworkColor.stringify(effect.getFadeColors()));
-                                sendMsg(sender, " Flicker: " + effect.hasFlicker());
-                                sendMsg(sender, " Trail: " + effect.hasTrail());
-                            });
-                        }
+                        plugin.getAdminExecutor().displayRankInfo(sender, rank);
                         return true;
-                    case TEST: return true;
-                    case TEST_2: return true;
+                    case TEST: {
+                        return true;
+                    }
+                    case TEST_2:
+                        return true;
                     case CONVERT:
                         switch (args[1].toUpperCase()) {
                             case "MYSQL":
@@ -779,6 +678,9 @@ public class PRXCommand extends PluginCommand {
                         Messages.sendMessage(sender, Messages.getSetRankDisplay(), s -> s.replace("%args1%", rankName)
                                 .replace("%args2%", StringManager.parseColors(displayName)));
                         return true;
+                    case CALCULATE:
+                        return sendMsg(sender,
+                                "Result: " + Scrif.evaluateMathExpression(StringManager.getArgs(args, 2).toLowerCase().replace("x", "*")));
                     case _EXTERNAL_:
                         externalCommands.get(args[0]).accept(args);
                         return true;

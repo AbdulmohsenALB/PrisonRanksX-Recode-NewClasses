@@ -175,8 +175,9 @@ Ranks-List-Options:
   rank-per-page: 9
   # ============================================================================================================================================================================
   # This is how the players will see the ranks list in the game.
+  # rank current, completed and other format will take place in this list replacing [rankslist].
   # Removing [rankslist] line, will allow the list to become a custom list in which you can put anything you want.
-  # However, rank per page will count the text lines (header+footer) as ranks if you removed the [rankslist] line, so you may consider increasing it.
+  # However, rank-per-page will count the text lines (header+footer) as ranks if you removed the [rankslist] line, so you may consider increasing it.
   # Also, you can use PlaceholderAPI placeholders here.
   # ============================================================================================================================================================================
   rank-with-pages-list-format:
@@ -285,6 +286,7 @@ Prestige-Options:
   # The global rankup cost increase percentage. If you want to disable this, set it to 0. Enabling this, will override the increase percentage in prestiges.yml.
   rank-cost-increase-percentage: 0.0
   # This expression is used for both the one above, and the one in prestiges.yml
+  # This option is for increasing rank costs when a player has a prestige.
   # Available Placeholders: {rank_cost}, {increase_percentage}, {prestige_number}
   increase-expression: "{increase_percentage} * ({rank_cost} / 100)"
   # True: removes all permissions that you have taken from 'add-permission:' of all ranks when you prestige 
@@ -308,6 +310,7 @@ Rebirth-Options:
   reset-prestige: false
   delete-prestige: true
   prestige-cost-increase-percentage: 0
+  # This option is for increasing prestige costs when player has a rebirth.
   # Placeholders: {prestige_cost}, {rebirth_number}, {increase_percentage}
   increase-expression: "{increase_percentage} * ({prestige_cost} / 100)"
   remove-rank-permissions-on-rebirth: true

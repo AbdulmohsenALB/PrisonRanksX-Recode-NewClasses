@@ -1,90 +1,87 @@
 package me.prisonranksx.holders;
 
-import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
-
+import me.prisonranksx.executors.RebirthExecutor;
 import org.jetbrains.annotations.NotNull;
 
-import me.prisonranksx.executors.RebirthExecutor;
+import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * Used to track player max rebirth data during max rebirth process.
  */
 public class TemporaryMaxRebirth {
 
-	private UUID uniqueId;
-	private double takenBalance;
+    private double takenBalance;
 
-	private long rebirths;
+    private long rebirths;
 
-	private CompletableFuture<RebirthExecutor.RebirthResult> finalRebirthResult;
+    private CompletableFuture<RebirthExecutor.RebirthResult> finalRebirthResult;
 
-	private RebirthExecutor.RebirthResult currentRebirthResult;
+    private RebirthExecutor.RebirthResult currentRebirthResult;
 
-	private String firstRebirthName;
+    private String firstRebirthName;
 
-	private String firstRebirthDisplayName;
+    private String firstRebirthDisplayName;
 
-	public TemporaryMaxRebirth(UUID uniqueId) {
-		this.uniqueId = uniqueId;
-	}
+    public TemporaryMaxRebirth(UUID uniqueId) {
+    }
 
-	public static TemporaryMaxRebirth hold(UUID uniqueId) {
-		return new TemporaryMaxRebirth(uniqueId);
-	}
+    public static TemporaryMaxRebirth hold(UUID uniqueId) {
+        return new TemporaryMaxRebirth(uniqueId);
+    }
 
-	public double getTakenBalance() {
-		return takenBalance;
-	}
+    public double getTakenBalance() {
+        return takenBalance;
+    }
 
-	public TemporaryMaxRebirth setTakenBalance(double takenBalance) {
-		this.takenBalance = takenBalance;
-		return this;
-	}
+    public TemporaryMaxRebirth setTakenBalance(double takenBalance) {
+        this.takenBalance = takenBalance;
+        return this;
+    }
 
-	public long getRebirths() {
-		return rebirths;
-	}
+    public long getRebirths() {
+        return rebirths;
+    }
 
-	public TemporaryMaxRebirth setRebirths(long rebirths) {
-		this.rebirths = rebirths;
-		return this;
-	}
+    public TemporaryMaxRebirth setRebirths(long rebirths) {
+        this.rebirths = rebirths;
+        return this;
+    }
 
-	@NotNull
-	public CompletableFuture<RebirthExecutor.RebirthResult> getFinalRebirthResult() {
-		return finalRebirthResult == null ? finalRebirthResult = new CompletableFuture<>() : finalRebirthResult;
-	}
+    @NotNull
+    public CompletableFuture<RebirthExecutor.RebirthResult> getFinalRebirthResult() {
+        return finalRebirthResult == null ? finalRebirthResult = new CompletableFuture<>() : finalRebirthResult;
+    }
 
-	public void setFinalRebirthResult(CompletableFuture<RebirthExecutor.RebirthResult> finalRebirthResult) {
-		this.finalRebirthResult = finalRebirthResult;
-	}
+    public void setFinalRebirthResult(CompletableFuture<RebirthExecutor.RebirthResult> finalRebirthResult) {
+        this.finalRebirthResult = finalRebirthResult;
+    }
 
-	public String getFirstRebirthName() {
-		return firstRebirthName;
-	}
+    public String getFirstRebirthName() {
+        return firstRebirthName;
+    }
 
-	public TemporaryMaxRebirth setFirstRebirthName(String firstRebirthName) {
-		this.firstRebirthName = firstRebirthName;
-		return this;
-	}
+    public TemporaryMaxRebirth setFirstRebirthName(String firstRebirthName) {
+        this.firstRebirthName = firstRebirthName;
+        return this;
+    }
 
-	public String getFirstRebirthDisplayName() {
-		return firstRebirthDisplayName;
-	}
+    public String getFirstRebirthDisplayName() {
+        return firstRebirthDisplayName;
+    }
 
-	public TemporaryMaxRebirth setFirstRebirthDisplayName(String firstRebirthDisplayName) {
-		this.firstRebirthDisplayName = firstRebirthDisplayName;
-		return this;
-	}
+    public TemporaryMaxRebirth setFirstRebirthDisplayName(String firstRebirthDisplayName) {
+        this.firstRebirthDisplayName = firstRebirthDisplayName;
+        return this;
+    }
 
-	public RebirthExecutor.RebirthResult getCurrentRebirthResult() {
-		return currentRebirthResult;
-	}
+    public RebirthExecutor.RebirthResult getCurrentRebirthResult() {
+        return currentRebirthResult;
+    }
 
-	public TemporaryMaxRebirth setCurrentRebirthResult(RebirthExecutor.RebirthResult currentRebirthResult) {
-		this.currentRebirthResult = currentRebirthResult;
-		return this;
-	}
+    public TemporaryMaxRebirth setCurrentRebirthResult(RebirthExecutor.RebirthResult currentRebirthResult) {
+        this.currentRebirthResult = currentRebirthResult;
+        return this;
+    }
 
 }

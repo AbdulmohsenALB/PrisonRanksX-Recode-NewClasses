@@ -1,11 +1,3 @@
-/*
- * Why this?
- * Nashron library is too big for a plugin.
- * All I want is basic JavaScript condition format.
- * No dependencies.
- * Single class.
- * Cached conditions.
- */
 package me.prisonranksx.utils;
 
 import org.jetbrains.annotations.NotNull;

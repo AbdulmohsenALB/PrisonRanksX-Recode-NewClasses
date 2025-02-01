@@ -19,7 +19,17 @@ repositories {
     maven { url = 'https://jitpack.io' }
     maven { url = 'https://repo.codemc.io/repository/maven-public/' }
     maven { url = 'https://repo.papermc.io/repository/maven-public/' }
-
+    maven {
+        url = 'https://repo.extendedclip.com/releases/'
+    }
+    maven {
+        name "essentialsx-releases"
+        url "https://repo.essentialsx.net/releases/"
+    }
+    maven {
+        name "papermc"
+        url "https://papermc.io/repo/repository/maven-public/"
+    }
     flatDir {
         dirs 'libs'
         dirs 'resources'
@@ -90,12 +100,13 @@ dependencies {
 
     compileOnly "com.github.MilkBowl:VaultAPI:1.7"
     compileOnly fileTree(dir: 'libs', include: ['*.jar'])
-    compileOnly 'me.clip:placeholderapi:2.11.3'
+    compileOnly 'me.clip:placeholderapi:2.11.6'
     compileOnly 'com.github.decentsoftware-eu:decentholograms:2.8.3'
     compileOnly 'net.luckperms:api:5.4'
     compileOnly 'com.github.ElgarL:groupmanager:3.2'
     compileOnly 'me.filoghost.holographicdisplays:holographicdisplays-api:3.0.0'
     compileOnly 'org.spigotmc:spigot-api:1.16.5-R0.1-SNAPSHOT'
+    compileOnly 'net.essentialsx:EssentialsX:2.20.1'
 
 }
 

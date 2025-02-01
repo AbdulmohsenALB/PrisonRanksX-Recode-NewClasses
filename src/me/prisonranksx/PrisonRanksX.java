@@ -23,6 +23,8 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitScheduler;
 import org.bukkit.scheduler.BukkitTask;
 
+import java.util.Objects;
+
 /**
  * Plugin main class.
  */
@@ -141,6 +143,9 @@ public class PrisonRanksX extends JavaPlugin {
     private RebirthsTextList rebirthsTextList;
     private RebirthsGUIList rebirthsGUIList;
 
+    // Hooks
+    private PlaceholderAPIHook placeholderAPIHook;
+
     @Override
     public void onEnable() {
         instance = this;
@@ -156,17 +161,10 @@ public class PrisonRanksX extends JavaPlugin {
         PermissionsManager.cache(); // Vault permissions.
         MySQLManager.cache(); // A check is inside the class to determine whether MySQL should be enabled or
         // not.
-        try {
-            Class.forName("me.prisonranksx.executors.InfinitePrestigeExecutor");
-        } catch (ClassNotFoundException e) {
-            throw new RuntimeException(e);
-        }
 
-        globalSettings = new GlobalSettings();
-        userController = getDataStorageType() == UserControllerType.MYSQL ? new MySQLUserController(this)
-                : getDataStorageType() == UserControllerType.YAML_PER_USER ? new YamlPerUserController(this)
-                : new YamlUserController(this);
-        logNeutral("Data storage type: " + userController.getType().name());
+        initGlobalSettings();
+        initUserController();
+        logInfo("Data storage type: " + userController.getType().name());
         playerGroupUpdater = new PlayerGroupUpdater(this);
 
         registerListeners();
@@ -181,8 +179,13 @@ public class PrisonRanksX extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        CommandLoader.unregisterCommand(prxCommand, rankupCommand, ranksCommand);
-        userController.saveUsers(true).thenRun(() -> log("Data saved.")).exceptionally(throwable -> {
+        CommandLoader.unregisterCommand(prxCommand, rankupCommand, ranksCommand, prestigeCommand);
+        userController.saveUsers(true).thenRun(() -> log("Data saved.")).thenRunAsync(() -> {
+            userController.unloadUsers();
+            if (prestigeExecutor != null) prestigeExecutor.stopTasks();
+            if (rankupExecutor != null) rankupExecutor.stopTasks();
+            if (rebirthExecutor != null) rebirthExecutor.stopTasks();
+        }).exceptionally(throwable -> {
             logSevere("Failed to save data. Please report the stack trace below to the developer.");
             throwable.printStackTrace();
             return null;
@@ -191,12 +194,14 @@ public class PrisonRanksX extends JavaPlugin {
 
     public void prepareHooks() {
         if (StringManager.isPlaceholderAPI()) {
-            logNeutral("Loading PlaceholderAPI placeholders...");
+            logInfo("Loading PlaceholderAPI placeholders...");
             placeholderAPISettings = new PlaceholderAPISettings();
-            PlaceholderAPIHook placeholderAPIHook = new PlaceholderAPIHook();
-
-            // load placeholders here.
-            log("PlaceholderAPI placeholders are ready to use! '/papi ecloud' is not needed.");
+            placeholderAPIHook = new PlaceholderAPIHook(this);
+            if (placeholderAPIHook.register()) {
+                log("PlaceholderAPI placeholders are ready to use! '/papi ecloud' is not needed.");
+            } else {
+                logWarning("Failed to load PlaceholderAPI placeholders.");
+            }
         } else if (globalSettings.isMvdwPlaceholderAPILoaded()) {
             placeholderAPISettings = new PlaceholderAPISettings();
             // load placeholders here.
@@ -297,10 +302,13 @@ public class PrisonRanksX extends JavaPlugin {
                 rebirthCommand = new RebirthCommand(this);
                 rebirthCommand.register();
             }
-            if (AutoRebirthCommand.isEnabled()) {
-                // autoRebirthCommand = new AutoRebirthCommand(this);
-                // autoRebirthCommand.register();
-            }
+            // Not needed
+            /**
+             if (AutoRebirthCommand.isEnabled()) {
+             // autoRebirthCommand = new AutoRebirthCommand(this);
+             // autoRebirthCommand.register();
+             }
+             */
             if (RebirthsCommand.isEnabled()) {
                 rebirthsCommand = new RebirthsCommand(this);
                 rebirthsCommand.register();
@@ -324,7 +332,7 @@ public class PrisonRanksX extends JavaPlugin {
         CONSOLE.sendMessage(PREFIX + " §a" + message);
     }
 
-    public static void logNeutral(String message) {
+    public static void logInfo(String message) {
         CONSOLE.sendMessage(PREFIX + " §7" + message);
     }
 
@@ -333,14 +341,16 @@ public class PrisonRanksX extends JavaPlugin {
     }
 
     public static void logSevere(String message) {
-        CONSOLE.sendMessage(PREFIX + " §4[!] §c" + StringManager.parseColors(message));
-        for (OfflinePlayer offlinePlayer : Bukkit.getOperators()) {
-            if (offlinePlayer.isOnline())
-                offlinePlayer.getPlayer().sendMessage(StringManager.parseColors(PREFIX + " §4[!] §c" + message));
-        }
+        String formattedMessage = StringManager.parseColors(PREFIX + " §4[!] §c" + message);
+        CONSOLE.sendMessage(formattedMessage);
+        Bukkit.getOperators().stream()
+                .filter(OfflinePlayer::isOnline)
+                .map(OfflinePlayer::getPlayer)
+                .filter(Objects::nonNull)
+                .forEach(player -> player.sendMessage(formattedMessage));
     }
 
-    public BukkitTask doSyncLater(Runnable runnable, int delay) {
+    public BukkitTask doSyncLater(Runnable runnable, long delay) {
         return SCHEDULER.runTaskLater(this, runnable, delay);
     }
 
@@ -352,7 +362,7 @@ public class PrisonRanksX extends JavaPlugin {
         return SCHEDULER.runTask(instance, runnable);
     }
 
-    public BukkitTask doSyncRepeating(Runnable runnable, int delay, int speed) {
+    public BukkitTask doSyncRepeating(Runnable runnable, long delay, long speed) {
         return SCHEDULER.runTaskTimer(this, runnable, delay, speed);
     }
 
@@ -364,11 +374,11 @@ public class PrisonRanksX extends JavaPlugin {
         return SCHEDULER.runTaskAsynchronously(instance, runnable);
     }
 
-    public BukkitTask doAsyncRepeating(Runnable runnable, int delay, int speed) {
+    public BukkitTask doAsyncRepeating(Runnable runnable, long delay, long speed) {
         return SCHEDULER.runTaskTimerAsynchronously(this, runnable, delay, speed);
     }
 
-    public BukkitTask doAsyncLater(Runnable runnable, int delay) {
+    public BukkitTask doAsyncLater(Runnable runnable, long delay) {
         return SCHEDULER.runTaskLaterAsynchronously(this, runnable, delay);
     }
 
@@ -378,6 +388,14 @@ public class PrisonRanksX extends JavaPlugin {
 
     public BukkitTask doTask(boolean async, Runnable runnable) {
         return async ? doAsync(runnable) : doSync(runnable);
+    }
+
+    public BukkitTask doTaskLater(boolean async, Runnable runnable) {
+        return async ? doAsyncLater(runnable, 1) : doSyncLater(runnable, 1);
+    }
+
+    public BukkitTask doTaskLater(boolean async, Runnable runnable, long delay) {
+        return async ? doAsyncLater(runnable, delay) : doSyncLater(runnable, delay);
     }
 
     public GlobalSettings getGlobalSettings() {
@@ -492,6 +510,20 @@ public class PrisonRanksX extends JavaPlugin {
 
     public void initGlobalSettings() {
         globalSettings = new GlobalSettings();
+    }
+
+    public void initUserController() {
+        switch (getDataStorageType()) {
+            case MYSQL:
+                userController = new MySQLUserController(this);
+                break;
+            case YAML_PER_USER:
+                userController = new YamlPerUserController(this);
+                break;
+            default:
+                userController = new YamlUserController(this);
+                break;
+        }
     }
 
     public boolean isRankEnabled() {

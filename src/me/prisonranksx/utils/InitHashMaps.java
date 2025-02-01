@@ -1,9 +1,6 @@
 package me.prisonranksx.utils;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
@@ -159,6 +156,26 @@ public class InitHashMaps<K, V> {
         Map<K, V> map = new HashMap<>();
         for (int i = 0; i < obj.length; i += 2) {
             map.put((K) obj[i], (V) obj[i + 1]);
+        }
+        return map;
+    }
+
+    public static <K, V> Map<K, V> ofIndexFunctions(int size, Function<Integer, K> kIndexFunction, Function<Integer, V> vIndexFunction) {
+        return ofIndexFunctions(0, size, kIndexFunction, vIndexFunction);
+    }
+
+    public static <K, V> Map<K, V> ofIndexFunctions(int startIndex, int size, Function<Integer, K> kIndexFunction, Function<Integer, V> vIndexFunction) {
+        Map<K, V> map = new HashMap<>();
+        for (int i = startIndex; i < size + startIndex; i++) {
+            map.put(kIndexFunction.apply(i), vIndexFunction.apply(i));
+        }
+        return map;
+    }
+
+    public static <K, V> Map<K, V> ofIndexFunctionsLinked(int startIndex, int size, Function<Integer, K> kIndexFunction, Function<Integer, V> vIndexFunction) {
+        Map<K, V> map = new LinkedHashMap<>();
+        for (int i = startIndex; i < size + startIndex; i++) {
+            map.put(kIndexFunction.apply(i), vIndexFunction.apply(i));
         }
         return map;
     }

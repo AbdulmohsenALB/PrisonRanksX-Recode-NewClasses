@@ -3,5 +3,5 @@ version: "3.0"
 name: PrisonRanksX
 author: "TheGaming999/Sandwicha"
 depend: [Vault]
-softdepend: [PlaceholderAPI, MVdWPlaceholderAPI, HolographicDisplays, ActionUtil, PermissionsEX, GroupManager, LuckPerms, DecentHolograms]
+softdepend: [PlaceholderAPI, MVdWPlaceholderAPI, HolographicDisplays, ActionUtil, PermissionsEX, GroupManager, LuckPerms, DecentHolograms, CMI]
 api-version: 1.13

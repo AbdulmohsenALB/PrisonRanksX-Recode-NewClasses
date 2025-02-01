@@ -1,10 +1,10 @@
 package me.prisonranksx.data;
 
+import me.prisonranksx.holders.User;
+
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
-
-import me.prisonranksx.holders.User;
 
 public interface UserController {
 
@@ -129,4 +129,8 @@ public interface UserController {
      */
     UserControllerType getType();
 
+    /**
+     * Removes all users from memory. This doesn't save them, use {@linkplain #saveUsers()} for that.
+     */
+    void unloadUsers();
 }
