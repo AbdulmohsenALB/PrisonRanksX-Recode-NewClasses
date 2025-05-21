@@ -1,44 +1,53 @@
-# Enable the this configuration file by turning off the server and changing the option 'infinite-prestige' from false to true inside config.yml.
+# Enable this configuration file by turning off the server and changing the option 'infinite-prestige' from false to true inside config.yml.
 # placeholders:
 # {number} = prestige number
-# {rankcost} = current rank cost
 # %player% = player name
 Global-Settings:
   display: "&8[&9P{number}&8]"
   cost-expression: "{number} * 100000"
-  commands: []
-  broadcast: []
+  commands: [ ]
+  broadcast: [ ]
+  # Max value is java's long max value which is: 9,223,372,036,854,775,807 (approx. 9 quintillion)
   final-prestige: 1000000
+  # Commands that are executed once a max prestige is finished with %amount% being the amount of prestiges player
+  # has gone through during the process. This command gets executed also with regular prestiging commands like /prestige
+  # This so if someone decides to use them, they would get the same rewards as someone who prestiged using max prestige.
+  # Of course %amount% would be replaced with 1 for normal commands. %number% is for prestige number.
   max-prestige-commands:
   - "eco give %player% %amount%"
 # Execute at that specific prestige number.
 Prestiges-Settings:
   # ~Possible actions~
-  # executecmds:
+  # commands:
   # - "command %player%"
   # broadcast:
   # - "&6a broadcast message line."
   # - "&e%player% &7just prestiged."
+  # msg:
+  # - "Congrats %player%."
   500:
-    executecmds:
-    - "say 500"
+    broadcast:
+    - "%player% reached prestige &e500&f!"
+    commands:
+    - "give %player% diamond 1"
   1000:
-    executecmds:
-    - "say 1000"
+    broadcast:
+    - "%player% reached prestige &e1000&f!"
   1500:
-    executecmds:
-    - "say 1500"
+    broadcast:
+    - "%player% reached prestige &e1500&f!"
   2000:
-    executecmds:
-    - "say 2000"
+    broadcast:
+    - "%player% reached prestige &e2000&f!"
 # Execute every X prestige.
 # Actions that will be performed every time the player passes X amount of prestiges.
 # So if a player passes 500/1000/1500/etc.... prestiges, this message will be broadcasted.
-# Accepts: executecmds, broadcast.
+# Accepts: commands, broadcast, msg.
 Continuous-Prestiges-Settings:
   500:
-    executecmds:
-    - "say 500"
+    commands:
+    - "bc %player% just passed 500 prestiges."
+    - "give %player% diamond 1"
 # Show a different display name if player prestige is within a range of prestiges (inclusive). For example, from prestige 500 to 999 it will show the light blue display name, otherwise show the default one specified under Global-Settings section above.
 Constant-Prestiges-Settings:
   500:

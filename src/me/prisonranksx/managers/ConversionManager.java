@@ -40,7 +40,7 @@ public class ConversionManager {
 	private static void addMessagesConfigConversions() {
 		messagesConfigConverter.addFieldRename(false, "Messages", null, "notenoughmoney", "not-enough-balance",
 				"notenoughmoney-other", "not-enough-balance-other", "nopermission", "no-permission", "playernotfound",
-				"unknown-player", "delrank", "delete-rank", "set-rank", "resetrank", "reset-rank", "createrank",
+				"unknown-player", "delrank", "delete-rank", "setrank", "set-rank", "resetrank", "reset-rank", "createrank",
 				"create-rank", "setnextrank", "set-next-rank", "setrankdisplay", "set-rank-display", "setrankcost",
 				"set-rank-cost", "delplayerrank", "delete-player-rank", "addrankcmd", "add-rank-command",
 				"addrankbroadcast", "add-rank-broadcast", "addrankmsg", "add-rank-msg", "setdefaultrank",

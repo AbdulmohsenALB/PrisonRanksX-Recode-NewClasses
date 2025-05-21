@@ -1,49 +1,56 @@
 # Available click actions:
 # ==============================
-# [switch-page] +<number>/-<number>
-# - Example: "[switch-page] +1"
-# - Goes to the next page or the previous page
-# [go-to-page] <number>
-# - Goes to a specific page
-# [close]
-# - closes the GUI
-# [console] <command>
-# - executes a command as a console
-# [player] <command>
-# - executes a command as a player
-# [update-title] <title>
-# - updates GUI title to the specified title
+# - "[switch-page] +<number>/-<number>" goes to the next page or the previous page
+# - "[go-to-page] <number>" goes to a specific page
+# - "[player] <command>" executes command as player
+# - "[console] <command>" executes command as console
+# - "[close]" closes the inventory
+# - "[update-title] <title>" updates GUI title to the specified title, placeholders supported: %page%, %last_page% and PlaceholderAPI placeholders
+# - "[msg] <msg>" sends the specified message with colors and PlaceholderAPI placeholders
+# - "[msg-raw] <msg>" sends the specified message without colors or PlaceholderAPI placeholders
+# - "[switch-item] material=<material> amount=<amount> data=<data> name=<name> lore=<line>,<line>,... enchantments=<enchantment>:<lvl>,<enchantment>:<lvl>... flags=<flag>,<flag>..." switches clicked item to another item.
+# To use name with spaces use the "_" underscore to represent spaces. Use "%us%" to represent underscores
+# Materials can be formatted in three ways:
+# Three formats for items with data:
+# "material=WOOL:1" no need for specifying data using data=1
+# "material=WOOL#1" no need for specifying data using data=1
+# "material=WOOL data=1"
+# - "[switch-item-temp] duration=<ticks_duration> <same as [switch-item] format>" switch clicked item to another item temporarily
+# - "[if] <condition> [<action>] ....." if <condition> is true, executes <action>
+# Example condition would be: %player_name%=='Notch'. => "[if] %player_name%=='Notch' [msg] Hello, Notch!"
 # ==============================
 Global:
-   next-page-item:
-     slot: 50
-     material: ARROW
-     amount: 1
-     data: 0
-     name: "&e&nNext&e Page &f[>>]"
-     click-actions: 
-     - "[switch-page] +1"
-     - "[update-title] &6Ranks"
-   previous-page-item:
-     slot: 48
-     material: ARROW
-     name: "&f[<<] &e&nPrevious&e Page"
-     click-actions: 
-     - "[switch-page] -1"
-     - "[update-title] &6Ranks"
-   # This section can be removed if you don't want to fill the gui with anything
-   filler:
-     slot: 45,46,47,49,51,52,53
-     material: STAINED_GLASS_PANE
-     data: 15
-     name: "&c&kiiiiiii"
-     click-actions:
-     - "[console] say %player% is clicking uselessly on a decoration item"
-     - "[close]"
+  next-page-item:
+    slot: 50
+    material: ARROW
+    amount: 1
+    data: 0
+    name: "&e&nNext&e Page &f[>>]"
+    click-actions:
+    - "[switch-page] +1"
+    - "[update-title] &6Ranks"
+  previous-page-item:
+    slot: 48
+    material: ARROW
+    name: "&f[<<] &e&nPrevious&e Page"
+    click-actions:
+    - "[switch-page] -1"
+    - "[update-title] &6Ranks"
+  # This section can be removed if you don't want to fill the gui with anything
+  filler:
+    slot: 45,46,47,49,51,52,53
+    material: STAINED_GLASS_PANE
+    data: 15
+    name: "&c&kiiiiiii"
+    click-actions:
+    - "[console] say %player% is clicking uselessly on a decoration item"
+    - "[close]"
 # Available placeholders:
 # ==============================
 # %player%, %rank%, %rank_display%, %rank_cost%, %rank_cost_formatted%, and PlaceholderAPI placeholders.
 # ==============================
+# Title can be animated using ;; for Example: "&aRanks;;&2Ranks;;&3Ranks"
+# Speed of animation can be changed by creating a field below title "speed: <ticks>" it's set to 5 by default.
 Ranks:
   title: "&6Ranks"
   size: 54
@@ -66,14 +73,13 @@ Ranks:
     # Every setting can be modified. This section can be removed if no special item is wanted. Also, it can be used for the other items (completed and other).
     special:
       B:
-        # Will show this item lore instead of the 'Your current rank!' one. This will replace it entirely, meaning the lines that come underneath 'Your current rank!' will also be gone and replaced with just this single line or the lines that you put.
+        # Will show this item lore instead of the 'Your current rank!' one.
         lore:
         - "&fYour rank is &aB&f!"
       C:
         name: "Rank C"
         lore:
         - "This is the rank C"
-        - "This is the rank C!!!"
   completed-item:
     material: STAINED_GLASS_PANE
     data: 5
@@ -96,6 +102,57 @@ Ranks:
     name: "%rank_display%"
     lore:
     - '&cCost: &3%rank_cost_formatted%'
-    - '&cProgress: &3%prisonranksx_rankup_progress_cumulative_%rank_name%%'
+    - '&cProgress: &3%prisonranksx_rank_progress_percentage_cumulative_%rank%%'
     - '&cReward:'
     - '&e1x Rankup Key'
+    click-actions:
+    - "[switch-item-temp] duration=30 material=BARRIER name=&4[%rank%] lore=&4&lRank_locked!"
+# Available placeholders:
+# ==============================
+# %player%, %prestige%, %prestige_display%, %prestige_cost%, %prestige_cost_formatted%, and PlaceholderAPI placeholders.
+# ==============================
+Prestiges:
+  title: "&bPrestiges"
+  size: 54
+  current-item:
+    material: STAINED_GLASS_PANE
+    data: 11
+    name: "%prestige_display%"
+    lore:
+    - '&aYour current prestige!'
+    - '&7&m                       &r'
+    - '&bClick to warp!'
+    enchantments:
+    - 'durability 1'
+    flags:
+    - 'hide_enchants'
+    click-actions:
+    - "[player] warp %prestige%"
+    - "[close]"
+  completed-item:
+    material: STAINED_GLASS_PANE
+    data: 5
+    name: "%prestige_display%"
+    lore:
+    - '&bCOMPLETED'
+    - '&7&m                       &r'
+    - '&bCost: &7&m%prestige_cost_formatted%'
+    - '&bClick to warp!'
+    enchantments:
+    - 'durability 1'
+    flags:
+    - 'hide_enchants'
+    click-actions:
+    - "[player] warp %prestige%"
+    - "[close]"
+  other-item:
+    material: STAINED_GLASS_PANE
+    data: 14
+    name: "%prestige_display%"
+    lore:
+    - '&cCost: &3%prestige_cost_formatted%'
+    - '&cProgress: &3%prisonranksx_prestige_progress_percentage_cumulative_%prestige%%'
+    - '&cReward:'
+    - '&e1x Prestige Key'
+    click-actions:
+    - "[switch-item-temp] duration=30 material=BARRIER name=&4[%prestige%] lore=&4&lPrestige_locked!"

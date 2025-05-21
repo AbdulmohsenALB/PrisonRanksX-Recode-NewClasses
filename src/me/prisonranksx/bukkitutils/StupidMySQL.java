@@ -7,9 +7,8 @@ import java.util.List;
 import java.util.Properties;
 import java.util.function.Consumer;
 
-import javax.sql.rowset.CachedRowSet;
+import javax.sql.rowset.*;
 
-import com.sun.rowset.CachedRowSetImpl;
 
 /**
  * Utility to query or update your database with easy to use methods,
@@ -396,7 +395,7 @@ public class StupidMySQL {
 		try {
 			Statement statement = connection.createStatement();
 			ResultSet resultSet = statement.executeQuery(selectStatement.replace(" WHERE ", ""));
-			CachedRowSet crs = new CachedRowSetImpl();
+			CachedRowSet crs = RowSetProvider.newFactory().createCachedRowSet();
 			crs.populate(resultSet);
 			statement.close();
 			return crs;
@@ -430,7 +429,7 @@ public class StupidMySQL {
 		try {
 			Statement statement = connection.createStatement();
 			ResultSet resultSet = statement.executeQuery(selectStatement + "`" + idKey + "` = " + fixValue(idValue));
-			CachedRowSet crs = new CachedRowSetImpl();
+			CachedRowSet crs = RowSetProvider.newFactory().createCachedRowSet();
 			crs.populate(resultSet);
 			statement.close();
 			return crs;
@@ -468,7 +467,7 @@ public class StupidMySQL {
 			Statement statement = connection.createStatement();
 			ResultSet resultSet = statement
 					.executeQuery(selectStatement.replace("*", wantedKey) + "`" + idKey + "` = " + fixValue(idValue));
-			CachedRowSet crs = new CachedRowSetImpl();
+			CachedRowSet crs = RowSetProvider.newFactory().createCachedRowSet();
 			crs.populate(resultSet);
 			statement.close();
 			return crs;

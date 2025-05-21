@@ -205,13 +205,25 @@ public abstract class GUIList {
             return new AbstractMap.SimpleEntry<>(Scrif.create(parsedCondition), clickAction);
         }, entry -> ClickAction.create(e -> {
             String rankName = NBTEditor.getString(e.getCurrentItem(), "prx-rank");
+            if (rankName == null) rankName = "null";
             String pathName = NBTEditor.getString(e.getCurrentItem(), "prx-path");
+            if (pathName == null) pathName = null;
+            String prestigeName = NBTEditor.getString(e.getCurrentItem(), "prx-prestige");
+            if (prestigeName == null) prestigeName = "null";
             Rank rank = RankStorage.getRank(rankName, pathName);
+            String finalRankName = rankName;
+            String finalPrestigeName = prestigeName;
             if (!entry.getKey()
                     .applyThenEvaluate(s -> StringManager.parsePlaceholders(
-                            s.replace("%rank%", rankName)
+                            s.replace("%gui_title%", e.getView().getTitle())
+                                    .replace("%gui_size%", String.valueOf(e.getClickedInventory().getSize()))
+                                    .replace("%gui_config_title%", playerPagedGUI.getTitle())
+                                    .replace("%gui_config_name%", parentSectionName)
+                                    .replace("%gui_config_size%", String.valueOf(parentSection.getInt("size")))
+                                    .replace("%rank%", finalRankName)
                                     .replace("%rank_display%", rank.getDisplayName())
-                                    .replace("%rank_cost%", String.valueOf(rank.getCost())),
+                                    .replace("%rank_cost%", String.valueOf(rank.getCost()))
+                                    .replace("%prestige%", finalPrestigeName),
                             (Player) e.getWhoClicked())))
                 return;
             entry.getValue().perform(e);

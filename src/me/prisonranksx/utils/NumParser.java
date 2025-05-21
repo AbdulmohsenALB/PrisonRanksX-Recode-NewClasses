@@ -3,9 +3,7 @@ package me.prisonranksx.utils;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
-import java.util.function.Consumer;
-import java.util.function.DoubleConsumer;
-import java.util.function.IntConsumer;
+import java.util.function.*;
 
 /**
  * Utility class for parsing integers, longs, floats, and doubles from strings.
@@ -499,6 +497,157 @@ public class NumParser {
         }
 
         return numberAdded ? (negative ? -result : result) : 0L;
+    }
+
+    /**
+     * Checks whether provided string is a long, if so, executes longAction on
+     * converted long, else executes elseAction on failed string.
+     *
+     * @param string     to check
+     * @param longAction  to perform on long. If null, doesn't get executed.
+     * @param elseAction to perform on string that failed to convert. If null,
+     *                   doesn't get executed.
+     * @return true if converted, false if not.
+     */
+    public static boolean ifLong(String string, LongConsumer longAction, Consumer<String> elseAction) {
+        int length = string.length();
+        if (length == 0) {
+            if (elseAction != null) elseAction.accept(string);
+            return false;
+        }
+
+        char firstChar = string.charAt(0);
+        boolean negative = false;
+        int startIndex = 0;
+
+        if (firstChar == MINUS) {
+            startIndex = 1;
+            negative = true;
+        } else if (firstChar == PLUS) {
+            startIndex = 1;
+        }
+
+        long result = 0;
+        int i = startIndex;
+
+        while (i < length) {
+            char current = string.charAt(i);
+
+            if (current < ZERO_CODE || current > NINE_CODE) {
+                if (elseAction != null) elseAction.accept(string);
+               break;
+            }
+
+            int digit = current - ZERO_CODE;
+
+            if (result > Long.MAX_VALUE / RADIX
+                    || (result == Long.MAX_VALUE / RADIX && digit > Long.MAX_VALUE % RADIX)) {
+                if (elseAction != null) elseAction.accept(string);
+                break;
+            }
+
+            result = result * RADIX + digit;
+            i++;
+        }
+        if (longAction != null) longAction.accept(negative ? -result : result);
+        return true;
+    }
+
+    /**
+     * Checks whether provided string is a long, if so, executes longAction on
+     * converted long and returns the boolean from the function, else executes elseAction on failed string and returns boolean from function.
+     *
+     * @param string     to check
+     * @param longAction  to perform on long. If null, doesn't get executed.
+     * @param elseAction to perform on string that failed to convert. If null,
+     *                   doesn't get executed.
+     * @return value returned from executed function.
+     */
+    public static boolean checkLong(String string, Function<Long, Boolean> longAction, Function<String, Boolean> elseAction) {
+        int length = string.length();
+        if (length == 0) {
+            if (elseAction != null) return elseAction.apply(string);
+            return false;
+        }
+
+        char firstChar = string.charAt(0);
+        boolean negative = false;
+        int startIndex = 0;
+
+        if (firstChar == MINUS) {
+            startIndex = 1;
+            negative = true;
+        } else if (firstChar == PLUS) {
+            startIndex = 1;
+        }
+
+        long result = 0;
+        int i = startIndex;
+
+        while (i < length) {
+            char current = string.charAt(i);
+
+            if (current < ZERO_CODE || current > NINE_CODE) {
+                if (elseAction != null) return elseAction.apply(string);
+                break;
+            }
+
+            int digit = current - ZERO_CODE;
+
+            if (result > Long.MAX_VALUE / RADIX
+                    || (result == Long.MAX_VALUE / RADIX && digit > Long.MAX_VALUE % RADIX)) {
+                if (elseAction != null) return elseAction.apply(string);
+                break;
+            }
+
+            result = result * RADIX + digit;
+            i++;
+        }
+        if (longAction != null) return longAction.apply(negative ? -result : result);
+        return true;
+    }
+
+    public static <V> V getIfLong(String string, Function<Long, V> longAction, Function<String, V> elseAction) {
+        int length = string.length();
+        if (length == 0) {
+            if (elseAction != null) return elseAction.apply(string);
+        }
+
+        char firstChar = string.charAt(0);
+        boolean negative = false;
+        int startIndex = 0;
+
+        if (firstChar == MINUS) {
+            startIndex = 1;
+            negative = true;
+        } else if (firstChar == PLUS) {
+            startIndex = 1;
+        }
+
+        long result = 0;
+        int i = startIndex;
+
+        while (i < length) {
+            char current = string.charAt(i);
+
+            if (current < ZERO_CODE || current > NINE_CODE) {
+                if (elseAction != null) return elseAction.apply(string);
+                break;
+            }
+
+            int digit = current - ZERO_CODE;
+
+            if (result > Long.MAX_VALUE / RADIX
+                    || (result == Long.MAX_VALUE / RADIX && digit > Long.MAX_VALUE % RADIX)) {
+                if (elseAction != null) return elseAction.apply(string);
+                break;
+            }
+
+            result = result * RADIX + digit;
+            i++;
+        }
+        if (longAction != null) return longAction.apply(negative ? -result : result);
+        return null;
     }
 
     // Double parsing methods

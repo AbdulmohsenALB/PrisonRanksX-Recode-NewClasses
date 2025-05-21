@@ -38,11 +38,11 @@ Messages:
   # placeholders: %rankup% %rankup_display% %player%
   rankup-other-recipient: "&9You have been ranked up by &r%player%"
   last-rank:
-    - "&7&m                                       &7&m"
-    - "&aYou are at the last rank"
-    - "&7&m                                       &7&m"
+  - "&7&m                                       &7&m"
+  - "&aYou are at the last rank"
+  - "&7&m                                       &7&m"
   # placeholders: %player% %rankup% %rankup_display%
-  force-rankup: "&aYou forced a rankup for &e%player%&7, &aso he/she ranked up to &e%rankup%&a."
+  force-rankup: "&e%player% &ahas been forcefully promoted to rank &e%rankup%&a."
   # placeholders: %player%
   force-rankup-last-rank: "&a%player% &6is already at the last rank."
   # placeholders: %player%
@@ -63,24 +63,24 @@ Messages:
   rankupmax-is-on: "&cYour max rankup process is already running."
   # placeholders: %page%
   ranks-list-last-page-reached: "&eThere are only &f%page% &epage(s)."
-  ranks-list-invalid-page: "&cThis page is invalid!"
+  ranks-list-invalid-page: "&cProvided page number is invalid!"
   force-rankup-no-argument: "&cUsage: /forcerankup <player>"
   # placeholders: %rank% %rank_display% %rankup% %rankup_display% %cost%
   rankupmax: "&a&oYou have successfully ranked up from &6&o%rank% &a&oto &6&o%rankup%&a&o."
   # placeholders: %rankup% %rankup_display% %rankup_cost% %rankup_cost_formatted%
   not-enough-balance:
-    - "&7&m                                                                &7&m"
-    - ""
-    - "&eYou need &f$%rankup_cost_formatted% &eto rankup to &a%rankup%"
-    - ""
-    - "&7&m                                                                &7&m"
+  - "&7&m                                                                &7&m"
+  - ""
+  - "&eYou need &f$%rankup_cost_formatted% &eto rankup to &a%rankup%"
+  - ""
+  - "&7&m                                                                &7&m"
   # placeholders: %rankup% %rankup_display% %rankup_cost% %rankup_cost_formatted%
   not-enough-balance-other:
-    - "&7&m                                                                &7&m"
-    - ""
-    - "&eYou need &f$%rankup_cost_formatted% &eto rankup %player% to &a%rankup%"
-    - ""
-    - "&7&m                                                                &7&m"
+  - "&7&m                                                                &7&m"
+  - ""
+  - "&eYou need &f$%rankup_cost_formatted% &eto rankup %player% to &a%rankup%"
+  - ""
+  - "&7&m                                                                &7&m"
   # ===========================================================================================================================
   # ===========================================================================================================================
   # ===========================================================================================================================
@@ -103,6 +103,8 @@ Messages:
   set-prestige-cost: "&cChanged prestige &e%prestige% &ccost to %cost%&c."
   # placeholders: %nextprestige% %nextprestige_display%
   prestige: "&aYou have prestiged to &r%nextprestige_display%"
+  # placeholders: %nextprestige% %nextprestige_display%
+  prestige-confirm: "&cYou are going to prestige to &f%nextprestige_display%&c. Are you sure you want to do that?\nWrite &a&l/prestige&c again to proceed."
   force-prestige: "&aYou forced a prestige promotion for &f%player%"
   # placeholders: %player%
   delete-player-prestige: "&cDeleted &e%player%'s &cprestige"
@@ -111,37 +113,38 @@ Messages:
   auto-prestige-disabled: "&3Auto prestige &cdisabled&3."
   prestigemax-is-on: "&cYour max prestige process is already running."
   prestige-not-enough-balance:
-    - "&7&m                                               &7&m"
-    - ""
-    - "&eYou need &f$%nextprestige_cost_formatted% &eto prestige to &a%nextprestige%"
-    - ""
-    - "&7&m                                               &7&m"
+  - "&7&m                                               &7&m"
+  - ""
+  - "&eYou need &f$%nextprestige_cost_formatted% &eto prestige to &a%nextprestige%"
+  - ""
+  - "&7&m                                               &7&m"
   last-prestige:
-    - "&7&m                                       &7&m"
-    - "&cYou are at the last prestige"
-    - "&7&m                                       &7&m"
+  - "&7&m                                       &7&m"
+  - "&cYou are at the last prestige"
+  - "&7&m                                       &7&m"
   last-prestige-other:
-    - "&7&m                                       &7&m"
-    - "&cHe is at the last prestige"
-    - "&7&m                                       &7&m"
+  - "&7&m                                       &7&m"
+  - "&cHe is at the last prestige"
+  - "&7&m                                       &7&m"
   prestigemax: "&7&oYou have successfully prestiged from &c&o%prestige% &7&oto &c&o%nextprestige%&7&o."
   prestiges-list-last-page-reached: "&cThere are only &f%page% &cpage(s)."
   prestiges-list-invalid-page: "&cThis page is invalid!"
   # tags: [header], [footer]
+  # placeholders: %name<num>%, %value<num>%, %value_display<num>%, (for prestige) %value_display_us<num>%
   top-prestiges:
-    - "[header]&7- &e&l&oPRESTIGE &6&l&oLEADERBOARD &7-"
-    - "[header]&7&m                          &7"
-    - "&81 &f> &e%name1% &8- &6%value1%"
-    - "&82 &f> &e%name2% &8- &6%value2%"
-    - "&83 &f> &e%name3% &8- &6%value3%"
-    - "&84 &f> &e%name4% &8- &6%value4%"
-    - "&85 &f> &e%name5% &8- &6%value5%"
-    - "&86 &f> &e%name6% &8- &6%value6%"
-    - "&87 &f> &e%name7% &8- &6%value7%"
-    - "&88 &f> &e%name8% &8- &6%value8%"
-    - "&89 &f> &e%name9% &8- &6%value9%"
-    - "&810 &f> &e%name10% &8- &6%value10%"
-    - "[footer]&7&m                          &7"
+  - "[header]&7- &e&l&oPRESTIGE &6&l&oLEADERBOARD &7-"
+  - "[header]&7&m                          &7"
+  - "&81 &f> &e%name1% &8- &6%value1%"
+  - "&82 &f> &e%name2% &8- &6%value2%"
+  - "&83 &f> &e%name3% &8- &6%value3%"
+  - "&84 &f> &e%name4% &8- &6%value4%"
+  - "&85 &f> &e%name5% &8- &6%value5%"
+  - "&86 &f> &e%name6% &8- &6%value6%"
+  - "&87 &f> &e%name7% &8- &6%value7%"
+  - "&88 &f> &e%name8% &8- &6%value8%"
+  - "&89 &f> &e%name9% &8- &6%value9%"
+  - "&810 &f> &e%name10% &8- &6%value10%"
+  - "[footer]&7&m                          &7"
   top-prestiges-last-page-reached: "&e&oThere are only &6&o%page% &e&opage(s)."
   # ===========================================================================================================================
   # ===========================================================================================================================
@@ -169,34 +172,36 @@ Messages:
   auto-rebirth-disabled: "&6Auto rebirth &cdisabled&6."
   # placeholders: %nextrebirth% %nextrebirth_display%
   rebirth: "&7You have been reborn to %nextrebirth_display%."
+  rebirth-confirm: "&cYou are about to rebirth to &f%nextrebirth_display%. Write &b&l/rebirth&c again to confirm."
   # placeholders: %nextrebirth% %nextrebirth_display% %nextrebirth_cost% %nextrebirth_cost_formatted%
   rebirth-not-enough-balance:
-    - "&4&m                                             &4&m"
-    - ""
-    - "&cYou need &f$%nextrebirth_cost_formatted% &cto rebirth to &a%nextrebirth%"
-    - ""
-    - "&4&m                                             &4&m"
+  - "&4&m                                             &4&m"
+  - ""
+  - "&cYou need &f$%nextrebirth_cost_formatted% &cto rebirth to &a%nextrebirth%"
+  - ""
+  - "&4&m                                             &4&m"
   last-rebirth:
-    - "&7&m                                       &7&m"
-    - "&4&lYou are at the last rebirth"
-    - "&7&m                                       &7&m"
+  - "&7&m                                       &7&m"
+  - "&4&lYou are at the last rebirth"
+  - "&7&m                                       &7&m"
   rebirths-list-last-page-reached: "&4There are only &f%page% &4page(s)."
   rebirths-list-invalid-page: "&cThis page is invalid!"
   # tags: [header], [footer]
+  # placeholders: %name<num>%, %value<num>%, %value_display<num>%
   top-rebirths:
-    - "[header]&7- &c&l&oREBIRTH &4&l&oLEADERBOARD &7-"
-    - "[header]&7&m                          &7"
-    - "&81 &f> &c%name1% &8- &4%value1%"
-    - "&82 &f> &c%name2% &8- &4%value2%"
-    - "&83 &f> &c%name3% &8- &4%value3%"
-    - "&84 &f> &c%name4% &8- &4%value4%"
-    - "&85 &f> &c%name5% &8- &4%value5%"
-    - "&86 &f> &c%name6% &8- &4%value6%"
-    - "&87 &f> &c%name7% &8- &4%value7%"
-    - "&88 &f> &c%name8% &8- &4%value8%"
-    - "&89 &f> &c%name9% &8- &4%value9%"
-    - "&810 &f> &c%name10% &8- &4%value10%"
-    - "[footer]&7&m                          &7"
+  - "[header]&7- &c&l&oREBIRTH &4&l&oLEADERBOARD &7-"
+  - "[header]&7&m                          &7"
+  - "&81 &f> &c%name1% &8- &4%value1%"
+  - "&82 &f> &c%name2% &8- &4%value2%"
+  - "&83 &f> &c%name3% &8- &4%value3%"
+  - "&84 &f> &c%name4% &8- &4%value4%"
+  - "&85 &f> &c%name5% &8- &4%value5%"
+  - "&86 &f> &c%name6% &8- &4%value6%"
+  - "&87 &f> &c%name7% &8- &4%value7%"
+  - "&88 &f> &c%name8% &8- &4%value8%"
+  - "&89 &f> &c%name9% &8- &4%value9%"
+  - "&810 &f> &c%name10% &8- &4%value10%"
+  - "[footer]&7&m                          &7"
   top-rebirths-last-page-reached: "&c&oThere are only &4&o%page% &c&opage(s)."
   rebirth-not-enough-prestiges: "&cYou need &4&n%prestiges_amount_left%&c prestiges more to rebirth."
   # ===========================================================================================================================

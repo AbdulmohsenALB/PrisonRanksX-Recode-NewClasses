@@ -13,6 +13,7 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
 public class PrestigeStorage {
@@ -559,7 +560,7 @@ public class PrestigeStorage {
 
         @Override
         public boolean prestigeExists(String name) {
-            return prestigeExists(Long.parseLong(name));
+            return NumParser.checkLong(name, this::prestigeExists, str -> false);
         }
 
         @Override
@@ -630,7 +631,8 @@ public class PrestigeStorage {
 
         @Override
         public long getPrestigeNumber(String name) {
-            return Long.parseLong(name);
+            if (name == null) return 0;
+            return NumParser.asLong(name, 0);
         }
 
         @Override

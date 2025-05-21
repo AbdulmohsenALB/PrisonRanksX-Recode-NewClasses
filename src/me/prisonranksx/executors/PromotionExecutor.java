@@ -47,15 +47,26 @@ public interface PromotionExecutor {
     void promote(Player player);
 
     /**
-     * Silently fail when requirements of promotion are not met.
+     * Silently fail when requirements of promotion are not met. Used by /autorankup,prestige,rebirth.
      *
      * @param player to silently promote
      */
     void silentPromote(Player player);
 
+    /**
+     * Task responsible for automatic silent promotions.
+     * @return auto promotion task
+     */
     DistributedTask<Player> getAutoTask();
 
+    /**
+     * Task responsible for promoting players to max rank, prestige, or rebirth.
+     * @return max promotion task
+     */
     ConcurrentTask<Player> getMaxTask();
 
+    /**
+     * Stops both auto and max promotion tasks if they are running. (for server reloads)
+     */
     void stopTasks();
 }

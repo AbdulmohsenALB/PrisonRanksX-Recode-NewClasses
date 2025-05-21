@@ -303,6 +303,7 @@ public class PRXAPI {
         return getLevelProgressPercentage(level, UniqueId.getUUID(player));
     }
 
+    /**
     public static Prestige getHighestReachablePrestige(UUID uniqueId) {
         User user = getUser(uniqueId);
         Prestige userPrestige = user.getPrestige();
@@ -348,5 +349,6 @@ public class PRXAPI {
     public static Prestige getHighestReachablePrestige(Player player) {
         return getHighestReachablePrestige(UniqueId.getUUID(player));
     }
+     */
 
 }

@@ -70,6 +70,8 @@ public class UniversalPrestige extends Prestige {
 
     @Override
     public UniversalPrestige setName(String name) {
+        // in case this doesn't work / concurrency issues
+        // return clone();
         this.name = name;
         return this;
     }
@@ -262,6 +264,7 @@ public class UniversalPrestige extends Prestige {
         name = String.valueOf(number);
     }
 
+    @Override
     public UniversalPrestige clone() {
         return new UniversalPrestige(name, displayName, nextPrestigeName, cost, broadcastMessages, messages,
                 commandsComponent, requirementsComponent, actionBarComponent, permissionsComponent, fireworkComponent,

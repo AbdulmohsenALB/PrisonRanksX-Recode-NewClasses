@@ -35,14 +35,14 @@ public class InfinitePrestigesGUIList extends GUIList implements PrestigesGUILis
      * @param max  max for each side (4 normally)
      * @return list of prestiges.
      */
-    private List<Prestige> getPrestigesWithinRange(User user, int max) {
-        List<Prestige> levelRange = new ArrayList<>();
+    private List<Long> getPrestigesWithinRange(User user, int max) {
+        List<Long> levelRange = new ArrayList<>();
         long currentNumber = user.getPrestige().getNumber();
         long startLevel = currentNumber - max;
         if (startLevel < 1) startLevel = 1;
         long endLevel = startLevel + (max * 2L);
         if (endLevel > PrestigeStorage.getLastPrestigeAsNumber()) endLevel = PrestigeStorage.getLastPrestigeAsNumber();
-        for (long level = startLevel; level <= endLevel; level++) levelRange.add(PrestigeStorage.getPrestige(level));
+        for (long level = startLevel; level <= endLevel; level++) levelRange.add(level);
         return levelRange;
     }
 
@@ -50,11 +50,10 @@ public class InfinitePrestigesGUIList extends GUIList implements PrestigesGUILis
     public void refreshGUI(Player player) {
         User user = getPlugin().getUserController().getUser(UniqueId.getUUID(player));
         String pathName = user.getPathName();
-        Prestige currentPrestige = PrestigeStorage.getPrestige(user.getPrestigeName());
-        long currentPrestigeIndex = currentPrestige.getIndex();
+        long currentPrestigeIndex = PRXAPI.getPlayerPrestigeNumber(player);
         // at least 2 pages of prestiges to list
-        getPrestigesWithinRange(user, getPlayerPagedGUI().getSize()).forEach(prestige -> {
-            long prestigeIndex = prestige.getIndex();
+        getPrestigesWithinRange(user, getPlayerPagedGUI().getSize()).forEach(prestigeIndex -> {
+            Prestige prestige = PrestigeStorage.getPrestige(prestigeIndex);
             String prestigeName = prestige.getName();
             if (prestigeIndex < currentPrestigeIndex) {
                 GUIItem specialItem = getSpecialCompletedItems().get(prestigeName);

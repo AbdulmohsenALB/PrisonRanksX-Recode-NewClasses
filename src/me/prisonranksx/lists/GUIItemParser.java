@@ -6,7 +6,9 @@ import me.prisonranksx.bukkitutils.PlayerPagedGUI;
 import me.prisonranksx.bukkitutils.PlayerPagedGUI.GUIItem;
 import me.prisonranksx.bukkitutils.XEnchantment;
 import me.prisonranksx.bukkitutils.XMaterial;
+import me.prisonranksx.data.PrestigeStorage;
 import me.prisonranksx.data.RankStorage;
+import me.prisonranksx.holders.Prestige;
 import me.prisonranksx.holders.Rank;
 import me.prisonranksx.managers.EconomyManager;
 import me.prisonranksx.managers.StringManager;
@@ -93,22 +95,35 @@ public class GUIItemParser {
 
     public static ItemStack updateItemMetaFrom(Player player, ItemStack itemStack, ItemStack from) {
         if (itemStack.hasItemMeta()) {
-            if (from == null) return itemStack;
-            String rankName = NBTEditor.getString(from, "prx-rank");
-            if (rankName == null) return itemStack;
-            String pathName = NBTEditor.getString(from, "prx-path");
-            Rank rank = RankStorage.getRank(rankName, pathName);
             ItemMeta im = itemStack.getItemMeta();
-            Function<String, String> fun = RanksGUIList.fun(player, rank, rankName);
+            if (from == null) return itemStack;
+            boolean rankItem = false;
+            boolean prestigeItem = false;
+            String rankName = NBTEditor.getString(from, "prx-rank");
+            if (rankName != null) rankItem = true;
+            String prestigeName = NBTEditor.getString(from, "prx-prestige");
+            if (prestigeName != null) prestigeItem = true;
+            String pathName = NBTEditor.getString(from, "prx-path");
+            Function<String, String> fun = null;
+            if (rankItem) {
+                Rank rank = RankStorage.getRank(rankName, pathName);
+                fun = RanksGUIList.fun(player, rank, rankName);
+            }
+            if (prestigeItem) {
+                Prestige prestige = PrestigeStorage.getPrestige(prestigeName);
+                fun = PrestigesGUIList.fun(player, prestige, prestigeName);
+            }
             if (im.hasDisplayName()) im.setDisplayName(fun.apply(im.getDisplayName()));
             if (im.hasLore()) {
                 List<String> lore = im.getLore();
                 lore.clear();
-                im.getLore().forEach(loreLine -> lore.add(fun.apply(loreLine)));
+                Function<String, String> finalFun = fun;
+                im.getLore().forEach(loreLine -> lore.add(finalFun.apply(loreLine)));
                 im.setLore(lore);
             }
             itemStack.setItemMeta(im);
-            itemStack = NBTEditor.set(itemStack, rankName, "prx-rank");
+            if (rankItem) itemStack = NBTEditor.set(itemStack, rankName, "prx-rank");
+            if (prestigeItem) itemStack = NBTEditor.set(itemStack, prestigeName, "prx-prestige");
             itemStack = NBTEditor.set(itemStack, pathName, "prx-path");
         }
         return itemStack;

@@ -338,9 +338,6 @@ public class PlaceholderAPIHook extends PlaceholderExpansion {
             case "next_rebirth_progress_percentage_plain":
                 return strOptional(PRXAPI.getPlayerNextRebirth(player), "100", rebirth -> Math.min(100, PRXAPI.getLevelProgressPercentage(rebirth, player)));
 
-            case "max_prestige":
-                return strOptional(PRXAPI.getHighestReachablePrestige(player), 0, Prestige::getNumber);
-
             default:
                 Optional<String> result = matchPrefix(player, params);
                 return result.orElse("! Misspelled/Wrong Placeholder: 'prisonranksx_" + params + "'");
