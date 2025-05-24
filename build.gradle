@@ -37,7 +37,7 @@ repositories {
 }
 
 shadowJar {
-    destinationDirectory.set(file('D:/Moved From C Disk/MyFiles/Programs/Minecraft Server 1.8.8/plugins'))
+    destinationDirectory.set(file('D:/Backup/Moved From C Disk/MyFiles/Programs/Minecraft Server 1.8.8/plugins'))
 }
 
 test {

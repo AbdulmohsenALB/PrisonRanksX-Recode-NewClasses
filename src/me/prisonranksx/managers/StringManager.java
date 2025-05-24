@@ -1,16 +1,16 @@
 package me.prisonranksx.managers;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
+import me.prisonranksx.bukkitutils.Colorizer;
+import me.prisonranksx.common.StaticCache;
 import org.apache.commons.lang.text.StrSubstitutor;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
-import me.prisonranksx.bukkitutils.Colorizer;
-import me.prisonranksx.common.StaticCache;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 /**
  * Controls string replacements (color codes, PlaceholderAPI placeholders, and
@@ -18,8 +18,9 @@ import me.prisonranksx.common.StaticCache;
  */
 public class StringManager extends StaticCache {
 
-	private static final Map<String, Object> SYMBOLS_MAP = new HashMap<String, Object>(17) {
+	private static final Map<String, Object> SYMBOLS_MAP = new HashMap<>(17) {
 		private static final long serialVersionUID = 1L;
+
 		{
 			put(">>", "»");
 			put("<<", "«");
@@ -41,7 +42,7 @@ public class StringManager extends StaticCache {
 		}
 	};
 	private static final StrSubstitutor SYMBOLS_STRING_SUBSTITUTOR = new StrSubstitutor(SYMBOLS_MAP, "[", "]");
-	private static final Map<String, StrSubstitutor> DEFINED_REPLACEMENTS = new HashMap<>();
+	private static final Map<String, StrSubstitutor> DEFINED_REPLACEMENTS = new ConcurrentHashMap<>();
 	private static final IStringManager STRING_MANAGER;
 	private static final boolean PLACEHOLDERAPI;
 
@@ -57,7 +58,7 @@ public class StringManager extends StaticCache {
 
 	/**
 	 * Define replacements, so they can be used constantly
-	 * 
+	 *
 	 * @param name         to be used when retrieving the replacements
 	 * @param replacements map of the placeholders as keys and the replacements as
 	 *                     values
@@ -71,10 +72,9 @@ public class StringManager extends StaticCache {
 	}
 
 	/**
-	 * 
 	 * @param string parses a string's color codes
 	 * @return string with translated color codes including hex color codes if they
-	 *         are supported
+	 * are supported
 	 */
 	public static String parseColors(String string) {
 		return string == null ? null : STRING_MANAGER.parseColors(string);
@@ -83,7 +83,7 @@ public class StringManager extends StaticCache {
 	/**
 	 * Goes through the given string list and applies {@link #parseColors(String)}
 	 * on each line
-	 * 
+	 *
 	 * @param stringList list of strings to parse
 	 * @return string list with translated color codes
 	 */
@@ -93,7 +93,6 @@ public class StringManager extends StaticCache {
 	}
 
 	/**
-	 * 
 	 * @param string parses a string's colors with plugin provided symbols
 	 * @return string with translated color codes and plugin symbols
 	 */
@@ -104,9 +103,9 @@ public class StringManager extends StaticCache {
 	/**
 	 * Goes through the given string list and applies
 	 * {@link #parseColorsAndSymbols(String)} on each line
-	 * 
+	 *
 	 * @param stringList list of strings to parse
-	 * @return string list with translated color codes and plugin provided symbols
+	 * @return string list with translated color codes and plugin provided symbols, null if stringList is null or empty
 	 */
 	public static List<String> parseColorsAndSymbols(List<String> stringList) {
 		return stringList == null || stringList.isEmpty() ? null
@@ -114,56 +113,51 @@ public class StringManager extends StaticCache {
 	}
 
 	/**
-	 * 
 	 * @param string parses a string's PlaceholderAPI placeholders
 	 * @param player to parse PlaceholderAPI placeholders for
-	 * @return string with parsed PlaceholderAPI placeholders and colors
+	 * @return string with parsed PlaceholderAPI placeholders and colors, null if string or player is null
 	 */
 	public static String parsePlaceholders(String string, Player player) {
 		return string == null || player == null ? null : STRING_MANAGER.parsePlaceholders(string, player);
 	}
 
 	/**
-	 *
 	 * @param stringList parses a list of strings' PlaceholderAPI placeholders
 	 * @param player     to parse PlaceholderAPI placeholders for
-	 * @return list of strings with parsed PlaceholderAPI placeholders and colors
+	 * @return list of strings with parsed PlaceholderAPI placeholders and colors, null if stringList is null or empty
 	 */
 	public static List<String> parsePlaceholders(List<String> stringList, Player player) {
 		return stringList == null || stringList.isEmpty() ? null
 				: stringList.stream()
-						.map(stringLine -> parsePlaceholders(stringLine, player))
-						.collect(Collectors.toList());
+				.map(stringLine -> parsePlaceholders(stringLine, player))
+				.collect(Collectors.toList());
 	}
 
 	/**
-	 * 
 	 * @param string     string to replace defined replacements in
 	 * @param definition name of said replacements
-	 * @return string with parsed replacements
+	 * @return string with parsed replacements, null if string or definition is null
 	 */
 	public static String parseReplacements(String string, String definition) {
 		return string == null || definition == null ? null : STRING_MANAGER.parseReplacements(string, definition);
 	}
 
 	/**
-	 * 
 	 * @param string parses a string's PlaceholderAPI placeholders, color codes, and
 	 *               symbols.
 	 * @param player to parse PlaceholderAPI placeholders for
-	 * @return parsed string
+	 * @return parsed string, null if string or player is null
 	 */
 	public static String parseAll(String string, Player player) {
 		return string == null || player == null ? null : STRING_MANAGER.parseAll(string, player);
 	}
 
 	/**
-	 * 
 	 * @param string     parses a string's PlaceholderAPI placeholders, color codes,
 	 *                   and symbols.
 	 * @param player     to parse PlaceholderAPI placeholders for
 	 * @param definition name of replacements
-	 * @return parsed string
+	 * @return parsed string, null if string is null
 	 */
 	public static String parseAll(String string, Player player, String definition) {
 		return string == null ? null : STRING_MANAGER.parseAll(string, player, definition);
@@ -171,7 +165,7 @@ public class StringManager extends StaticCache {
 
 	/**
 	 * Combines command arguments into one string starting from {@code num}
-	 * 
+	 *
 	 * @param args arguments to combine from
 	 * @param num  number to start combining from
 	 * @return string with the combined arguments
@@ -187,22 +181,19 @@ public class StringManager extends StaticCache {
 	private interface IStringManager {
 
 		/**
-		 * 
 		 * @param string parses a string's color codes
 		 * @return string with translated color codes including hex color codes if they
-		 *         are supported
+		 * are supported
 		 */
 		String parseColors(String string);
 
 		/**
-		 * 
 		 * @param string parses a string's colors with plugin provided symbols
 		 * @return string with translated color codes and plugin symbols
 		 */
 		String parseColorsAndSymbols(String string);
 
 		/**
-		 * 
 		 * @param string parses a string's PlaceholderAPI placeholders
 		 * @param player to parse PlaceholderAPI placeholders for
 		 * @return string with parsed PlaceholderAPI placeholders
@@ -210,7 +201,6 @@ public class StringManager extends StaticCache {
 		String parsePlaceholders(String string, Player player);
 
 		/**
-		 * 
 		 * @param string parses a string's PlaceholderAPI placeholders, color codes, and
 		 *               symbols.
 		 * @param player to parse PlaceholderAPI placeholders for
@@ -219,7 +209,6 @@ public class StringManager extends StaticCache {
 		String parseAll(String string, Player player);
 
 		/**
-		 * 
 		 * @param string     parses a string's PlaceholderAPI placeholders, color codes,
 		 *                   and symbols.
 		 * @param player     to parse PlaceholderAPI placeholders for
@@ -229,7 +218,6 @@ public class StringManager extends StaticCache {
 		String parseAll(String string, Player player, String definition);
 
 		/**
-		 * 
 		 * @param string     string to replace defined replacements in
 		 * @param definition name of said replacements
 		 * @return string with parsed replacements

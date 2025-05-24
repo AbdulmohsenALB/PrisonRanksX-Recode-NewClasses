@@ -1,13 +1,12 @@
 package me.prisonranksx.commands;
 
-import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Player;
-
 import me.prisonranksx.PrisonRanksX;
 import me.prisonranksx.data.PrestigeStorage;
 import me.prisonranksx.executors.PrestigeExecutor;
 import me.prisonranksx.reflections.UniqueId;
 import me.prisonranksx.settings.Messages;
+import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
 
 public class PrestigeMaxCommand extends PluginCommand {
 
@@ -33,7 +32,7 @@ public class PrestigeMaxCommand extends PluginCommand {
 		if (!testPermission(sender)) return true;
 		if (!(sender instanceof Player)) {
 			Messages.sendMessage(sender, Messages.getPlayerOnlyCommand());
-			Messages.sendMessage(sender, "Do you mean?: /forceprestige <player>");
+			Messages.sendMessage(sender, "Do you mean?: /prx forceprestige <player>");
 			return true;
 		}
 		Player p = (Player) sender;

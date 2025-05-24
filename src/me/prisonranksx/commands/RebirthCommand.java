@@ -1,15 +1,15 @@
 package me.prisonranksx.commands;
 
-import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Player;
-
 import me.prisonranksx.PrisonRanksX;
+import me.prisonranksx.api.PRXAPI;
 import me.prisonranksx.bukkitutils.Confirmation;
 import me.prisonranksx.data.RebirthStorage;
 import me.prisonranksx.holders.Rebirth;
 import me.prisonranksx.holders.User;
 import me.prisonranksx.reflections.UniqueId;
 import me.prisonranksx.settings.Messages;
+import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
 
 public class RebirthCommand extends PluginCommand {
 
@@ -47,6 +47,10 @@ public class RebirthCommand extends PluginCommand {
 		return true;
 	}
 
+	public void clearConfirmation(Player p) {
+		rebirthConfirmation.clearConfirmation(p.getName());
+	}
+
 	public void rebirth(Player p, boolean checkConfirmation) {
 		if (plugin.getGlobalSettings().isWorldIncluded(p.getWorld())) return;
 		if (checkConfirmation && plugin.getGlobalSettings().isRebirthConfirm()) {
@@ -55,9 +59,16 @@ public class RebirthCommand extends PluginCommand {
 					: RebirthStorage.getRebirth(1);
 			rebirthConfirmation.getState(p.getName())
 					.ifConfirmed(() -> plugin.getRebirthExecutor().rebirth(p))
-					.orElse(() -> Messages.sendMessage(p, Messages.getRebirthConfirm(),
-							s -> s.replace("%nextrebirth%", nextRebirth.getName())
-									.replace("%nextprestige_display%", nextRebirth.getDisplayName())));
+					.orElse(() -> {
+						if (PRXAPI.isLastRebirth(p)) {
+							// If player is at the last rebirth, execute rebirth just to send the last rebirth message.
+							plugin.getRebirthExecutor().rebirth(p);
+						} else {
+							Messages.sendMessage(p, Messages.getRebirthConfirm(),
+									s -> s.replace("%nextrebirth%", nextRebirth.getName())
+											.replace("%nextrebirth_display%", nextRebirth.getDisplayName()));
+						}
+					});
 		} else {
 			plugin.getRebirthExecutor().rebirth(p);
 		}

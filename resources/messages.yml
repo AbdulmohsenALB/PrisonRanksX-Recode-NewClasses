@@ -157,6 +157,7 @@ Messages:
   # ===========================================================================================================================
   # placeholders: %rebirth%
   unknown-rebirth: "&cUnable to find the rebirth &e%rebirth%&c."
+  delete-rebirth: "&e%args1% &crebirth has been deleted."
   set-first-rebirth: "&cFirst rebirth changed to &e%args1%"
   set-last-rebirth: "&cLast rebirth changed to &e%args1%"
   set-rebirth: '&cChanged &e%player%''s &crebirth to &e%rebirth% &crebirth.'

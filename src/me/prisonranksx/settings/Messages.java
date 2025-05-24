@@ -1,12 +1,11 @@
 package me.prisonranksx.settings;
 
-import java.util.List;
-import java.util.function.Function;
-
+import me.prisonranksx.managers.StringManager;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-import me.prisonranksx.managers.StringManager;
+import java.util.List;
+import java.util.function.Function;
 
 public class Messages {
 
@@ -76,7 +75,7 @@ public class Messages {
 	 * Send message to sender only if it's not null.
 	 */
 	public static void sendMessages(Player player, List<String> message,
-			Function<List<String>, List<String>> listFunction) {
+									Function<List<String>, List<String>> listFunction) {
 		if (message == null) return;
 		message = listFunction.apply(message);
 		if (message == null) return;
@@ -88,7 +87,7 @@ public class Messages {
 	 * Send message to sender only if it's not null.
 	 */
 	public static void sendMessages(CommandSender sender, List<String> message,
-			Function<List<String>, List<String>> listFunction) {
+									Function<List<String>, List<String>> listFunction) {
 		if (message == null) return;
 		message = listFunction.apply(message);
 		if (message == null) return;
@@ -387,8 +386,16 @@ public class Messages {
 		return SETTINGS.deletePrestige;
 	}
 
+	public static String getDeleteRebirth() {
+		return SETTINGS.deleteRebirth;
+	}
+
 	public static void setDeletePrestige(String deletePrestige) {
 		SETTINGS.deletePrestige = deletePrestige;
+	}
+
+	public static void setDeleteRebirth(String deleteRebirth) {
+		SETTINGS.deleteRebirth = deleteRebirth;
 	}
 
 	public static String getSetFirstPrestige() {
@@ -963,6 +970,7 @@ public class Messages {
 		private String autoRebirthEnabled;
 		private String autoRebirthDisabled;
 		private String rebirth;
+		private String deleteRebirth;
 		private String commandSpam;
 		private String rankupMaxIsOn;
 		private String prestigeMaxIsOn;
@@ -1075,6 +1083,7 @@ public class Messages {
 			autoRebirthEnabled = getString("auto-rebirth-enabled", true);
 			autoRebirthDisabled = getString("auto-rebirth-disabled", true);
 			rebirth = getString("rebirth", true);
+			deleteRebirth = getString("delete-rebirth", true);
 			rankupMaxIsOn = getString("rankupmax-is-on", true);
 			prestigeMaxIsOn = getString("prestigemax-is-on", true);
 			ranksListLastPageReached = getString("ranks-list-last-page-reached", true);
@@ -1374,6 +1383,14 @@ public class Messages {
 
 		public void setDeletePrestige(String deletePrestige) {
 			this.deletePrestige = deletePrestige;
+		}
+
+		public String getDeleteRebirth() {
+			return deleteRebirth;
+		}
+
+		public void setDeleteRebirth(String deleteRebirth) {
+			this.deleteRebirth = deleteRebirth;
 		}
 
 		public String getSetFirstPrestige() {

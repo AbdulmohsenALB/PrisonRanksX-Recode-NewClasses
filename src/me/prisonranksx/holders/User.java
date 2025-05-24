@@ -1,15 +1,15 @@
 package me.prisonranksx.holders;
 
-import java.util.UUID;
-
+import me.prisonranksx.PrisonRanksX;
+import me.prisonranksx.data.PrestigeStorage;
+import me.prisonranksx.data.RankStorage;
+import me.prisonranksx.data.RebirthStorage;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import me.prisonranksx.data.PrestigeStorage;
-import me.prisonranksx.data.RankStorage;
-import me.prisonranksx.data.RebirthStorage;
+import java.util.UUID;
 
 /**
  * Holds a player's levels (rank, prestige, rebirth) information in memory.
@@ -68,6 +68,12 @@ public class User {
 	 */
 	public void setPrestigeName(@Nullable String prestigeName) {
 		this.prestigeName = prestigeName;
+		forceSave();
+	}
+
+	public void forceSave() {
+		if (PrisonRanksX.getInstance().isForceSave())
+			PrisonRanksX.getInstance().forceSave(this);
 	}
 
 	@Nullable
@@ -78,7 +84,6 @@ public class User {
 	/**
 	 * Retrieves rebirth object of player current rebirth name from rebirth
 	 * storage.
-	 *
 	 *
 	 * @return player rebirth or null if they don't have a rebirth.
 	 */
@@ -95,6 +100,7 @@ public class User {
 	 */
 	public void setRebirthName(@Nullable String rebirthName) {
 		this.rebirthName = rebirthName;
+		forceSave();
 	}
 
 	@Nullable
@@ -104,7 +110,7 @@ public class User {
 
 	/**
 	 * Retrieves rank object of player current rank name from rank storage.
-	 * 
+	 *
 	 * @return player rank or null if they don't have a rank.
 	 */
 	@Nullable
@@ -115,11 +121,12 @@ public class User {
 	/**
 	 * Changes player current rank name in memory, setting it to null will remove
 	 * player's current rank.
-	 * 
+	 *
 	 * @param rankName to change to.
 	 */
 	public void setRankName(@Nullable String rankName) {
 		this.rankName = rankName;
+		forceSave();
 	}
 
 	@Nullable
@@ -134,6 +141,7 @@ public class User {
 	public void setRankAndPathName(@Nullable String rankName, @Nullable String pathName) {
 		this.rankName = rankName;
 		this.pathName = pathName;
+		forceSave();
 	}
 
 	public boolean hasRank() {
@@ -154,7 +162,7 @@ public class User {
 
 	/**
 	 * Gets player from this user's name
-	 * 
+	 *
 	 * @return user as bukkit player, null if player is not online.
 	 */
 	@Nullable

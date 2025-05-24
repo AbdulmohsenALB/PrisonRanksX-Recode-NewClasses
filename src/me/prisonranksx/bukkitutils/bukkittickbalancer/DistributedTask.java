@@ -1,6 +1,7 @@
 package me.prisonranksx.bukkitutils.bukkittickbalancer;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.function.Consumer;
@@ -11,7 +12,7 @@ public class DistributedTask<T> extends SplittableTask {
 
 	private final Consumer<T> action;
 	private final Predicate<T> escapeCondition;
-	private final List<LinkedList<Supplier<T>>> suppliedValueMatrix;
+	private final List<List<Supplier<T>>> suppliedValueMatrix;
 	private final int distributionSize;
 	private int currentPosition = 0;
 
@@ -19,10 +20,12 @@ public class DistributedTask<T> extends SplittableTask {
 		this.distributionSize = distributionSize;
 		this.action = action;
 		this.escapeCondition = escapeCondition;
-		this.suppliedValueMatrix = new ArrayList<>(distributionSize);
+		this.suppliedValueMatrix = Collections.synchronizedList(new ArrayList<>(distributionSize));
 		for (int i = 0; i < distributionSize; i++) {
-			this.suppliedValueMatrix.add(new LinkedList<>());
+			List<Supplier<T>> list = Collections.synchronizedList(new LinkedList<>());
+			this.suppliedValueMatrix.add(list);
 		}
+
 	}
 
 	public void addValue(Supplier<T> valueSupplier) {
@@ -52,7 +55,7 @@ public class DistributedTask<T> extends SplittableTask {
 		this.proceedPosition();
 	}
 
-	private boolean executeThenCheck(Supplier<T> valueSupplier) {
+	private synchronized boolean executeThenCheck(Supplier<T> valueSupplier) {
 		T value = valueSupplier.get();
 		this.action.accept(value);
 		return this.escapeCondition.test(value);

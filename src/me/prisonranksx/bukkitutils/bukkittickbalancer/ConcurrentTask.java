@@ -19,12 +19,12 @@ public class ConcurrentTask<T> extends SplittableTask {
 	private int maxNanosPerTick = (int) (MAX_MILLIS_PER_TICK * 1E6);
 
 	public ConcurrentTask(Consumer<T> action, Predicate<T> escapeCondition, Consumer<T> escapeAction,
-			int distributionSize) {
+						  int distributionSize) {
 		this(action, escapeCondition, escapeAction, distributionSize, 2.5);
 	}
 
 	public ConcurrentTask(Consumer<T> action, Predicate<T> escapeCondition, Consumer<T> escapeAction,
-			int distributionSize, double maxMillisecondsPerTick) {
+						  int distributionSize, double maxMillisecondsPerTick) {
 		this.escapeAction = escapeAction;
 		this.distributionSize = distributionSize;
 		this.action = action;
