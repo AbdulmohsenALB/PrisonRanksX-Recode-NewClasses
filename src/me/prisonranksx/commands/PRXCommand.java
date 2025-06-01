@@ -4,6 +4,7 @@ import com.google.common.collect.Lists;
 import me.prisonranksx.PrisonRanksX;
 import me.prisonranksx.api.PRXAPI;
 import me.prisonranksx.bukkitutils.Colorizer;
+import me.prisonranksx.bukkitutils.ConfigCreator;
 import me.prisonranksx.bukkitutils.Confirmation;
 import me.prisonranksx.bukkitutils.bukkittickbalancer.BukkitTickBalancer;
 import me.prisonranksx.bukkitutils.bukkittickbalancer.ConcurrentTask;
@@ -28,10 +29,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
 
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -63,13 +61,15 @@ public class PRXCommand extends PluginCommand {
 		CONVERT("convert", "convertdata"),
 		MSG("msg", "message"),
 
-		SET_RANK("setrank", "changerank", "sr", "setrnak"),
-		SET_PRESTIGE("setprestige", "changeprestige", "sp", "setpres"),
-		SET_REBIRTH("setrebirth", "changerebirth", "sr", "setrb"),
+		SET_RANK("setrank", "setplayerrank", "changerank", "sr", "setrnak"),
+		SET_PRESTIGE("setprestige", "setplayerprestige", "changeprestige", "sp", "setpres"),
+		SET_REBIRTH("setrebirth", "setplayerrebirth", "changerebirth", "sr", "setrb"),
 
-		RESET_RANK("resetrank", "rr"),
-		RESET_PRESTIGE("resetprestige", "rp"),
-		RESET_REBIRTH("resetrebirth", "rb"),
+		RESET_RANK("resetrank", "resetplayerrank", "rr"),
+		RESET_PRESTIGE("resetprestige", "resetplayerprestige", "rp"),
+		RESET_REBIRTH("resetrebirth", "resetplayerrebirth", "rb"),
+
+		DELETE_PLAYER_RANK("deleteplayerrank", "dpr", "delplayerrank", "delpr"),
 
 		CREATE_RANK("createrank", "cr", "newrank", "addrank"),
 		CREATE_PRESTIGE("createprestige", "cp", "newprestige", "addprestige"),
@@ -88,6 +88,8 @@ public class PRXCommand extends PluginCommand {
 		DELETE_REBIRTH("delrebirth", "deleterebirth", "drb", "removerebirth", "remrebirth"),
 
 		SET_RANK_PATH("setrankpath", "moverankpath", "srp", "setrnakpath"),
+
+		RANKS_PLEASE("ranksplease", "ranks_please", "rankspls", "ranksplz", "iwantranks"),
 
 		/*** Developer command 	*/
 		RANK("rank", "rankinfo", "rnak"),
@@ -142,7 +144,7 @@ public class PRXCommand extends PluginCommand {
 			}
 		}
 
-		private String[] alternateNames;
+		private final String[] alternateNames;
 
 		SubCommandName(String... alternateNames) {
 			this.alternateNames = alternateNames;
@@ -182,7 +184,7 @@ public class PRXCommand extends PluginCommand {
 		externalCommands.remove(name);
 	}
 
-	public void hasExternalSubCommand(String name) {
+	public void isExternalSubCommand(String name) {
 		externalCommands.containsKey(name);
 	}
 
@@ -397,6 +399,10 @@ public class PRXCommand extends PluginCommand {
 						if (helpPage == null) return sendMsg(sender, "&cInvalid page number.");
 						helpPage.forEach(sender::sendMessage);
 						return true;
+					case RANKS_PLEASE:
+						ConfigCreator.createDummyConfig("ranks_preconfigured.yml");
+						sendMsg(sender, "Config 'ranks_preconfigured.yml' has been created.");
+						return true;
 					case HELP:
 						helpMessages.get(1).forEach(sender::sendMessage);
 						return true;
@@ -415,6 +421,7 @@ public class PRXCommand extends PluginCommand {
 						return true;
 					case SET_PRESTIGE: return sendMsg(sender, "&4Syntax: &7/prx &csetprestige &f<player> <prestige>");
 					case SET_REBIRTH: return sendMsg(sender, "&4Syntax: &7/prx &csetrebirth &f<player> <rebirth>");
+					case DELETE_PLAYER_RANK: return sendMsg(sender, "&4Syntax: &7/prx &cdeleteplayerrank &f<player>");
 					case RESET_RANK: return sendMsg(sender, "&4Syntax: &7/prx &cresetrank &f<player>");
 					case RESET_PRESTIGE: return sendMsg(sender, "&4Syntax: &7/prx &cresetprestige &f<player>");
 					case RESET_REBIRTH: return sendMsg(sender, "&4Syntax: &7/prx &cresetrebirth &f<player>");
@@ -523,11 +530,22 @@ public class PRXCommand extends PluginCommand {
 						return true;
 					case RESET_RANK: {
 						readTarget(sender, args[1], target -> {
+							UUID uniqueId = UniqueId.getUUID(target);
 							plugin.getAdminExecutor()
-									.setPlayerRank(UniqueId.getUUID(target), RankStorage.getFirstRankName());
-							Messages.sendMessage(sender, Messages.getResetRank(),
-									s -> s.replace("%player%", target.getName())
-											.replace("%rank%", RankStorage.getFirstRankName()));
+									.setPlayerRank(uniqueId, RankStorage.getFirstRankName());
+							plugin.getAdminExecutor().removeRankOnResetPermissions(uniqueId).thenRun(() ->
+									Messages.sendMessage(sender, Messages.getResetRank(),
+											s -> s.replace("%player%", target.getName())
+													.replace("%rank%", RankStorage.getFirstRankName())));
+						});
+						return true;
+					}
+					case DELETE_PLAYER_RANK: {
+						readTarget(sender, args[1], target -> {
+							plugin.getUserController().getUser(UniqueId.getUUID(target)).setRankName(null);
+							plugin.getAdminExecutor().removeRankOnDeletionPermissions(UniqueId.getUUID(target)).thenRun(() ->
+									Messages.sendMessage(sender, Messages.getDeletePlayerRank(),
+											s -> s.replace("%args1%", target.getName())));
 						});
 						return true;
 					}
@@ -535,9 +553,10 @@ public class PRXCommand extends PluginCommand {
 						readTarget(sender, args[1], target -> {
 							plugin.getAdminExecutor()
 									.setPlayerPrestige(UniqueId.getUUID(target), PrestigeStorage.getFirstPrestigeName());
-							Messages.sendMessage(sender, Messages.getResetPrestige(),
-									s -> s.replace("%player%", target.getName())
-											.replace("%prestige%", PrestigeStorage.getFirstPrestigeName()));
+							plugin.getAdminExecutor().removePrestigeOnResetPermissions(UniqueId.getUUID(target)).thenRun(() ->
+									Messages.sendMessage(sender, Messages.getResetPrestige(),
+											s -> s.replace("%player%", target.getName())
+													.replace("%prestige%", PrestigeStorage.getFirstPrestigeName())));
 						});
 						return true;
 					}
@@ -545,9 +564,10 @@ public class PRXCommand extends PluginCommand {
 						readTarget(sender, args[1], target -> {
 							plugin.getAdminExecutor()
 									.setPlayerRebirth(UniqueId.getUUID(target), RebirthStorage.getFirstRebirthName());
-							Messages.sendMessage(sender, Messages.getResetRebirth(),
-									s -> s.replace("%player%", target.getName())
-											.replace("%rebirth%", RebirthStorage.getFirstRebirthName()));
+							plugin.getAdminExecutor().removeRebirthOnResetPermissions(UniqueId.getUUID(target)).thenRun(() ->
+									Messages.sendMessage(sender, Messages.getResetRebirth(),
+											s -> s.replace("%player%", target.getName())
+													.replace("%rebirth%", RebirthStorage.getFirstRebirthName())));
 						});
 						return true;
 					}
@@ -803,6 +823,7 @@ public class PRXCommand extends PluginCommand {
 							Messages.sendMessage(sender, Messages.getSetPrestige(),
 									s -> s.replace("%player%", target.getName())
 											.replace("%prestige%", deletePrestige ? "none" : prestigeName));
+							if (deletePrestige) plugin.getAdminExecutor().removePrestigeOnDeletionPermissions(UniqueId.getUUID(target));
 						});
 						return true;
 					}
@@ -818,6 +839,7 @@ public class PRXCommand extends PluginCommand {
 							Messages.sendMessage(sender, Messages.getSetRebirth(),
 									s -> s.replace("%player%", target.getName())
 											.replace("%rebirth%", deleteRebirth ? "none" : rebirthName));
+							if (deleteRebirth) plugin.getAdminExecutor().removeRebirthOnDeletionPermissions(UniqueId.getUUID(target));
 						});
 						return true;
 					}

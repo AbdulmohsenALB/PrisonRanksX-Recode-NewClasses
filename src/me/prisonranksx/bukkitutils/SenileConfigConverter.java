@@ -1,5 +1,12 @@
 package me.prisonranksx.bukkitutils;
 
+import com.google.common.collect.Lists;
+import me.prisonranksx.utils.FileBackup;
+import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
+import org.jetbrains.annotations.Nullable;
+
 import java.io.File;
 import java.util.AbstractMap;
 import java.util.LinkedHashMap;
@@ -8,18 +15,12 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.function.Predicate;
 
-import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.configuration.file.YamlConfiguration;
-import org.jetbrains.annotations.Nullable;
-
-import com.google.common.collect.Lists;
-
 public class SenileConfigConverter {
 
 	private Map<Entry<String, String>, String> conversions;
 
 	private FileConfiguration oldConfig;
+	private File oldFile;
 	private boolean old;
 
 	public SenileConfigConverter(String filePath) {
@@ -27,6 +28,7 @@ public class SenileConfigConverter {
 	}
 
 	public SenileConfigConverter(File file) {
+		oldFile = file;
 		this.oldConfig = file.exists() ? YamlConfiguration.loadConfiguration(file) : null;
 		this.conversions = new LinkedHashMap<>();
 	}
@@ -78,7 +80,6 @@ public class SenileConfigConverter {
 	}
 
 	/**
-	 *
 	 * @param fields (oldField1, newField1, oldField2, newField2, etc...)
 	 */
 	public void addFieldRename(String... fields) {
@@ -86,11 +87,10 @@ public class SenileConfigConverter {
 	}
 
 	/**
-	 *
 	 * @param fields (oldField1, newField1, oldField2, newField2, etc...)
 	 */
 	public void addFieldRename(boolean useNewSectionName, String sectionName, @Nullable String newSectionName,
-			String... fields) {
+							   String... fields) {
 		String updatedSection = useNewSectionName ? newSectionName : sectionName;
 		for (int i = 1; i < fields.length; i += 2)
 			addFieldRename(sectionName + "." + fields[i - 1], updatedSection + "." + fields[i]);
@@ -103,6 +103,7 @@ public class SenileConfigConverter {
 
 	public void process(FileConfiguration newConfig) {
 		if (old) {
+			FileBackup.fromFile(oldFile);
 			conversions.forEach((nodes, conversionName) -> {
 				switch (conversionName) {
 					case "field-rename":

@@ -1,13 +1,15 @@
 package me.prisonranksx.managers;
 
-import java.util.stream.Collectors;
-
-import org.bukkit.plugin.java.JavaPlugin;
-
 import me.prisonranksx.PrisonRanksX;
 import me.prisonranksx.bukkitutils.SenileConfigConverter;
 import me.prisonranksx.reflections.UniqueId;
+import org.bukkit.plugin.java.JavaPlugin;
 
+import java.util.stream.Collectors;
+
+/**
+ * Converts pre-3.0.0 PrisonRanksX config files to new ones.
+ */
 public class ConversionManager {
 
 	private static SenileConfigConverter mainConfigConverter;

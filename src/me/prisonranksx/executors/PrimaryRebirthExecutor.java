@@ -8,6 +8,7 @@ import me.prisonranksx.bukkitutils.bukkittickbalancer.ConcurrentTask;
 import me.prisonranksx.bukkitutils.bukkittickbalancer.DistributedTask;
 import me.prisonranksx.components.RequirementsComponent;
 import me.prisonranksx.components.RequirementsComponent.RequirementEvaluationResult;
+import me.prisonranksx.data.PrestigeStorage;
 import me.prisonranksx.data.RankStorage;
 import me.prisonranksx.data.RebirthStorage;
 import me.prisonranksx.data.UserController;
@@ -18,6 +19,7 @@ import me.prisonranksx.managers.HologramManager;
 import me.prisonranksx.managers.StringManager;
 import me.prisonranksx.reflections.UniqueId;
 import me.prisonranksx.settings.Messages;
+import me.prisonranksx.settings.RebirthSettings;
 import me.prisonranksx.utils.UniqueRandom;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -288,12 +290,33 @@ public class PrimaryRebirthExecutor implements RebirthExecutor {
 				rebirthResult.getUserResult().setRebirthName(rebirthResult.getStringResult());
 				spawnHologram(rebirthResult.getRebirthResult(), player, true);
 				playSound(player);
-				if (plugin.getGlobalSettings().isRankEnabled() && plugin.getRebirthSettings().isResetRank()) {
-					plugin.getAdminExecutor()
-							.setPlayerRank(user.getUniqueId(), RankStorage.getFirstRankName(user.getPathName()));
+				RebirthSettings rebirthSettings = plugin.getRebirthSettings();
+				AdminExecutor adminExecutor = plugin.getAdminExecutor();
+				UUID uniqueId = user.getUniqueId();
+				if (plugin.getGlobalSettings().isRankEnabled() && rebirthSettings.isResetRank()) {
+					adminExecutor
+							.setPlayerRank(uniqueId, RankStorage.getFirstRankName(user.getPathName()));
 					updateGroup(player);
+					if (rebirthSettings.isRemoveRankPermissionsOnRebirth()) {
+						adminExecutor.removeRankOnResetPermissions(uniqueId);
+					}
 				}
-				if (plugin.getRebirthSettings().isResetMoney()) {
+				if (plugin.getGlobalSettings().isPrestigeEnabled()) {
+					if (rebirthSettings.isDeletePrestige()) {
+						adminExecutor.setPlayerPrestige(uniqueId, null);
+						if (rebirthSettings.isRemovePrestigePermissionsOnRebirth()) {
+							adminExecutor.removePrestigeOnDeletionPermissions(uniqueId);
+						}
+					} else if (rebirthSettings.isResetPrestige()) {
+						adminExecutor.setPlayerPrestige(uniqueId,
+								PrestigeStorage.getFirstPrestigeName());
+						if (rebirthSettings.isRemovePrestigePermissionsOnRebirth()) {
+							adminExecutor.removePrestigeOnResetPermissions(uniqueId);
+						}
+					}
+
+				}
+				if (rebirthSettings.isResetMoney()) {
 					EconomyManager.takeBalance(player, EconomyManager.getBalance(player));
 				}
 				break;
@@ -322,10 +345,29 @@ public class PrimaryRebirthExecutor implements RebirthExecutor {
 				rebirthResult.getUserResult().setRebirthName(rebirthResult.getStringResult());
 				spawnHologram(rebirthResult.getRebirthResult(), player, true);
 				playSound(player);
+				RebirthSettings rebirthSettings = plugin.getRebirthSettings();
+				AdminExecutor adminExecutor = plugin.getAdminExecutor();
+				UUID uniqueId = user.getUniqueId();
 				if (plugin.getGlobalSettings().isRankEnabled() && plugin.getRebirthSettings().isResetRank()) {
 					plugin.getAdminExecutor()
-							.setPlayerRank(user.getUniqueId(), RankStorage.getFirstRankName(user.getPathName()));
+							.setPlayerRank(uniqueId, RankStorage.getFirstRankName(user.getPathName()));
 					updateGroup(player);
+					if (rebirthSettings.isRemoveRankPermissionsOnRebirth()) {
+						adminExecutor.removeRankOnResetPermissions(uniqueId);
+					}
+				}
+				if (plugin.getGlobalSettings().isPrestigeEnabled()) {
+					if (rebirthSettings.isDeletePrestige()) {
+						adminExecutor.setPlayerPrestige(uniqueId, null);
+						if (rebirthSettings.isRemovePrestigePermissionsOnRebirth())
+							adminExecutor.removePrestigeOnDeletionPermissions(uniqueId);
+					} else if (rebirthSettings.isResetPrestige()) {
+						adminExecutor.setPlayerPrestige(uniqueId,
+								PrestigeStorage.getFirstPrestigeName());
+						if (rebirthSettings.isRemovePrestigePermissionsOnRebirth())
+							adminExecutor.removePrestigeOnResetPermissions(uniqueId);
+					}
+
 				}
 				if (plugin.getRebirthSettings().isResetMoney()) {
 					EconomyManager.takeBalance(player, EconomyManager.getBalance(player));
@@ -355,7 +397,30 @@ public class PrimaryRebirthExecutor implements RebirthExecutor {
 								.replace("%nextrebirth_display%", rebirthResult.getRebirthResult().getDisplayName()));
 				spawnHologram(rebirthResult.getRebirthResult(), player, false);
 				playSound(player);
-				updateGroup(player);
+				RebirthSettings rebirthSettings = plugin.getRebirthSettings();
+				AdminExecutor adminExecutor = plugin.getAdminExecutor();
+				User user = rebirthResult.getUserResult();
+				UUID uniqueId = user.getUniqueId();
+				if (plugin.getGlobalSettings().isRankEnabled() && plugin.getRebirthSettings().isResetRank()) {
+					plugin.getAdminExecutor()
+							.setPlayerRank(uniqueId, RankStorage.getFirstRankName(user.getPathName()));
+					updateGroup(player);
+					if (rebirthSettings.isRemoveRankPermissionsOnRebirth()) {
+						adminExecutor.removeRankOnResetPermissions(uniqueId);
+					}
+				}
+				if (plugin.getGlobalSettings().isPrestigeEnabled()) {
+					if (rebirthSettings.isDeletePrestige()) {
+						adminExecutor.setPlayerPrestige(uniqueId, null);
+						if (rebirthSettings.isRemovePrestigePermissionsOnRebirth())
+							adminExecutor.removePrestigeOnDeletionPermissions(uniqueId);
+					} else if (rebirthSettings.isResetPrestige()) {
+						adminExecutor.setPlayerPrestige(uniqueId,
+								PrestigeStorage.getFirstPrestigeName());
+						if (rebirthSettings.isRemovePrestigePermissionsOnRebirth())
+							adminExecutor.removePrestigeOnResetPermissions(uniqueId);
+					}
+				}
 				break;
 		}
 		return rebirthResult;

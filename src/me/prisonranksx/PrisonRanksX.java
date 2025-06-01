@@ -166,7 +166,7 @@ public class PrisonRanksX extends JavaPlugin {
 		instance = this;
 		ConversionManager.convertConfigFiles();
 
-		if (GlobalSettings.SUPPORTS_ACTION_BAR) ActionBarManager.cache(); // Only load if using 1.8+ cuz action bars
+
 		// didn't exist in the older versions.
 		StringManager.cache(); // Parse colors, PlaceholderAPI placeholders if PAPI is installed, and symbols.
 		// Might stop supporting 1.6-
@@ -178,6 +178,11 @@ public class PrisonRanksX extends JavaPlugin {
 		// not.
 
 		initGlobalSettings();
+
+		if (GlobalSettings.SUPPORTS_ACTION_BAR) {
+			ActionBarManager.cache(); // Only load if using 1.8+ cuz action bars
+			ActionBarManager.getActionBarProgress();
+		}
 		initUserController();
 		logInfo("Data storage type: " + userController.getType().name());
 		playerGroupUpdater = new PlayerGroupUpdater(this);

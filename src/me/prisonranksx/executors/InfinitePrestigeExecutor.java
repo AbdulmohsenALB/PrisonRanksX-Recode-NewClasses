@@ -84,10 +84,12 @@ public class InfinitePrestigeExecutor implements PrestigeExecutor {
 							.setPlayerRank(uniqueId,
 									RankStorage.getFirstRankName(controlUsers().getUser(uniqueId).getPathName()));
 					updateGroup(player);
-					if (plugin.getGlobalSettings().isRankupMaxWithPrestige()) {
-						plugin.getRankupExecutor().maxRankup(player);
-						MAX_PRESTIGE_BREAKER.add(uniqueId);
-					}
+					plugin.getAdminExecutor().removeRankOnResetPermissions(uniqueId).thenRunAsync(() -> {
+						if (plugin.getGlobalSettings().isRankupMaxWithPrestige()) {
+							plugin.getRankupExecutor().maxRankup(player);
+							MAX_PRESTIGE_BREAKER.add(uniqueId);
+						}
+					});
 				}
 			} else {
 				MAX_PRESTIGE_BREAKER.add(uniqueId);
@@ -297,6 +299,7 @@ public class InfinitePrestigeExecutor implements PrestigeExecutor {
 					plugin.getAdminExecutor()
 							.setPlayerRank(user.getUniqueId(), RankStorage.getFirstRankName(user.getPathName()));
 					updateGroup(player);
+					plugin.getAdminExecutor().removeRankOnResetPermissions(user.getUniqueId());
 				}
 				if (plugin.getPrestigeSettings().isResetMoney()) {
 					EconomyManager.takeBalance(player, EconomyManager.getBalance(player));
@@ -334,6 +337,7 @@ public class InfinitePrestigeExecutor implements PrestigeExecutor {
 					plugin.getAdminExecutor()
 							.setPlayerRank(user.getUniqueId(), RankStorage.getFirstRankName(user.getPathName()));
 					updateGroup(player);
+					plugin.getAdminExecutor().removeRankOnResetPermissions(user.getUniqueId());
 				}
 				if (plugin.getPrestigeSettings().isResetMoney()) {
 					EconomyManager.takeBalance(player, EconomyManager.getBalance(player));
@@ -369,6 +373,7 @@ public class InfinitePrestigeExecutor implements PrestigeExecutor {
 				spawnHologram(prestigeResult.getPrestigeResult(), player, false);
 				playSound(player);
 				updateGroup(player);
+				plugin.getAdminExecutor().removeRankOnResetPermissions(prestigeResult.getUserResult().getUniqueId());
 				break;
 		}
 		return prestigeResult;

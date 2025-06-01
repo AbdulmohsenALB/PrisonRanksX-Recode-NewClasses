@@ -1,17 +1,15 @@
 package me.prisonranksx.managers;
 
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.CompletableFuture;
-
-import org.jetbrains.annotations.Nullable;
-
+import me.prisonranksx.common.StaticCache;
+import net.milkbowl.vault.permission.Permission;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.plugin.RegisteredServiceProvider;
+import org.jetbrains.annotations.Nullable;
 
-import me.prisonranksx.common.StaticCache;
-import net.milkbowl.vault.permission.Permission;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 
 public class PermissionsManager extends StaticCache {
 
@@ -49,13 +47,13 @@ public class PermissionsManager extends StaticCache {
 	}
 
 	public static CompletableFuture<Void> givePermissions(OfflinePlayer player, Iterable<String> permissions,
-			@Nullable String worldName) {
+														  @Nullable String worldName) {
 		return CompletableFuture
 				.runAsync(() -> permissions.forEach(permission -> givePermission(player, permission, worldName)));
 	}
 
 	public static CompletableFuture<Void> givePermissions(OfflinePlayer player,
-			Map<String, Set<String>> permissionsMap) {
+														  Map<String, Set<String>> permissionsMap) {
 		return CompletableFuture
 				.runAsync(() -> permissionsMap.forEach((worldName, permissions) -> permissionsMap.get(worldName)
 						.forEach(permission -> givePermission(player, permission, worldName))));
@@ -67,13 +65,18 @@ public class PermissionsManager extends StaticCache {
 	}
 
 	public static CompletableFuture<Void> removePermissions(OfflinePlayer player, Iterable<String> permissions,
-			@Nullable String worldName) {
+															@Nullable String worldName) {
 		return CompletableFuture
 				.runAsync(() -> permissions.forEach(permission -> removePermission(player, permission, worldName)));
 	}
 
+	/**
+	 * @param player
+	 * @param permissionsMap world name to permissions collection map
+	 * @return
+	 */
 	public static CompletableFuture<Void> removePermissions(OfflinePlayer player,
-			Map<String, Set<String>> permissionsMap) {
+															Map<String, Set<String>> permissionsMap) {
 		return CompletableFuture
 				.runAsync(() -> permissionsMap.forEach((worldName, permissions) -> permissionsMap.get(worldName)
 						.forEach(permission -> removePermission(player, permission, worldName))));

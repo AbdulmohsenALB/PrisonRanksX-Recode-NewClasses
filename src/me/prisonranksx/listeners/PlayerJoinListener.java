@@ -1,15 +1,16 @@
 package me.prisonranksx.listeners;
 
-import java.util.UUID;
-
+import me.prisonranksx.PrisonRanksX;
+import me.prisonranksx.holders.User;
+import me.prisonranksx.managers.ActionBarManager;
+import me.prisonranksx.reflections.UniqueId;
 import org.bukkit.entity.Player;
 import org.bukkit.event.*;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.plugin.EventExecutor;
 
-import me.prisonranksx.PrisonRanksX;
-import me.prisonranksx.managers.ActionBarManager;
-import me.prisonranksx.reflections.UniqueId;
+import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 public class PlayerJoinListener implements EventExecutor, Listener {
 
@@ -33,10 +34,18 @@ public class PlayerJoinListener implements EventExecutor, Listener {
 
 	@EventHandler
 	public void onJoin(PlayerJoinEvent e) {
-		Player player = e.getPlayer();
-		UUID uniqueId = UniqueId.getUUID(player);
-		if (!plugin.getUserController().isLoaded(uniqueId))
-			plugin.getUserController().loadUser(uniqueId, player.getName()).thenRun(() -> {
+		plugin.doAsync(() -> {
+			Player player = e.getPlayer();
+			UUID uniqueId = UniqueId.getUUID(player);
+			CompletableFuture<User> userCompletableFuture;
+			if (!plugin.getUserController().isLoaded(uniqueId)) {
+				// If for what ever reason user isn't loaded
+				userCompletableFuture = plugin.getUserController().loadUser(uniqueId, player.getName());
+			} else {
+				User user = plugin.getUserController().getUser(uniqueId);
+				userCompletableFuture = CompletableFuture.completedFuture(user);
+			}
+			userCompletableFuture.thenRunAsync(() -> {
 				if (plugin.getGlobalSettings().isAutoRankupAlwaysEnabled()
 						&& plugin.getGlobalSettings().isRankEnabled()) {
 					plugin.getRankupExecutor().toggleAutoRankup(player, true);
@@ -45,6 +54,7 @@ public class PlayerJoinListener implements EventExecutor, Listener {
 					ActionBarManager.getActionBarProgress().enable(player);
 				}
 			});
+		});
 	}
 
 }

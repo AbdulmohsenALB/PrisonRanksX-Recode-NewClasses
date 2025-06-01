@@ -12,6 +12,7 @@ import me.prisonranksx.holders.Rebirth;
 import me.prisonranksx.holders.UniversalPrestige;
 import me.prisonranksx.managers.EconomyManager;
 import me.prisonranksx.settings.PlaceholderAPISettings;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
@@ -41,11 +42,28 @@ public class PlaceholderAPIHook extends PlaceholderExpansion {
 		setupPrefix("prestige_number_", (player, prestigeName) -> PRXAPI.getPrestige(prestigeName), 0, (player, prestige) -> prestige.getNumber());
 		setupPrefix("rank_display_name_", (player, rankName) -> PRXAPI.getRank(rankName, player), "none", (player, rank) -> rank.getDisplayName());
 		setupPrefix("prestige_display_name_", (player, prestigeName) -> PRXAPI.getPrestige(prestigeName), "none", (player, prestige) -> prestige.getDisplayName());
+		setupPrefix("player_rank_name_", (player, playerName) -> PRXAPI.getPlayerRank(getPlayer(playerName)), "none", (player, rank) -> rank.getName());
+		setupPrefix("player_prestige_name_", (player, playerName) -> PRXAPI.getPlayerPrestige(getPlayer(playerName)), "none", (player, prestige) -> prestige.getName());
+		setupPrefix("player_rebirth_name_", (player, playerName) -> PRXAPI.getPlayerRebirth(getPlayer(playerName)), "none", (player, rebirth) -> rebirth.getName());
+		setupPrefix("player_rank_number_", (player, playerName) -> PRXAPI.getPlayerRank(getPlayer(playerName)), 0, (player, rank) -> rank.getIndex());
+		setupPrefix("player_prestige_number_", (player, playerName) -> PRXAPI.getPlayerPrestige(getPlayer(playerName)), 0, (player, prestige) -> prestige.getIndex());
+		setupPrefix("player_prestige_number_short_", (player, playerName) -> PRXAPI.getPlayerPrestige(getPlayer(playerName)), 0, (player, prestige) -> EconomyManager.shortcutFormat(prestige.getIndex()));
+		setupPrefix("player_prestige_number_comma_", (player, playerName) -> PRXAPI.getPlayerPrestige(getPlayer(playerName)), 0, (player, prestige) -> EconomyManager.commaFormat(prestige.getIndex()));
+		setupPrefix("player_rebirth_number_", (player, playerName) -> PRXAPI.getPlayerRebirth(getPlayer(playerName)), 0, (player, rebirth) -> rebirth.getIndex());
+		setupPrefix("player_rank_display_name_", (player, playerName) -> PRXAPI.getPlayerRank(getPlayer(playerName)), "none", (player, rank) -> rank.getDisplayName());
+		setupPrefix("player_prestige_display_name_", (player, playerName) -> PRXAPI.getPlayerPrestige(getPlayer(playerName)), "none", (player, prestige) -> prestige.getDisplayName());
+		setupPrefix("player_rebirth_display_name_", (player, playerName) -> PRXAPI.getPlayerRebirth(getPlayer(playerName)), "none", (player, rebirth) -> rebirth.getDisplayName());
 	}
 
 
 	private void setupPrefixRaw(String startsWith, BiFunction<Player, String, String> valueFunction) {
 		startsWithFunctions.put(startsWith.substring(0, startsWith.lastIndexOf("_") + 1), valueFunction);
+	}
+
+	public Player getPlayer(String playerName) {
+		Player player = Bukkit.getPlayer(playerName);
+		if (player == null) PrisonRanksX.logWarning("Placeholder tried to get non-existent player: " + playerName);
+		return player;
 	}
 
 	private void setupPrefixNonOptional(String startsWith, BiFunction<Player, String, String> valueFunction) {
@@ -54,6 +72,17 @@ public class PlaceholderAPIHook extends PlaceholderExpansion {
 		setupPrefixRaw(startsWith, shortenedFunc);
 	}
 
+	/**
+	 * @param startsWith                       The string that the placeholder starts with, such as "rank_number_"
+	 * @param retrievedPlaceholderValueMapping A function that returns the value of the placeholder from the last string after "_".
+	 *                                         First param is player that the placeholder is gonna be applied on. Second param is the last string after "_". In other words,
+	 *                                         {@code (player, lastStringPart) -> doSomethingWithGivenPlayerAndLastStringPartAndReturnValue(player, lastStringPart)}
+	 * @param nullValue                        The final value to return if the returned placeholder value (the one above) is null
+	 * @param mappingIfNotNull                 A function that returns the value to return if the placeholder value is not null. First param is player that the placeholder is gonna be applied on. Second param is the returned placeholder value.
+	 *                                         {@code (player, returnedValueFromAbove) -> doSomething(player, returnedValueFromAbove) }
+	 * @param <T>                              return type of retrievedPlaceholderValueMapping function
+	 * @param <U>                              return type of mappingIfNotNull
+	 */
 	public <T, U> void setupPrefix(String startsWith, BiFunction<Player, String, T> retrievedPlaceholderValueMapping, U nullValue, BiFunction<Player, T, U> mappingIfNotNull) {
 		BiFunction<Player, String, String> shortenedFunc = (player, placeholder) ->
 				Optional.ofNullable(retrievedPlaceholderValueMapping.apply(player, placeholder.substring(startsWith.length())))

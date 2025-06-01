@@ -1,17 +1,11 @@
 package me.prisonranksx.components;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import org.jetbrains.annotations.Nullable;
-
-import org.bukkit.entity.Player;
-
 import me.prisonranksx.hooks.EZLuckPerms;
 import me.prisonranksx.managers.PermissionsManager;
+import org.bukkit.entity.Player;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.*;
 
 public class PermissionsComponent extends Component {
 
@@ -19,8 +13,8 @@ public class PermissionsComponent extends Component {
 	private Map<String, Set<String>> worldPermissionsAdditionMap, worldPermissionsDeletionMap;
 
 	public PermissionsComponent(Set<String> permissionsAdditionList, Set<String> permissionsDeletionList,
-			Map<String, Set<String>> worldPermissionsAdditionMap,
-			Map<String, Set<String>> worldPermissionsDeletionMap) {
+								Map<String, Set<String>> worldPermissionsAdditionMap,
+								Map<String, Set<String>> worldPermissionsDeletionMap) {
 		this.permissionsAdditionList = permissionsAdditionList;
 		this.permissionsDeletionList = permissionsDeletionList;
 		this.worldPermissionsAdditionMap = worldPermissionsAdditionMap;
@@ -29,7 +23,7 @@ public class PermissionsComponent extends Component {
 
 	@Nullable
 	public static PermissionsComponent parsePermissions(@Nullable List<String> addPermissionsList,
-			@Nullable List<String> delPermissionsList) {
+														@Nullable List<String> delPermissionsList) {
 		if ((addPermissionsList == null || addPermissionsList.isEmpty())
 				&& (delPermissionsList == null || delPermissionsList.isEmpty()))
 			return null;
@@ -99,15 +93,15 @@ public class PermissionsComponent extends Component {
 		});
 		return contextualPermissionsAdditionMap.isEmpty() && contextualPermissionsDeletionMap.isEmpty()
 				? worldPermissionsAdditionMap.isEmpty() && worldPermissionsDeletionMap.isEmpty()
-						&& permissionsAdditionList.isEmpty() && permissionsDeletionList.isEmpty()
-								? null
-								: new PermissionsComponent(permissionsAdditionList, permissionsDeletionList,
-										worldPermissionsAdditionMap, worldPermissionsDeletionMap)
+				&& permissionsAdditionList.isEmpty() && permissionsDeletionList.isEmpty()
+				? null
+				: new PermissionsComponent(permissionsAdditionList, permissionsDeletionList,
+				worldPermissionsAdditionMap, worldPermissionsDeletionMap)
 				: worldPermissionsAdditionMap.isEmpty() && worldPermissionsDeletionMap.isEmpty()
-						&& permissionsAdditionList.isEmpty() && permissionsDeletionList.isEmpty() ? null
+				&& permissionsAdditionList.isEmpty() && permissionsDeletionList.isEmpty() ? null
 				: new LuckPermsPermissionsComponent(permissionsAdditionList, permissionsDeletionList,
-						worldPermissionsAdditionMap, worldPermissionsDeletionMap, contextualPermissionsAdditionMap,
-						contextualPermissionsDeletionMap);
+				worldPermissionsAdditionMap, worldPermissionsDeletionMap, contextualPermissionsAdditionMap,
+				contextualPermissionsDeletionMap);
 	}
 
 	public Set<String> getAddPermissionCollection() {
@@ -154,10 +148,10 @@ public class PermissionsComponent extends Component {
 		private Map<String, Set<String>> contextualPermissionsAdditionMap, contextualPermissionsDeletionMap;
 
 		public LuckPermsPermissionsComponent(Set<String> permissionsAdditionList, Set<String> permissionsDeletionList,
-				Map<String, Set<String>> worldPermissionsAdditionMap,
-				Map<String, Set<String>> worldPermissionsDeletionMap,
-				Map<String, Set<String>> contextualPermissionsAdditionMap,
-				Map<String, Set<String>> contextualPermissionsDeletionMap) {
+											 Map<String, Set<String>> worldPermissionsAdditionMap,
+											 Map<String, Set<String>> worldPermissionsDeletionMap,
+											 Map<String, Set<String>> contextualPermissionsAdditionMap,
+											 Map<String, Set<String>> contextualPermissionsDeletionMap) {
 			super(permissionsAdditionList, permissionsDeletionList, worldPermissionsAdditionMap,
 					worldPermissionsDeletionMap);
 			this.contextualPermissionsAdditionMap = contextualPermissionsAdditionMap;
@@ -234,6 +228,25 @@ public class PermissionsComponent extends Component {
 					.forEach(serverName -> contextualPermissionsDeletionMap.get(serverName)
 							.forEach(permission -> EZLuckPerms.removePermission(player.getUniqueId(), permission,
 									serverName)));
+		}
+
+		public void removePermission(Player player, String permission, String serverName) {
+			EZLuckPerms.removePermission(player.getUniqueId(), permission, serverName);
+		}
+
+		public void givePermission(Player player, String permission, String serverName) {
+			EZLuckPerms.givePermission(player.getUniqueId(), permission, serverName);
+		}
+
+		public void removeServerPermissions(Player player, Map<String, Set<String>> serverPermissions) {
+			serverPermissions.forEach((serverName, permissions) -> permissions.forEach(permission -> removePermission(
+					player, permission, serverName)));
+		}
+
+		public void giveServerPermissions(Player player, Map<String, Set<String>> serverPermissions) {
+			serverPermissions.forEach((serverName, permissions) -> permissions.forEach(permission -> givePermission(
+					player, permission, serverName
+			)));
 		}
 
 		@Override

@@ -131,9 +131,9 @@ Options:
   auto-save-time: 18000
   # True: Sends a save message every 15 minutes to the console telling you how long did it take to save data.
   save-notification: true
-  # True: Forces a rank/prestige/rebirth data save to the disk upon a rank/prestige/rebirth update? (not recommended).
+  # True: Forces a rank/prestige/rebirth data save to the disk upon a rank/prestige/rebirth update.
   force-save: false
-  # True: Save data when a player leaves the server or get kicked, and then release an unwanted amount of memory space that they had while in the server (highly recommended).
+  # True: Save data when a player leaves the server or get kicked.
   save-on-leave: true
   # True: Enables leaderboards that consist of players with the highest ranks/prestiges/rebirths.
   enable-leaderboard: true

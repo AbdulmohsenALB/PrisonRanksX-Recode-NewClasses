@@ -183,7 +183,14 @@ public class PRXAPI {
 				.replace("{rebirth_number}", String.valueOf(getPlayerRebirthNumber(player))));
 	}
 
-	public static String getPlayerPathOrDefault(Player player) {
+	/**
+	 * Gets player's current path or default path if player is not found / not loaded
+	 *
+	 * @param player player to get path from
+	 * @return player's current path or default path if player is not found
+	 */
+	public static String getPlayerPathOrDefault(@Nullable Player player) {
+		if (player == null) return RankStorage.getDefaultPath();
 		UUID uuid = UniqueId.getUUID(player);
 		if (getInstance().getUserController().isLoaded(uuid)) return getInstance().getUserController().getUser(uuid).getPathName();
 		return RankStorage.getDefaultPath();
@@ -209,6 +216,13 @@ public class PRXAPI {
 		return getRank(rankName, RankStorage.getDefaultPath());
 	}
 
+	/**
+	 * Gets rank object from rank name and player's current path or default path if player is not found
+	 *
+	 * @param rankName rank name (Case-Sensitive)
+	 * @param player   player to get path from
+	 * @return rank from rank name and player's current path
+	 */
 	@Nullable
 	public static Rank getRank(String rankName, Player player) {
 		return getRank(rankName, getPlayerPathOrDefault(player));

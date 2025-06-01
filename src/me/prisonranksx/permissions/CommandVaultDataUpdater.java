@@ -1,11 +1,13 @@
 package me.prisonranksx.permissions;
 
-import org.bukkit.entity.Player;
-
 import me.prisonranksx.PrisonRanksX;
 import me.prisonranksx.components.CommandsComponent;
 import me.prisonranksx.managers.PermissionsManager;
+import org.bukkit.entity.Player;
 
+/**
+ * Uses vault groups plugin config value as a command for updating groups
+ */
 public class CommandVaultDataUpdater implements VaultDataUpdater {
 
 	private PrisonRanksX plugin;

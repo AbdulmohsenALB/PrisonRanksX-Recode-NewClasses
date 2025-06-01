@@ -1,23 +1,25 @@
 package me.prisonranksx.managers;
 
-import java.util.*;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Function;
-
+import com.google.common.collect.Sets;
+import me.prisonranksx.PrisonRanksX;
+import me.prisonranksx.bukkitutils.XMaterial;
+import me.prisonranksx.common.StaticCache;
+import me.prisonranksx.reflections.ActionBar;
+import me.prisonranksx.reflections.UniqueId;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
-import com.google.common.collect.Sets;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Function;
 
-import me.prisonranksx.PrisonRanksX;
-import me.prisonranksx.bukkitutils.XMaterial;
-import me.prisonranksx.common.StaticCache;
-import me.prisonranksx.reflections.ActionBar;
-import me.prisonranksx.reflections.UniqueId;
-
+/**
+ * Controls the sending of action bars. This works together with action bar progress, so if you have it enabled, it will be hidden till
+ * the animated action bar message ends.
+ */
 public class ActionBarManager extends StaticCache {
 
 	private static final Map<UUID, Integer> ACTION_BAR_ANIMATION_HOLDER = new HashMap<>();
@@ -43,6 +45,7 @@ public class ActionBarManager extends StaticCache {
 
 	public static void send(Player player, String actionBarMessage) {
 		if (actionBarMessage == null) return;
+		if (isBeingUsed(player.getUniqueId())) return;
 		ActionBar.sendActionBar(player, actionBarMessage);
 	}
 
@@ -76,7 +79,7 @@ public class ActionBarManager extends StaticCache {
 	}
 
 	public static void sendAnimated(Player player, List<String> actionBarMessages, int interval,
-			Function<String, String> function) {
+									Function<String, String> function) {
 		if (actionBarMessages == null || actionBarMessages.isEmpty()) return;
 		UUID uniqueId = player.getUniqueId();
 		String name = player.getName();
@@ -119,6 +122,7 @@ public class ActionBarManager extends StaticCache {
 				XMaterial.WOODEN_PICKAXE.parseMaterial(), XMaterial.GOLDEN_PICKAXE.parseMaterial());
 
 		public ActionBarProgress(PrisonRanksX plugin) {
+			PrisonRanksX.logDebug("Initializing action bar progress...");
 			setup(plugin);
 		}
 
@@ -130,6 +134,7 @@ public class ActionBarManager extends StaticCache {
 			this.actionBarUpdater = plugin.getGlobalSettings().getActionBarProgressUpdater();
 			this.actionBarProgressOnlyPickaxe = plugin.getGlobalSettings().isActionBarProgressOnlyPickaxe();
 			if (XMaterial.supports(16)) pickaxes.add(XMaterial.NETHERITE_PICKAXE.parseMaterial());
+			PrisonRanksX.logDebug("Action bar progress initialized.");
 		}
 
 		public boolean isOnlyPickaxe() {
@@ -166,13 +171,17 @@ public class ActionBarManager extends StaticCache {
 
 		public void enable(Player p) {
 			players.add(p.getUniqueId());
+			PrisonRanksX.logDebug("Added player " + p.getName() + " to action bar progress.");
 			if (!isTaskOn) {
 				isTaskOn = true;
+				PrisonRanksX.logDebug("Enabling action bar progress task");
 				if (isOnlyPickaxe()) {
 					startProgressTaskAdvanced();
+					PrisonRanksX.logDebug("Enabled advanced action bar progress for player " + p.getName());
 					return;
 				}
 				startProgressTask();
+				PrisonRanksX.logDebug("Enabled regular action bar progress for player " + p.getName());
 			}
 		}
 

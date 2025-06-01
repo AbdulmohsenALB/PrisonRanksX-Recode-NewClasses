@@ -1,7 +1,11 @@
 package me.prisonranksx.common;
 
 import me.prisonranksx.utils.SumMath;
+import sun.misc.Unsafe;
 
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.VarHandle;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
@@ -20,8 +24,10 @@ public class MainTest {
         //double sumEnd = SumMath.getSumEnd(10, 91);
         //System.out.println(sumEnd);
         //System.out.println(SumMath.sum(10, sumEnd));
-        System.out.println(getHighestRank("{ranknumber} * 10", 56, 1));
+
     }
+
+
 
     public static int getHighestRank(String expression, double money, int startLevel) {
         // Replace the placeholder with a variable for evaluation

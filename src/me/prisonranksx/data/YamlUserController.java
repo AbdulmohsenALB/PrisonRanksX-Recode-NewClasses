@@ -8,11 +8,13 @@ import me.prisonranksx.common.Common;
 import me.prisonranksx.holders.User;
 import me.prisonranksx.managers.ConfigManager;
 import me.prisonranksx.managers.MySQLManager;
+import me.prisonranksx.utils.FileBackup;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Map;
 import java.util.Optional;
@@ -198,6 +200,7 @@ public class YamlUserController implements UserController {
 				ConfigurationSection rebirthDataSection = ConfigManager.getRebirthDataConfig()
 						.getConfigurationSection("players");
 				UserConfig usersConfig = UserConfig.create(plugin, "users");
+				FileBackup.fromDirectory(new File(plugin.getDataFolder(), "users"));
 				try {
 					for (String stringUniqueId : rankDataSection.getKeys(false)) {
 						ConfigurationSection uniqueIdSection = rankDataSection.getConfigurationSection(stringUniqueId);

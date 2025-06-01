@@ -7,10 +7,12 @@ import me.prisonranksx.bukkitutils.ConfigCreator;
 import me.prisonranksx.bukkitutils.FireworkColor;
 import me.prisonranksx.components.*;
 import me.prisonranksx.data.*;
+import me.prisonranksx.holders.Level;
 import me.prisonranksx.holders.Prestige;
 import me.prisonranksx.holders.Rank;
 import me.prisonranksx.holders.User;
 import me.prisonranksx.managers.ConfigManager;
+import me.prisonranksx.managers.PermissionsManager;
 import me.prisonranksx.managers.StringManager;
 import me.prisonranksx.reflections.UniqueId;
 import me.prisonranksx.settings.Messages;
@@ -22,6 +24,7 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 
 public class AdminExecutor {
 
@@ -34,6 +37,7 @@ public class AdminExecutor {
 	private String getField(ConfigurationSection section, String... fields) {
 		return section == null ? fields[0] : ConfigManager.getPossibleField(section, fields);
 	}
+
 
 	private ConfigurationSection getMainRankSection() {
 		return ConfigManager.getRanksConfig().getConfigurationSection("Ranks");
@@ -70,6 +74,88 @@ public class AdminExecutor {
 		user.setPathName(pathName);
 		plugin.getRankupExecutor().updateGroup(UniqueId.getPlayer(uniqueId));
 		return true;
+	}
+
+	public CompletableFuture<Void> removeRankOnResetPermissions(UUID uniqueId) {
+		User user = getUser(uniqueId);
+		Player target = user.getPlayer();
+		if (plugin.getRankSettings().isRemoveRankPermissionsOnRankReset()) {
+			return CompletableFuture.runAsync(() -> RankStorage.getPathRanks(PRXAPI.getPlayerPathOrDefault(target)).forEach(rank -> {
+				if (!rank.getName().equals(RankStorage.getFirstRankName())) removeLevelPerms(target, rank);
+			}));
+		}
+		return CompletableFuture.completedFuture(null);
+	}
+
+	public CompletableFuture<Void> removeRankOnDeletionPermissions(UUID uniqueId) {
+		User user = getUser(uniqueId);
+		Player target = user.getPlayer();
+		if (plugin.getRankSettings().isRemoveRankPermissionsOnRankDeletion()) {
+			return CompletableFuture.runAsync(() -> RankStorage.getPathRanks(PRXAPI.getPlayerPathOrDefault(target))
+					.forEach(rank -> removeLevelPerms(target, rank)));
+		}
+		return CompletableFuture.completedFuture(null);
+	}
+
+	public CompletableFuture<Void> removePrestigeOnResetPermissions(UUID uniqueId) {
+		User user = getUser(uniqueId);
+		Player target = user.getPlayer();
+		if (plugin.getPrestigeSettings().isRemovePrestigePermissionsOnPrestigeReset()) {
+			return CompletableFuture.runAsync(() -> PrestigeStorage.getPrestiges().forEach(prestige -> {
+				if (!prestige.getName().equals(PrestigeStorage.getFirstPrestigeName()))
+					removeLevelPerms(target, prestige);
+			}));
+		}
+		return CompletableFuture.completedFuture(null);
+	}
+
+	public CompletableFuture<Void> removePrestigeOnDeletionPermissions(UUID uniqueId) {
+		User user = getUser(uniqueId);
+		Player target = user.getPlayer();
+		if (plugin.getPrestigeSettings().isRemovePrestigePermissionsOnPrestigeDeletion()) {
+			return CompletableFuture.runAsync(() ->
+					PrestigeStorage.getPrestiges().forEach(prestige -> removeLevelPerms(target, prestige))
+			);
+		}
+		return CompletableFuture.completedFuture(null);
+	}
+
+	public CompletableFuture<Void> removeRebirthOnResetPermissions(UUID uniqueId) {
+		User user = getUser(uniqueId);
+		Player target = user.getPlayer();
+		if (plugin.getRebirthSettings().isRemoveRebirthPermissionsOnRebirthReset()) {
+			return CompletableFuture.runAsync(() -> {
+				RebirthStorage.getRebirths().forEach(rebirth -> {
+					if (!rebirth.getName().equals(RebirthStorage.getFirstRebirthName())) removeLevelPerms(target, rebirth);
+				});
+			});
+		}
+		return CompletableFuture.completedFuture(null);
+	}
+
+	public CompletableFuture<Void> removeRebirthOnDeletionPermissions(UUID uniqueId) {
+		User user = getUser(uniqueId);
+		Player target = user.getPlayer();
+		if (plugin.getRebirthSettings().isRemoveRebirthPermissionsOnRebirthDeletion()) {
+			return CompletableFuture.runAsync(() -> RebirthStorage.getRebirths().forEach(rebirth -> removeLevelPerms(target, rebirth)));
+		}
+		return CompletableFuture.completedFuture(null);
+	}
+
+	private void removeLevelPerms(Player target, Level level) {
+		PermissionsComponent permissionsComponent = level.getPermissionsComponent();
+		if (permissionsComponent != null) {
+			if (permissionsComponent.hasGlobalAddPerms())
+				PermissionsManager.removePermissions(target, permissionsComponent.getAddPermissionCollection());
+			if (permissionsComponent.hasAddWorldPerms())
+				PermissionsManager.removePermissions(target, permissionsComponent.getAddWorldPermissionMap());
+			if (plugin.getGlobalSettings().isLuckPermsLoaded()) {
+				PermissionsComponent.LuckPermsPermissionsComponent permComp =
+						(PermissionsComponent.LuckPermsPermissionsComponent) permissionsComponent;
+				if (permComp.hasAddServerPerms())
+					permComp.removeServerPermissions(target, permComp.getAddServerPermissionMap());
+			}
+		}
 	}
 
 	public boolean setPlayerRank(UUID uniqueId, String rankName) {
@@ -508,18 +594,12 @@ public class AdminExecutor {
 		plugin.initGlobalSettings();
 
 		if (plugin.getGlobalSettings().isRankEnabled()) {
-			// plugin.getRankSettings().setup();
-			// RankStorage.loadRanks();
 			plugin.prepareRanks();
 		}
 		if (plugin.getGlobalSettings().isPrestigeEnabled()) {
-			// plugin.getPrestigeSettings().setup();
-			// PrestigeStorage.loadPrestiges();
 			plugin.preparePrestiges();
 		}
 		if (plugin.getGlobalSettings().isRebirthEnabled()) {
-			// plugin.getRebirthSettings().setup();
-			// RebirthStorage.loadRebirths();
 			plugin.prepareRebirths();
 		}
 		if (plugin.getGlobalSettings().isHologramsPlugin() && (plugin.getHologramSettings().isHologramsEnabled()))
